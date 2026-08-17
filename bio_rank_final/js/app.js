@@ -18,8 +18,9 @@ const App = (() => {
     // entry point (checks role against the backend, then redirects);
     // it is never the final screen a renderer targets directly.
     'admin', 'admin-login', 'admin-chapters', 'admin-subskills',
-    'admin-questions', 'admin-question-form', 'admin-csv-import',
+    'admin-questions', 'admin-question-form', 'admin-ncert-focus', 'admin-ncert-form', 'admin-csv-import',
     'admin-fulltests', 'admin-flt-questions', 'admin-reports', 'admin-auditlogs',
+    'ncert-bio-focus',
   ];
 
   let current = { screen: null, data: null };
@@ -115,11 +116,14 @@ const App = (() => {
     'admin-subskills':      renderAdminSubSkills,
     'admin-questions':      renderAdminQuestions,
     'admin-question-form':  renderAdminQuestionForm,
+    'admin-ncert-focus':    renderAdminNcertFocus,
+    'admin-ncert-form':     renderAdminNcertForm,
     'admin-csv-import':     renderAdminCsvImport,
     'admin-fulltests':      renderAdminFullLengthTests,
     'admin-flt-questions':  renderAdminFLTQuestions,
     'admin-reports':        renderAdminReports,
     'admin-auditlogs':      renderAdminAuditLogs,
+    'ncert-bio-focus':      renderNcertBioFocus,
   };
 
   /* ---- Update nav active states ---- */
@@ -129,6 +133,7 @@ const App = (() => {
       const target = item.getAttribute('data-screen');
       // Highlight the nav item that matches, or home for non-nav screens
       const isActive = target === screen
+        || (screen === 'ncert-bio-focus' && target === 'ncert-bio-focus')
         || (screen === 'weakness-map' && target === 'home')
         || (screen === 'micro-retest' && target === 'improvement-book')
         || (screen === 'spaced-retest' && target === 'improvement-book')

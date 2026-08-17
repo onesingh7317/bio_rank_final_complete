@@ -132,18 +132,58 @@ const TestEngine = (() => {
           <!-- Question -->
           <div>
             <div class="question-card">
-              <div class="question-number" style="display:flex;justify-content:space-between;align-items:center;">
-                <div style="display:flex;align-items:center;gap:var(--sp-2);">
+              <div class="question-number" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-2);">
+                <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
                   <span class="q-chip">Q${state.current + 1}</span>
-                  <span style="color:var(--neutral-400);font-weight:400;">
+                  <span style="color:var(--neutral-400);font-weight:500;">
                     ${q.chapter ? getChapterName(q.chapter) : ''}
                   </span>
+                  ${q.ncertReference ? `
+                    <span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:11px;font-weight:600;">
+                      📖 ${escapeHtml(q.ncertReference)}
+                    </span>
+                  ` : ''}
+                  ${q.questionType === 'assertion_reason' ? `<span class="badge badge-warning" style="font-size:10px;">Assertion &amp; Reason</span>` : ''}
+                  ${q.questionType === 'matching' ? `<span class="badge badge-primary" style="font-size:10px;">Match the Following</span>` : ''}
+                  ${q.questionType === 'diagram' || q.diagramUrl ? `<span class="badge badge-neutral" style="font-size:10px;">Diagram Based</span>` : ''}
                 </div>
                 <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--neutral-400);padding:2px 8px;height:auto;" onclick="TestEngine.openReportModal()" title="Report an error or issue with this question">
                   ⚠️ Report Issue
                 </button>
               </div>
-              <div class="question-text">${q.text}</div>
+
+              ${q.diagramUrl ? `
+                <div style="text-align:center;margin:var(--sp-3) 0 var(--sp-4) 0;background:var(--neutral-50);padding:var(--sp-3);border-radius:var(--radius-md);border:1px solid var(--neutral-100);">
+                  <img src="${q.diagramUrl}" alt="Biology Diagram" style="max-height:260px;max-width:100%;object-fit:contain;border-radius:var(--radius-sm);" />
+                </div>
+              ` : ''}
+
+              <div class="question-text" style="line-height:1.5;margin-bottom:var(--sp-3);">${q.text}</div>
+
+              ${q.assertion && q.reason ? `
+                <div style="background:var(--neutral-50);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-4);border-left:3px solid var(--primary-500);font-size:var(--text-sm);">
+                  <div style="margin-bottom:var(--sp-2);line-height:1.4;">
+                    <strong style="color:var(--primary-700);">Assertion (A):</strong> ${escapeHtml(q.assertion)}
+                  </div>
+                  <div style="line-height:1.4;">
+                    <strong style="color:var(--primary-700);">Reason (R):</strong> ${escapeHtml(q.reason)}
+                  </div>
+                </div>
+              ` : ''}
+
+              ${q.columnA && q.columnA.length && q.columnB && q.columnB.length ? `
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);background:var(--neutral-50);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-4);font-size:var(--text-xs);border:1px solid var(--neutral-100);">
+                  <div>
+                    <div style="font-weight:700;margin-bottom:var(--sp-2);color:var(--neutral-700);border-bottom:1px solid var(--neutral-200);padding-bottom:4px;">Column I</div>
+                    ${q.columnA.map(item => `<div style="margin-bottom:4px;line-height:1.3;">${escapeHtml(item)}</div>`).join('')}
+                  </div>
+                  <div>
+                    <div style="font-weight:700;margin-bottom:var(--sp-2);color:var(--neutral-700);border-bottom:1px solid var(--neutral-200);padding-bottom:4px;">Column II</div>
+                    ${q.columnB.map(item => `<div style="margin-bottom:4px;line-height:1.3;">${escapeHtml(item)}</div>`).join('')}
+                  </div>
+                </div>
+              ` : ''}
+
               <div class="options-list" id="options-list">
                 ${q.options.map((opt, i) => `
                   <button class="option-item ${state.answers[state.current] === i ? 'selected' : ''}"
@@ -290,6 +330,26 @@ const TestEngine = (() => {
     });
 
     const accuracy = qs.length > 0 ? Math.round((correct / qs.length) * 100) : 0;
+
+    // Track NCERT Bio Focus progress
+    if (state.mode === 'ncert-focus' && state.meta && state.meta.chapterId && window.State) {
+      try {
+        const appState = State.get();
+        if (!appState.ncertProgress) appState.ncertProgress = {};
+        const chId = state.meta.chapterId;
+        const prev = appState.ncertProgress[chId] || { attempts: 0, bestScore: 0, totalQuestions: qs.length };
+        appState.ncertProgress[chId] = {
+          attempts: (prev.attempts || 0) + 1,
+          bestScore: Math.max(prev.bestScore || 0, correct),
+          totalQuestions: qs.length,
+          lastAttemptDate: Date.now(),
+          accuracy,
+        };
+        State.save(appState);
+      } catch (e) {
+        console.warn('Could not record ncert progress:', e);
+      }
+    }
 
     return {
       mode: state.mode,

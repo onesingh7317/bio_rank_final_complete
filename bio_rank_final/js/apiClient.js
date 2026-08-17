@@ -186,11 +186,32 @@ const ApiClient = (() => {
           targetId: 'sys_01',
           performedBy: { name: 'System', username: 'system' },
           details: 'Initialized default NEET Biology curriculum and question bank',
-          createdAt: new Date(Date.now() - 3600000).toISOString(),
-        }
+            createdAt: new Date(Date.now() - 3600000).toISOString(),
+        },
       ];
+      const reports = [];
 
-      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs };
+      const ncertQuestions = (window.DB && window.DB.ncertQuestions ? [...window.DB.ncertQuestions] : []).map((q, idx) => ({
+        _id: q.id || `ncert_${idx + 1}`,
+        chapterId: q.chapter || 'ch01',
+        class: q.class || '11',
+        topic: q.topic || '',
+        questionType: q.questionType || 'mcq',
+        difficulty: q.difficulty || 'medium',
+        text: q.text,
+        assertion: q.assertion || '',
+        reason: q.reason || '',
+        columnA: q.columnA || [],
+        columnB: q.columnB || [],
+        diagramUrl: q.diagramUrl || '',
+        options: q.options || ['A', 'B', 'C', 'D'],
+        correctOption: q.correct ?? q.correctOption ?? 0,
+        explanation: q.explanation || '',
+        ncertReference: q.ncertReference || '',
+        isNcertFocus: true,
+      }));
+
+      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs, reports, ncertQuestions };
       save(initial);
       return initial;
     }
@@ -626,6 +647,99 @@ const ApiClient = (() => {
         data.reports.splice(repIdx, 1);
         MockStore.save(data);
         MockStore.addAuditLog('DELETE_REPORT', 'QuestionReport', repId, 'Deleted report');
+        return { ok: true };
+      }
+    }
+
+    // NCERT Bio Focus Endpoints
+    if (cleanPath === '/ncert-bio-focus' || cleanPath === '/admin/ncert-bio-focus') {
+      if (method === 'GET') {
+        let ncertQs = data.ncertQuestions || [];
+        const chapterId = urlParams.get('chapterId');
+        const classNum = urlParams.get('class');
+        const questionType = urlParams.get('questionType');
+        const difficulty = urlParams.get('difficulty');
+        const search = urlParams.get('search');
+
+        if (chapterId) ncertQs = ncertQs.filter((q) => q.chapterId === chapterId || q.chapter === chapterId);
+        if (classNum) ncertQs = ncertQs.filter((q) => q.class === classNum);
+        if (questionType) ncertQs = ncertQs.filter((q) => q.questionType === questionType);
+        if (difficulty) ncertQs = ncertQs.filter((q) => q.difficulty === difficulty);
+        if (search) {
+          const s = search.toLowerCase();
+          ncertQs = ncertQs.filter(
+            (q) =>
+              (q.text && q.text.toLowerCase().includes(s)) ||
+              (q.topic && q.topic.toLowerCase().includes(s)) ||
+              (q.ncertReference && q.ncertReference.toLowerCase().includes(s))
+          );
+        }
+
+        const page = Number(urlParams.get('page')) || 1;
+        const limit = Number(urlParams.get('limit')) || 20;
+        const total = ncertQs.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const paginated = ncertQs.slice((page - 1) * limit, page * limit);
+
+        return {
+          questions: paginated,
+          pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+        };
+      }
+
+      if (method === 'POST') {
+        const newQ = {
+          _id: `ncert_${Date.now()}`,
+          chapterId: body.chapterId,
+          class: body.class || '11',
+          topic: body.topic || '',
+          questionType: body.questionType || 'mcq',
+          difficulty: body.difficulty || 'medium',
+          text: body.text,
+          assertion: body.assertion || '',
+          reason: body.reason || '',
+          columnA: body.columnA || [],
+          columnB: body.columnB || [],
+          diagramUrl: body.diagramUrl || '',
+          options: body.options || ['A', 'B', 'C', 'D'],
+          correctOption: Number(body.correctOption) || 0,
+          explanation: body.explanation || '',
+          ncertReference: body.ncertReference || '',
+          isNcertFocus: true,
+          createdAt: new Date().toISOString(),
+        };
+        if (!data.ncertQuestions) data.ncertQuestions = [];
+        data.ncertQuestions.unshift(newQ);
+        MockStore.save(data);
+        MockStore.addAuditLog(
+          'CREATE_NCERT_QUESTION',
+          'NcertQuestion',
+          newQ._id,
+          `Created NCERT Question: ${newQ.text.substring(0, 40)}`
+        );
+        return { ok: true, question: newQ };
+      }
+    }
+
+    if (cleanPath.startsWith('/ncert-bio-focus/') || cleanPath.startsWith('/admin/ncert-bio-focus/')) {
+      const parts = cleanPath.split('/');
+      const qId = parts[parts.length - 1];
+      const qIdx = (data.ncertQuestions || []).findIndex((q) => q._id === qId || q.id === qId);
+      if (qIdx === -1) throw new ApiError('NCERT Question not found', 404);
+
+      if (method === 'GET') {
+        return { question: data.ncertQuestions[qIdx] };
+      }
+      if (method === 'PUT' || method === 'PATCH') {
+        data.ncertQuestions[qIdx] = { ...data.ncertQuestions[qIdx], ...body };
+        MockStore.save(data);
+        MockStore.addAuditLog('UPDATE_NCERT_QUESTION', 'NcertQuestion', qId, `Updated NCERT Question`);
+        return { ok: true, question: data.ncertQuestions[qIdx] };
+      }
+      if (method === 'DELETE') {
+        data.ncertQuestions.splice(qIdx, 1);
+        MockStore.save(data);
+        MockStore.addAuditLog('DELETE_NCERT_QUESTION', 'NcertQuestion', qId, `Deleted NCERT Question`);
         return { ok: true };
       }
     }

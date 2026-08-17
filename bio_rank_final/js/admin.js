@@ -23,6 +23,8 @@ const AdminState = {
   fltSelectedBankQuestionIds: new Set(),
   questionFilters: { chapterId: '', page: 1 },
   reportFilter: 'all',
+  ncertFilters: { chapterId: '', class: '', questionType: '', search: '', page: 1 },
+  editingNcertQuestionId: null,
   subSkillChapterFilter: '',
   importPreview: null, // last /preview response, held until confirm
   cachedChapters: [],  // used to populate dropdowns without refetching every render
@@ -975,6 +977,205 @@ const Admin = {
       alert('Failed to delete report: ' + err.message);
     }
   },
+
+  /* ---------------- NCERT Bio Focus ---------------- */
+
+  async loadNcertQuestions(page = 1) {
+    const listEl = document.getElementById('admin-ncert-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading NCERT Bio Focus questions…</p>';
+
+    const { chapterId, class: classNum, questionType, search } = AdminState.ncertFilters;
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (chapterId) params.set('chapterId', chapterId);
+    if (classNum) params.set('class', classNum);
+    if (questionType) params.set('questionType', questionType);
+    if (search) params.set('search', search);
+
+    try {
+      const res = await ApiClient.get(`/admin/ncert-bio-focus?${params.toString()}`);
+      listEl.innerHTML = res.questions && res.questions.length
+        ? res.questions.map(adminNcertRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No NCERT Bio Focus questions found for this filter. Click <strong>+ Add NCERT Bio Focus Question</strong> to create one!</p>';
+      renderAdminPagination('admin-ncert-pagination', res.pagination, (p) => Admin.loadNcertQuestions(p));
+    } catch (err) {
+      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  onNcertFilterChange(key, value) {
+    AdminState.ncertFilters[key] = value;
+    Admin.loadNcertQuestions(1);
+  },
+
+  startCreateNcertQuestion() {
+    AdminState.editingNcertQuestionId = null;
+    App.navigate('admin-ncert-form', null);
+  },
+
+  async startEditNcertQuestion(id) {
+    AdminState.editingNcertQuestionId = id;
+    try {
+      const res = await ApiClient.get(`/admin/ncert-bio-focus/${id}`);
+      App.navigate('admin-ncert-form', res.question);
+    } catch (err) {
+      alert('Could not fetch question for editing: ' + err.message);
+    }
+  },
+
+  onNcertTypeChangeInForm(type) {
+    const mcqBlock = document.getElementById('ncert-mcq-fields');
+    const arBlock = document.getElementById('ncert-ar-fields');
+    const matchBlock = document.getElementById('ncert-match-fields');
+    const diagBlock = document.getElementById('ncert-diag-fields');
+
+    if (mcqBlock) mcqBlock.style.display = type === 'mcq' ? 'block' : 'none';
+    if (arBlock) arBlock.style.display = type === 'assertion_reason' ? 'block' : 'none';
+    if (matchBlock) matchBlock.style.display = type === 'matching' ? 'block' : 'none';
+    if (diagBlock) diagBlock.style.display = type === 'diagram' ? 'block' : 'none';
+  },
+
+  async saveNcertQuestion(e) {
+    e.preventDefault();
+    const id = AdminState.editingNcertQuestionId;
+    const errorEl = document.getElementById('admin-ncert-form-error');
+    if (errorEl) errorEl.style.display = 'none';
+
+    const questionType = document.getElementById('ncert-q-type')?.value || 'mcq';
+    const classNum = document.getElementById('ncert-q-class')?.value || '11';
+    const chapterId = document.getElementById('ncert-q-chapter')?.value;
+    const topic = document.getElementById('ncert-q-topic')?.value?.trim() || '';
+    const difficulty = document.getElementById('ncert-q-difficulty')?.value || 'medium';
+    const ncertReference = document.getElementById('ncert-q-ref')?.value?.trim() || '';
+    const explanation = document.getElementById('ncert-q-explanation')?.value?.trim() || '';
+
+    let text = document.getElementById('ncert-q-text')?.value?.trim() || '';
+    let assertion = '';
+    let reason = '';
+    let columnA = [];
+    let columnB = [];
+    let diagramUrl = '';
+    let options = [];
+    let correctOption = 0;
+
+    if (questionType === 'assertion_reason') {
+      assertion = document.getElementById('ncert-ar-assertion')?.value?.trim() || '';
+      reason = document.getElementById('ncert-ar-reason')?.value?.trim() || '';
+      if (!text) text = 'Read the following Assertion and Reason statements carefully and choose the correct option:';
+      options = [
+        'Both Assertion and Reason are true and Reason is the correct explanation of Assertion.',
+        'Both Assertion and Reason are true but Reason is not the correct explanation of Assertion.',
+        'Assertion is true but Reason is false.',
+        'Both Assertion and Reason are false (or Reason is true but Assertion is false).'
+      ];
+      const correctRadio = document.querySelector('input[name="ncert-ar-correct"]:checked');
+      correctOption = correctRadio ? Number(correctRadio.value) : 0;
+
+      if (!assertion || !reason) {
+        if (errorEl) { errorEl.textContent = 'Please enter both Assertion and Reason statements.'; errorEl.style.display = 'block'; }
+        return;
+      }
+    } else if (questionType === 'matching') {
+      if (!text) text = 'Match the items in Column I with Column II correctly:';
+      columnA = [
+        document.getElementById('ncert-match-a1')?.value?.trim() || 'A. Item 1',
+        document.getElementById('ncert-match-a2')?.value?.trim() || 'B. Item 2',
+        document.getElementById('ncert-match-a3')?.value?.trim() || 'C. Item 3',
+        document.getElementById('ncert-match-a4')?.value?.trim() || 'D. Item 4',
+      ];
+      columnB = [
+        document.getElementById('ncert-match-b1')?.value?.trim() || '1. Match 1',
+        document.getElementById('ncert-match-b2')?.value?.trim() || '2. Match 2',
+        document.getElementById('ncert-match-b3')?.value?.trim() || '3. Match 3',
+        document.getElementById('ncert-match-b4')?.value?.trim() || '4. Match 4',
+      ];
+      options = [
+        document.getElementById('ncert-match-opt0')?.value?.trim() || 'A-1, B-2, C-3, D-4',
+        document.getElementById('ncert-match-opt1')?.value?.trim() || 'A-2, B-1, C-4, D-3',
+        document.getElementById('ncert-match-opt2')?.value?.trim() || 'A-3, B-4, C-1, D-2',
+        document.getElementById('ncert-match-opt3')?.value?.trim() || 'A-4, B-3, C-2, D-1',
+      ];
+      const correctRadio = document.querySelector('input[name="ncert-match-correct"]:checked');
+      correctOption = correctRadio ? Number(correctRadio.value) : 0;
+    } else if (questionType === 'diagram') {
+      diagramUrl = document.getElementById('ncert-diag-url')?.value?.trim() || '';
+      options = [
+        document.getElementById('ncert-diag-opt0')?.value?.trim() || '',
+        document.getElementById('ncert-diag-opt1')?.value?.trim() || '',
+        document.getElementById('ncert-diag-opt2')?.value?.trim() || '',
+        document.getElementById('ncert-diag-opt3')?.value?.trim() || '',
+      ];
+      const correctRadio = document.querySelector('input[name="ncert-diag-correct"]:checked');
+      correctOption = correctRadio ? Number(correctRadio.value) : 0;
+    } else {
+      // Standard MCQ
+      options = [
+        document.getElementById('ncert-mcq-opt0')?.value?.trim() || '',
+        document.getElementById('ncert-mcq-opt1')?.value?.trim() || '',
+        document.getElementById('ncert-mcq-opt2')?.value?.trim() || '',
+        document.getElementById('ncert-mcq-opt3')?.value?.trim() || '',
+      ];
+      const correctRadio = document.querySelector('input[name="ncert-mcq-correct"]:checked');
+      correctOption = correctRadio ? Number(correctRadio.value) : 0;
+    }
+
+    if (!chapterId || !text) {
+      if (errorEl) { errorEl.textContent = 'Please choose a chapter and enter the question text.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    if (options.some(o => !o)) {
+      if (errorEl) { errorEl.textContent = 'Please provide all 4 option choices.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    const payload = {
+      chapterId,
+      class: classNum,
+      topic,
+      questionType,
+      difficulty,
+      text,
+      assertion,
+      reason,
+      columnA,
+      columnB,
+      diagramUrl,
+      options,
+      correctOption,
+      explanation,
+      ncertReference,
+    };
+
+    try {
+      if (id) {
+        await ApiClient.put(`/admin/ncert-bio-focus/${id}`, payload);
+        App.showToast('✅ NCERT Question updated successfully.');
+      } else {
+        await ApiClient.post('/admin/ncert-bio-focus', payload);
+        App.showToast('✅ NCERT Question created successfully.');
+      }
+      App.navigate('admin-ncert-focus');
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Failed to save question.';
+        errorEl.style.display = 'block';
+      } else {
+        alert(err.message);
+      }
+    }
+  },
+
+  async deleteNcertQuestion(id, name) {
+    if (!confirm(`Delete this NCERT Question? "${name || id}"`)) return;
+    try {
+      await ApiClient.del(`/admin/ncert-bio-focus/${id}`);
+      App.showToast('NCERT Question deleted.');
+      Admin.loadNcertQuestions();
+    } catch (err) {
+      alert('Failed to delete question: ' + err.message);
+    }
+  },
 };
 
 /* ============================================================
@@ -1146,6 +1347,68 @@ function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
   `;
 }
 
+
+function adminNcertRow(q) {
+  const chapterName =
+    q.chapterId?.name ||
+    AdminState.cachedChapters.find((c) => c._id === q.chapterId || c._id === q.chapter)?.name ||
+    q.chapter ||
+    'Chapter';
+  const typeLabelMap = {
+    mcq: '<span class="badge badge-neutral" style="font-size:10px;">MCQ</span>',
+    assertion_reason: '<span class="badge badge-warning" style="font-size:10px;">Assertion &amp; Reason</span>',
+    matching: '<span class="badge badge-primary" style="font-size:10px;">Matching Columns</span>',
+    diagram: '<span class="badge" style="background:#d1fae5;color:#065f46;font-size:10px;">Diagram</span>',
+  };
+
+  const typeBadge = typeLabelMap[q.questionType] || '<span class="badge badge-neutral" style="font-size:10px;">MCQ</span>';
+  const diffBadge = `<span class="badge badge-${q.difficulty === 'hard' ? 'error' : q.difficulty === 'easy' ? 'success' : 'warning'}" style="font-size:10px;">${q.difficulty || 'medium'}</span>`;
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid var(--success-500);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+          <span class="badge badge-neutral" style="font-size:10px;font-weight:700;">Class ${q.class || '11'}</span>
+          <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(chapterName)}</span>
+          ${typeBadge}
+          ${diffBadge}
+          ${q.topic ? `<span style="font-size:var(--text-xs);color:var(--neutral-500);font-weight:500;">&bull; ${escapeHtml(q.topic)}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:var(--sp-1);">
+          <button class="btn btn-outline btn-sm" onclick="Admin.startEditNcertQuestion('${q._id || q.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteNcertQuestion('${q._id || q.id}', '${escapeHtml(q.text).replace(/'/g, "\\'")}')">Delete</button>
+        </div>
+      </div>
+
+      <div style="font-weight:600;font-size:var(--text-sm);line-height:1.4;margin-bottom:var(--sp-2);">
+        ${escapeHtml(q.text)}
+      </div>
+
+      ${q.assertion && q.reason ? `
+        <div style="background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);margin-bottom:var(--sp-2);font-size:var(--text-xs);">
+          <div><strong>A:</strong> ${escapeHtml(q.assertion)}</div>
+          <div><strong>R:</strong> ${escapeHtml(q.reason)}</div>
+        </div>
+      ` : ''}
+
+      ${q.diagramUrl ? `
+        <div style="margin-bottom:var(--sp-2);">
+          <span style="font-size:11px;color:var(--neutral-500);">🖼️ Diagram URL: <a href="${escapeHtml(q.diagramUrl)}" target="_blank" style="color:var(--primary-600);">${escapeHtml(q.diagramUrl.substring(0, 45))}…</a></span>
+        </div>
+      ` : ''}
+
+      <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:var(--sp-1);">
+        <strong>Correct:</strong> Option ${String.fromCharCode(65 + (q.correctOption ?? q.correct ?? 0))} &mdash; ${escapeHtml((q.options || [])[q.correctOption ?? q.correct ?? 0] || '')}
+      </div>
+
+      ${q.ncertReference ? `
+        <div style="font-size:11px;color:var(--success-700);font-weight:600;margin-top:var(--sp-1);">
+          📖 NCERT Ref: ${escapeHtml(q.ncertReference)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
 
 function adminReportRow(r) {
   const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'Recently';
@@ -1609,6 +1872,274 @@ function renderAdminFLTQuestions(container, data) {
 }
 
 /* ============================================================
+   Screen: admin-ncert-focus (NCERT Bio Focus Question Bank)
+   ============================================================ */
+function renderAdminNcertFocus(container) {
+  const { chapterId, class: classNum, questionType, search } = AdminState.ncertFilters;
+
+  container.innerHTML = adminShell('ncertfocus', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">🌿 NCERT Bio Focus Questions</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Line-by-line NCERT questions covering MCQs, Assertion-Reason, Matching, and Diagrams.</p>
+      </div>
+      <button class="btn btn-primary" onclick="Admin.startCreateNcertQuestion()">
+        + Add NCERT Bio Focus Question
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:var(--sp-4);padding:var(--sp-3);">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:var(--sp-2);align-items:center;">
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Class</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onNcertFilterChange('class', this.value); populateChapterDropdown('admin-ncert-filter-chapter', '', 'All Chapters');">
+            <option value="" ${!classNum ? 'selected' : ''}>All Classes</option>
+            <option value="11" ${classNum === '11' ? 'selected' : ''}>Class 11</option>
+            <option value="12" ${classNum === '12' ? 'selected' : ''}>Class 12</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Chapter</label>
+          <select class="form-select form-select-sm" id="admin-ncert-filter-chapter" style="width:100%;" onchange="Admin.onNcertFilterChange('chapterId', this.value)">
+            <option value="">All Chapters</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Question Type</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onNcertFilterChange('questionType', this.value)">
+            <option value="" ${!questionType ? 'selected' : ''}>All Types</option>
+            <option value="mcq" ${questionType === 'mcq' ? 'selected' : ''}>MCQ</option>
+            <option value="assertion_reason" ${questionType === 'assertion_reason' ? 'selected' : ''}>Assertion & Reason</option>
+            <option value="matching" ${questionType === 'matching' ? 'selected' : ''}>Matching Columns</option>
+            <option value="diagram" ${questionType === 'diagram' ? 'selected' : ''}>Diagram-based</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Search Text / Ref</label>
+          <input type="text" class="form-input form-input-sm" placeholder="Search NCERT lines…" value="${escapeHtml(search)}" oninput="Admin.onNcertFilterChange('search', this.value)" style="width:100%;" />
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-ncert-list"></div>
+    <div id="admin-ncert-pagination"></div>
+  `);
+
+  populateChapterDropdown('admin-ncert-filter-chapter', '', 'All Chapters');
+  Admin.loadNcertQuestions();
+}
+
+/* ============================================================
+   Screen: admin-ncert-form (Add/Edit NCERT Bio Focus Question)
+   ============================================================ */
+function renderAdminNcertForm(container, questionData) {
+  const isEdit = !!questionData;
+  const q = questionData || {};
+  AdminState.editingNcertQuestionId = q._id || q.id || null;
+
+  const currentType = q.questionType || 'mcq';
+  const currentClass = q.class || '11';
+  const correctOpt = q.correctOption ?? q.correct ?? 0;
+
+  container.innerHTML = adminShell('ncertfocus', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">
+          ${isEdit ? '✏️ Edit' : '➕ Add'} NCERT Bio Focus Question
+        </div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">
+          Create high-yield questions based on NCERT line-by-line content for NEET Biology.
+        </p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="App.navigate('admin-ncert-focus')">← Back to List</button>
+    </div>
+
+    <div class="card" style="padding:var(--sp-5);">
+      <form onsubmit="Admin.saveNcertQuestion(event)">
+        <div id="admin-ncert-form-error" style="color:var(--error-600);background:var(--error-50);border-left:3px solid var(--error-600);padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);margin-bottom:var(--sp-4);display:none;"></div>
+
+        <!-- Section 1: Basic Information -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:var(--primary-700);">
+          1. Basic Information
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-class">Class *</label>
+            <select class="form-select" id="ncert-q-class" required onchange="populateChapterDropdown('ncert-q-chapter')">
+              <option value="11" ${currentClass === '11' ? 'selected' : ''}>Class 11</option>
+              <option value="12" ${currentClass === '12' ? 'selected' : ''}>Class 12</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-chapter">Chapter *</label>
+            <select class="form-select" id="ncert-q-chapter" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-topic">Topic / Section (Optional)</label>
+            <input class="form-input" id="ncert-q-topic" type="text" placeholder="e.g. Endomembrane System" value="${escapeHtml(q.topic || '')}" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-difficulty">Difficulty *</label>
+            <select class="form-select" id="ncert-q-difficulty" required>
+              <option value="easy" ${q.difficulty === 'easy' ? 'selected' : ''}>Easy</option>
+              <option value="medium" ${!q.difficulty || q.difficulty === 'medium' ? 'selected' : ''}>Medium</option>
+              <option value="hard" ${q.difficulty === 'hard' ? 'selected' : ''}>Hard</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Section 2: Question Type & Reference -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:var(--primary-700);">
+          2. Question Type &amp; NCERT Line Reference
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-type">Question Type *</label>
+            <select class="form-select" id="ncert-q-type" required onchange="Admin.onNcertTypeChangeInForm(this.value)">
+              <option value="mcq" ${currentType === 'mcq' ? 'selected' : ''}>Multiple Choice Question (MCQ)</option>
+              <option value="assertion_reason" ${currentType === 'assertion_reason' ? 'selected' : ''}>Assertion &amp; Reason</option>
+              <option value="matching" ${currentType === 'matching' ? 'selected' : ''}>Matching Columns (Match the Following)</option>
+              <option value="diagram" ${currentType === 'diagram' ? 'selected' : ''}>Diagram-Based Question</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="ncert-q-ref">NCERT Reference / Page / Line *</label>
+            <input class="form-input" id="ncert-q-ref" type="text" placeholder="e.g. NCERT Class 11, Chapter 8, Page 128, Line 14" value="${escapeHtml(q.ncertReference || '')}" required />
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--sp-4);">
+          <label class="form-label" for="ncert-q-text">Question Prompt / Stem *</label>
+          <textarea class="form-input" id="ncert-q-text" rows="3" placeholder="Enter question text or prompt…" required>${escapeHtml(q.text || '')}</textarea>
+        </div>
+
+        <!-- Dynamic Block: MCQ Fields -->
+        <div id="ncert-mcq-fields" style="display:${currentType === 'mcq' ? 'block' : 'none'};margin-bottom:var(--sp-4);">
+          <label class="form-label" style="margin-bottom:var(--sp-2);">Options (Select correct radio) *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+            ${[0, 1, 2, 3].map((i) => `
+              <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                <input type="radio" name="ncert-mcq-correct" value="${i}" ${correctOpt === i ? 'checked' : ''} style="cursor:pointer;" />
+                <span style="font-weight:700;font-size:var(--text-xs);width:20px;">${['A','B','C','D'][i]}.</span>
+                <input class="form-input form-input-sm" id="ncert-mcq-opt${i}" type="text" placeholder="Option ${['A','B','C','D'][i]}" value="${escapeHtml((q.options || [])[i] || '')}" style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Dynamic Block: Assertion & Reason Fields -->
+        <div id="ncert-ar-fields" style="display:${currentType === 'assertion_reason' ? 'block' : 'none'};margin-bottom:var(--sp-4);">
+          <div class="form-group" style="margin-bottom:var(--sp-3);">
+            <label class="form-label" for="ncert-ar-assertion">Assertion Statement (A) *</label>
+            <textarea class="form-input" id="ncert-ar-assertion" rows="2" placeholder="Enter assertion statement…">${escapeHtml(q.assertion || '')}</textarea>
+          </div>
+          <div class="form-group" style="margin-bottom:var(--sp-3);">
+            <label class="form-label" for="ncert-ar-reason">Reason Statement (R) *</label>
+            <textarea class="form-input" id="ncert-ar-reason" rows="2" placeholder="Enter reason statement…">${escapeHtml(q.reason || '')}</textarea>
+          </div>
+
+          <label class="form-label" style="margin-bottom:var(--sp-2);">Correct Evaluation Option *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);background:var(--neutral-50);padding:var(--sp-3);border-radius:var(--radius-md);">
+            <label style="display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);cursor:pointer;">
+              <input type="radio" name="ncert-ar-correct" value="0" ${correctOpt === 0 ? 'checked' : ''} />
+              <span><strong>A.</strong> Both A and R are true and R is the correct explanation of A.</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);cursor:pointer;">
+              <input type="radio" name="ncert-ar-correct" value="1" ${correctOpt === 1 ? 'checked' : ''} />
+              <span><strong>B.</strong> Both A and R are true but R is NOT the correct explanation of A.</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);cursor:pointer;">
+              <input type="radio" name="ncert-ar-correct" value="2" ${correctOpt === 2 ? 'checked' : ''} />
+              <span><strong>C.</strong> Assertion (A) is true but Reason (R) is false.</span>
+            </label>
+            <label style="display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);cursor:pointer;">
+              <input type="radio" name="ncert-ar-correct" value="3" ${correctOpt === 3 ? 'checked' : ''} />
+              <span><strong>D.</strong> Assertion (A) is false but Reason (R) is true (or both are false).</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Dynamic Block: Matching Columns Fields -->
+        <div id="ncert-match-fields" style="display:${currentType === 'matching' ? 'block' : 'none'};margin-bottom:var(--sp-4);">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);margin-bottom:var(--sp-3);">
+            <div>
+              <label class="form-label" style="margin-bottom:4px;">Column I Items</label>
+              ${[1, 2, 3, 4].map((n, i) => `
+                <input class="form-input form-input-sm" id="ncert-match-a${n}" type="text" placeholder="${['A.','B.','C.','D.'][i]} Item ${n}" value="${escapeHtml((q.columnA || [])[i] || '')}" style="margin-bottom:4px;" />
+              `).join('')}
+            </div>
+            <div>
+              <label class="form-label" style="margin-bottom:4px;">Column II Items</label>
+              ${[1, 2, 3, 4].map((n, i) => `
+                <input class="form-input form-input-sm" id="ncert-match-b${n}" type="text" placeholder="${n}. Item ${n}" value="${escapeHtml((q.columnB || [])[i] || '')}" style="margin-bottom:4px;" />
+              `).join('')}
+            </div>
+          </div>
+
+          <label class="form-label" style="margin-bottom:var(--sp-2);">Matching Options (Select correct radio) *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+            ${[0, 1, 2, 3].map((i) => `
+              <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                <input type="radio" name="ncert-match-correct" value="${i}" ${correctOpt === i ? 'checked' : ''} style="cursor:pointer;" />
+                <span style="font-weight:700;font-size:var(--text-xs);width:20px;">${['A','B','C','D'][i]}.</span>
+                <input class="form-input form-input-sm" id="ncert-match-opt${i}" type="text" placeholder="e.g. A-1, B-2, C-3, D-4" value="${escapeHtml((q.options || [])[i] || '')}" style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Dynamic Block: Diagram Fields -->
+        <div id="ncert-diag-fields" style="display:${currentType === 'diagram' ? 'block' : 'none'};margin-bottom:var(--sp-4);">
+          <div class="form-group" style="margin-bottom:var(--sp-3);">
+            <label class="form-label" for="ncert-diag-url">Diagram Image URL *</label>
+            <input class="form-input" id="ncert-diag-url" type="text" placeholder="https://… or image link" value="${escapeHtml(q.diagramUrl || '')}" />
+          </div>
+
+          <label class="form-label" style="margin-bottom:var(--sp-2);">Options for Diagram (Select correct radio) *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+            ${[0, 1, 2, 3].map((i) => `
+              <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                <input type="radio" name="ncert-diag-correct" value="${i}" ${correctOpt === i ? 'checked' : ''} style="cursor:pointer;" />
+                <span style="font-weight:700;font-size:var(--text-xs);width:20px;">${['A','B','C','D'][i]}.</span>
+                <input class="form-input form-input-sm" id="ncert-diag-opt${i}" type="text" placeholder="Option ${['A','B','C','D'][i]}" value="${escapeHtml((q.options || [])[i] || '')}" style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Section 3: Explanation -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:var(--primary-700);">
+          3. Detailed NCERT Explanation
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--sp-5);">
+          <label class="form-label" for="ncert-q-explanation">NCERT Explanation / Justification *</label>
+          <textarea class="form-input" id="ncert-q-explanation" rows="3" placeholder="Provide NCERT line rationale and explanation…" required>${escapeHtml(q.explanation || '')}</textarea>
+        </div>
+
+        <div style="display:flex;gap:var(--sp-3);justify-content:flex-end;">
+          <button class="btn btn-outline" type="button" onclick="App.navigate('admin-ncert-focus')">Cancel</button>
+          <button class="btn btn-primary" type="submit">💾 Save NCERT Question</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+  const initialChapterId = q.chapterId?._id || q.chapterId || q.chapter || '';
+  populateChapterDropdown('ncert-q-chapter', initialChapterId || '');
+}
+
+/* ============================================================
    Screen: admin-reports (Reported Questions)
    ============================================================ */
 function renderAdminReports(container) {
@@ -1654,6 +2185,7 @@ function adminShell(activeTab, innerHtml) {
   const tabs = [
     ['chapters', 'admin-chapters', 'Chapters'],
     ['questions', 'admin-questions', 'Questions'],
+    ['ncertfocus', 'admin-ncert-focus', '🌿 NCERT Focus'],
     ['csv-import', 'admin-csv-import', 'CSV Import'],
     ['fulltests', 'admin-fulltests', 'Full-Length Tests'],
     ['reports', 'admin-reports', '🚩 Reports'],
@@ -1684,6 +2216,8 @@ window.renderAdminChapters = renderAdminChapters;
 window.renderAdminSubSkills = renderAdminSubSkills;
 window.renderAdminQuestions = renderAdminQuestions;
 window.renderAdminQuestionForm = renderAdminQuestionForm;
+window.renderAdminNcertFocus = renderAdminNcertFocus;
+window.renderAdminNcertForm = renderAdminNcertForm;
 window.renderAdminCsvImport = renderAdminCsvImport;
 window.renderAdminFullLengthTests = renderAdminFullLengthTests;
 window.renderAdminFLTQuestions = renderAdminFLTQuestions;

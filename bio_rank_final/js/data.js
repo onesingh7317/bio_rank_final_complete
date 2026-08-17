@@ -503,20 +503,209 @@ const DB = {
     'b06': 'Maintain a streak for 14 days',
   },
 
-  /* ---- Default Student ---- */
-  defaultStudent: {
-    name: '',
-    username: '',
-    avatarDataUrl: null,      // local/frontend-only picture preview (base64), no cloud storage
-    classLevel: '12th',       // '11th', '12th', 'Dropper'
-    targetYear: '2025',
-    studyHoursPerDay: '4',
-    board: 'CBSE',
-    strongAreas: [],
-    weakAreas: [],
-    passwordUpdatedAt: null,  // mock flag only — never store real passwords client-side
-  },
-
+  /* ---- NCERT Bio Focus Seed Questions (Line-by-line NEET Biology) ---- */
+  ncertQuestions: [
+    {
+      id: 'ncert_01',
+      chapter: 'ch01',
+      class: '11',
+      topic: 'Cell Membrane & Fluid Mosaic Model',
+      questionType: 'mcq',
+      difficulty: 'medium',
+      text: 'According to the fluid mosaic model of cell membrane proposed by Singer and Nicolson (1972), the quasi-fluid nature of lipid enables:',
+      options: [
+        'Lateral movement of proteins within the overall bilayer',
+        'Flip-flop movement of proteins exclusively',
+        'Complete rigidity and static positioning of membrane lipids',
+        'Synthesis of carbohydrates directly on the hydrophobic core'
+      ],
+      correct: 0,
+      explanation: 'NCERT states: The quasi-fluid nature of lipid enables lateral movement of proteins within the overall bilayer. This ability to move within the membrane is measured as its fluidity.',
+      ncertReference: 'NCERT Class 11, Chapter 8 (Cell: The Unit of Life), Page 131-132',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_02',
+      chapter: 'ch01',
+      class: '11',
+      topic: 'Ribosomes & Endomembrane System',
+      questionType: 'assertion_reason',
+      difficulty: 'hard',
+      text: 'Read the assertion and reason carefully and choose the correct option:',
+      assertion: 'Ribosomes are non-membrane bound organelles found in both eukaryotic and prokaryotic cells.',
+      reason: 'Ribosomes in eukaryotic cells are exclusively restricted to the cytoplasm and rough endoplasmic reticulum.',
+      options: [
+        'Both Assertion and Reason are true and Reason is the correct explanation of Assertion.',
+        'Both Assertion and Reason are true but Reason is not the correct explanation of Assertion.',
+        'Assertion is true but Reason is false.',
+        'Assertion is false but Reason is true.'
+      ],
+      correct: 2,
+      explanation: 'Assertion is true (Ribosomes are universal non-membrane bound organelles). Reason is false because eukaryotic ribosomes are also found within mitochondria and chloroplasts (as 70S ribosomes), not exclusively in the cytoplasm and RER.',
+      ncertReference: 'NCERT Class 11, Chapter 8, Page 128 (Overview of Cell)',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_03',
+      chapter: 'ch03',
+      class: '11',
+      topic: 'Proteins and Biomacromolecules',
+      questionType: 'matching',
+      difficulty: 'medium',
+      text: 'Match the proteins/molecules in Column-I with their respective biological functions in Column-II according to NCERT Table 9.5:',
+      columnA: ['A. Collagen', 'B. Trypsin', 'C. Insulin', 'D. GLUT-4'],
+      columnB: ['1. Intercellular ground substance', '2. Enzyme', '3. Hormone', '4. Enables glucose transport into cells'],
+      options: [
+        'A-1, B-2, C-3, D-4',
+        'A-4, B-3, C-2, D-1',
+        'A-1, B-3, C-2, D-4',
+        'A-2, B-1, C-4, D-3'
+      ],
+      correct: 0,
+      explanation: 'As per NCERT Table 9.5 (Some Proteins and their Functions): Collagen = Intercellular ground substance; Trypsin = Enzyme; Insulin = Hormone; GLUT-4 = Enables glucose transport into cells.',
+      ncertReference: 'NCERT Class 11, Chapter 9 (Biomolecules), Page 147, Table 9.5',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_04',
+      chapter: 'ch01',
+      class: '11',
+      topic: 'Mitochondria Structure',
+      questionType: 'diagram',
+      difficulty: 'medium',
+      diagramUrl: 'https://images.unsplash.com/photo-1530026405186-ed1f139313f8?auto=format&fit=crop&w=600&q=80',
+      text: 'In a typical mitochondrion, the inner membrane forms a number of infoldings called cristae towards the matrix. What is the primary functional significance of cristae according to NCERT?',
+      options: [
+        'They increase the surface area for ATP synthesizing enzymatic complexes',
+        'They store calcium ions and glycogen granules exclusively',
+        'They prevent the passage of protons into the intermembrane space',
+        'They synthesize ribosomes and transfer RNA directly'
+      ],
+      correct: 0,
+      explanation: 'NCERT line: The cristae increase the surface area. The two membranes have their own specific enzymes associated with the mitochondrial function.',
+      ncertReference: 'NCERT Class 11, Chapter 8, Page 135 (Mitochondria)',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_05',
+      chapter: 'ch04',
+      class: '11',
+      topic: 'C4 Pathway (Hatch & Slack)',
+      questionType: 'mcq',
+      difficulty: 'hard',
+      text: 'In C4 plants (e.g., Maize, Sorghum), the primary CO2 acceptor is PEP, which is present in the mesophyll cells. The enzyme responsible for this fixation is:',
+      options: [
+        'PEP carboxylase (PEPcase)',
+        'RuBisCO',
+        'Carbonic anhydrase',
+        'Pyruvate dehydrogenase'
+      ],
+      correct: 0,
+      explanation: 'NCERT line: The primary CO2 acceptor is a 3-carbon molecule phosphoenolpyruvate (PEP) and is present in the mesophyll cells. The enzyme responsible for this fixation is PEP carboxylase or PEPcase. The mesophyll cells of C4 plants lack RuBisCO enzyme.',
+      ncertReference: 'NCERT Class 11, Chapter 13 (Photosynthesis in Higher Plants), Page 218',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_06',
+      chapter: 'ch18',
+      class: '12',
+      topic: 'Linkage and Recombination',
+      questionType: 'mcq',
+      difficulty: 'medium',
+      text: 'In Morgan’s dihybrid cross with Drosophila for body color and eye color (yellow-body, white-eyed females × brown-body, red-eyed males), the percentage of parental type progeny obtained in F2 was:',
+      options: [
+        '98.7%',
+        '62.8%',
+        '37.2%',
+        '1.3%'
+      ],
+      correct: 0,
+      explanation: 'NCERT line: Morgan and his group found that when genes were grouped on the same chromosome, some genes were very tightly linked and showed very low recombination. For yellow body and white eye, parental type was 98.7% and recombinant type was 1.3%.',
+      ncertReference: 'NCERT Class 12, Chapter 5 (Principles of Inheritance and Variation), Page 83',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_07',
+      chapter: 'ch18',
+      class: '12',
+      topic: 'Mendelian Disorders',
+      questionType: 'assertion_reason',
+      difficulty: 'hard',
+      text: 'Analyze the following Assertion and Reason on Sickle-cell anemia:',
+      assertion: 'In sickle-cell anemia, the mutant hemoglobin molecule undergoes polymerization under low oxygen tension causing the change in shape of RBC.',
+      reason: 'The substitution of Glutamic acid (Glu) by Valine (Val) occurs at the sixth position of the alpha-globin chain of the hemoglobin molecule.',
+      options: [
+        'Both Assertion and Reason are true and Reason is the correct explanation of Assertion.',
+        'Both Assertion and Reason are true but Reason is not the correct explanation of Assertion.',
+        'Assertion is true but Reason is false.',
+        'Both Assertion and Reason are false.'
+      ],
+      correct: 2,
+      explanation: 'Assertion is true. Reason is false because the substitution occurs at the sixth position of the beta (β) globin chain, NOT the alpha (α) globin chain.',
+      ncertReference: 'NCERT Class 12, Chapter 5, Page 89-90 (Sickle-Cell Anemia)',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_08',
+      chapter: 'ch19',
+      class: '12',
+      topic: 'Transcription & RNA Polymerase',
+      questionType: 'mcq',
+      difficulty: 'medium',
+      text: 'In eukaryotes, RNA Polymerase III is responsible for the transcription of which of the following RNA molecules according to NCERT?',
+      options: [
+        'tRNA, 5S rRNA, and snRNAs',
+        'rRNAs (28S, 18S, and 5.8S)',
+        'Precursor of mRNA (hnRNA)',
+        'Only 28S rRNA'
+      ],
+      correct: 0,
+      explanation: 'NCERT line: RNA polymerase I transcribes rRNAs (28S, 18S, and 5.8S); RNA polymerase II transcribes precursor of mRNA (hnRNA); RNA polymerase III is responsible for transcription of tRNA, 5S rRNA, and snRNAs.',
+      ncertReference: 'NCERT Class 12, Chapter 6 (Molecular Basis of Inheritance), Page 111',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_09',
+      chapter: 'ch24',
+      class: '12',
+      topic: 'Restriction Enzymes & Cloning Tools',
+      questionType: 'matching',
+      difficulty: 'medium',
+      text: 'Match the tools/enzymes in Column-I with their respective source/function in Column-II:',
+      columnA: ['A. EcoRI', 'B. Taq polymerase', 'C. Exonucleases', 'D. Plasmids'],
+      columnB: ['1. Thermus aquaticus', '2. Autonomously replicating circular extra-chromosomal DNA', '3. Specific recognition sequence 5′-GAATTC-3′', '4. Remove nucleotides from the ends of the DNA'],
+      options: [
+        'A-3, B-1, C-4, D-2',
+        'A-1, B-3, C-2, D-4',
+        'A-3, B-4, C-1, D-2',
+        'A-4, B-1, C-3, D-2'
+      ],
+      correct: 0,
+      explanation: 'As per NCERT Chapter 11: EcoRI recognizes 5\'-GAATTC-3\'; Taq polymerase is isolated from Thermus aquaticus; Exonucleases remove nucleotides from DNA ends; Plasmids are autonomously replicating circular extra-chromosomal DNA.',
+      ncertReference: 'NCERT Class 12, Chapter 11 (Biotechnology: Principles and Processes), Page 194-203',
+      isNcertFocus: true
+    },
+    {
+      id: 'ncert_10',
+      chapter: 'ch15',
+      class: '12',
+      topic: 'Structure of Anatropous Ovule',
+      questionType: 'diagram',
+      difficulty: 'medium',
+      diagramUrl: 'https://images.unsplash.com/photo-1508615039623-a25605d2b022?auto=format&fit=crop&w=600&q=80',
+      text: 'In a typical angiospermic anatropous ovule, the junction where the body of the ovule fuses with the funicle is called:',
+      options: [
+        'Hilum',
+        'Micropyle',
+        'Chalaza',
+        'Integument'
+      ],
+      correct: 0,
+      explanation: 'NCERT line: The ovule is a small structure attached to the placenta by means of a stalk called funicle. The body of the ovule fuses with funicle in the region called hilum. Thus, hilum represents the junction between ovule and funicle.',
+      ncertReference: 'NCERT Class 12, Chapter 2 (Sexual Reproduction in Flowering Plants), Page 25',
+      isNcertFocus: true
+    }
+  ],
 };
 
 /* ---- Weakness Priority Calculation ----
@@ -741,6 +930,7 @@ const State = {
       })),
       masteredPool: [],
       fullLengthTests: {},
+      ncertProgress: {},
       lastTestResult: null,
       lastWeaknessAnalysis: null,
       currentScreen: 'config',
