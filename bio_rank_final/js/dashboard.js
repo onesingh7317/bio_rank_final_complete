@@ -4,6 +4,16 @@
 
 /* ---- Student Configuration ---- */
 function renderConfig(container) {
+  const state = State.get();
+  const student = state.student || {};
+  const currentClass = student.classLevel || '12th';
+  const currentYear = student.targetYear || '2025';
+  const currentBoard = student.board || 'CBSE';
+  const currentHours = student.studyHoursPerDay || '4';
+  const currentConfidence = student.confidence || 'Intermediate';
+
+  const isClass11 = currentClass === '11th';
+
   container.innerHTML = `
     <div class="config-screen">
       <div class="config-logo">
@@ -21,24 +31,34 @@ function renderConfig(container) {
         <form class="config-form" id="config-form" onsubmit="return false;">
           <div class="form-group">
             <label class="form-label" for="cfg-name">Full Name *</label>
-            <input class="form-input" id="cfg-name" type="text" placeholder="e.g. Aryan Sharma" required autocomplete="name" />
+            <input class="form-input" id="cfg-name" type="text" value="${escapeHtml(student.name || '')}" placeholder="e.g. Aryan Sharma" required autocomplete="name" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cfg-class">Current Class / Preparation Stage *</label>
+            <select class="form-input form-select" id="cfg-class" onchange="onConfigClassChange(this.value)">
+              <option value="11th" ${currentClass === '11th' ? 'selected' : ''}>Class 11th (Targeting Foundation)</option>
+              <option value="12th" ${currentClass === '12th' ? 'selected' : ''}>Class 12th (Board + NEET)</option>
+              <option value="Dropper" ${currentClass === 'Dropper' ? 'selected' : ''}>Dropper / Repeater (Full Focus NEET)</option>
+            </select>
           </div>
 
           <div class="grid-2" style="gap:var(--sp-4);">
             <div class="form-group">
               <label class="form-label" for="cfg-year">Target Year</label>
               <select class="form-input form-select" id="cfg-year">
-                <option value="2025">NEET 2025</option>
-                <option value="2026">NEET 2026</option>
+                <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>NEET 2025</option>
+                <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>NEET 2026</option>
+                <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>NEET 2027</option>
               </select>
             </div>
             <div class="form-group">
               <label class="form-label" for="cfg-board">School Board</label>
               <select class="form-input form-select" id="cfg-board">
-                <option value="CBSE">CBSE</option>
-                <option value="State">State Board</option>
-                <option value="ICSE">ICSE</option>
-                <option value="Other">Other</option>
+                <option value="CBSE" ${currentBoard === 'CBSE' ? 'selected' : ''}>CBSE</option>
+                <option value="State" ${currentBoard === 'State' ? 'selected' : ''}>State Board</option>
+                <option value="ICSE" ${currentBoard === 'ICSE' ? 'selected' : ''}>ICSE</option>
+                <option value="Other" ${currentBoard === 'Other' ? 'selected' : ''}>Other</option>
               </select>
             </div>
           </div>
@@ -46,10 +66,10 @@ function renderConfig(container) {
           <div class="form-group">
             <label class="form-label" for="cfg-hours">Daily Study Hours</label>
             <select class="form-input form-select" id="cfg-hours">
-              <option value="2">2 hours</option>
-              <option value="4" selected>4 hours</option>
-              <option value="6">6 hours</option>
-              <option value="8">8+ hours</option>
+              <option value="2" ${currentHours === '2' ? 'selected' : ''}>2 hours</option>
+              <option value="4" ${currentHours === '4' ? 'selected' : ''}>4 hours</option>
+              <option value="6" ${currentHours === '6' ? 'selected' : ''}>6 hours</option>
+              <option value="8" ${currentHours === '8' ? 'selected' : ''}>8+ hours</option>
             </select>
           </div>
 
@@ -57,18 +77,34 @@ function renderConfig(container) {
             <label class="form-label">Current Biology Confidence</label>
             <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-confidence">
               ${['Beginner','Intermediate','Advanced'].map(l =>
-                `<button type="button" class="error-tag" data-confidence="${l}" onclick="selectConfidence(this)">${l}</button>`
+                `<button type="button" class="error-tag ${currentConfidence === l ? 'selected' : ''}" data-confidence="${l}" onclick="selectConfidence(this)">${l}</button>`
               ).join('')}
             </div>
           </div>
 
-          <div style="padding:var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--primary-700);">
-            <strong>Next up:</strong> A quick 20-question vibe check to find where you're cracked and where you need work. It's giving diagnostic.
+          <div id="cfg-flow-banner" style="padding:var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--primary-700);margin-bottom:var(--sp-4);">
+            ${isClass11
+              ? '<strong>Class 11th Plan:</strong> You will go directly to your dashboard to start chapter tests and practice without an initial diagnostic test.'
+              : '<strong>Optional Diagnostic Test:</strong> Take a quick 20-question vibe check to map your chapter weaknesses, or skip directly to your dashboard.'
+            }
           </div>
 
-          <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig()" style="margin-top:var(--sp-2);">
-            Let's gooo → Start Vibe Check
-          </button>
+          <div id="cfg-action-buttons">
+            ${isClass11 ? `
+              <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(true)">
+                ${state.configured ? 'Save Details & Go to Dashboard →' : 'Save Details & Go to Dashboard →'}
+              </button>
+            ` : `
+              <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(false)">
+                  Take Diagnostic Vibe Check (Recommended) →
+                </button>
+                <button type="button" class="btn btn-outline btn-block" onclick="submitConfig(true)">
+                  Skip Test &amp; Go to Dashboard →
+                </button>
+              </div>
+            `}
+          </div>
         </form>
       </div>
     </div>
@@ -80,18 +116,65 @@ window.selectConfidence = function(btn) {
   btn.classList.add('selected');
 };
 
-window.submitConfig = function() {
+window.onConfigClassChange = function(classVal) {
+  const is11 = classVal === '11th';
+  const banner = document.getElementById('cfg-flow-banner');
+  const btns = document.getElementById('cfg-action-buttons');
+  if (banner) {
+    banner.innerHTML = is11
+      ? '<strong>Class 11th Plan:</strong> You will go directly to your dashboard to start chapter tests and practice without an initial diagnostic test.'
+      : '<strong>Optional Diagnostic Test:</strong> Take a quick 20-question vibe check to map your chapter weaknesses, or skip directly to your dashboard.';
+  }
+  if (btns) {
+    btns.innerHTML = is11 ? `
+      <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(true)">
+        Save Details &amp; Go to Dashboard →
+      </button>
+    ` : `
+      <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+        <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(false)">
+          Take Diagnostic Vibe Check (Recommended) →
+        </button>
+        <button type="button" class="btn btn-outline btn-block" onclick="submitConfig(true)">
+          Skip Test &amp; Go to Dashboard →
+        </button>
+      </div>
+    `;
+  }
+};
+
+window.submitConfig = function(skipTest = false) {
   const name = document.getElementById('cfg-name').value.trim();
   if (!name) { App.showToast('Please enter your name'); return; }
-  const year   = document.getElementById('cfg-year').value;
-  const board  = document.getElementById('cfg-board').value;
-  const hours  = document.getElementById('cfg-hours').value;
-  const conf   = document.querySelector('[data-confidence].selected');
+  const classLevel = document.getElementById('cfg-class').value;
+  const year       = document.getElementById('cfg-year').value;
+  const board      = document.getElementById('cfg-board').value;
+  const hours      = document.getElementById('cfg-hours').value;
+  const conf       = document.querySelector('[data-confidence].selected');
 
   const state = State.get();
-  state.student = { name, targetYear: year, board, studyHoursPerDay: hours, confidence: conf ? conf.dataset.confidence : 'Intermediate' };
+  state.student = {
+    ...(state.student || {}),
+    name,
+    classLevel: classLevel || '12th',
+    targetYear: year,
+    board,
+    studyHoursPerDay: hours,
+    confidence: conf ? conf.dataset.confidence : 'Intermediate',
+  };
   state.performance.studentName = name;
   state.configured = true;
+
+  // Class 11th OR user chosen to skip diagnostic test:
+  if (classLevel === '11th' || skipTest) {
+    state.foundationDone = true;
+    State.save(state);
+    App.showToast(`Welcome ${name}! Your dashboard is ready.`);
+    App.navigate('home');
+    return;
+  }
+
+  // Class 12th or Dropper starting diagnostic test:
   State.save(state);
   App.navigate('foundation');
 };
@@ -115,8 +198,8 @@ function renderAnalyzing(container, results) {
   container.innerHTML = `
     <div class="loading-screen">
       <div class="loading-spinner"></div>
-      <h2 style="font-size:var(--text-2xl);font-weight:700;color:var(--neutral-900);margin-bottom:var(--sp-3);">Cooking up your results...</h2>
-      <p style="color:var(--neutral-500);line-height:1.7;">Running the numbers to find where you're himmed and where you're getting nerfed. Your personalised study plan is loading.</p>
+      <h2 style="font-size:var(--text-2xl);font-weight:700;color:var(--neutral-900);margin-bottom:var(--sp-3);">Analyzing Your Chapters...</h2>
+      <p style="color:var(--neutral-500);line-height:1.7;">Mapping chapter-wise strengths and identifying priority areas to maximize your NEET Biology score.</p>
       <div class="loading-dots" style="margin-top:var(--sp-6);">
         <div class="loading-dot"></div>
         <div class="loading-dot"></div>
@@ -125,64 +208,119 @@ function renderAnalyzing(container, results) {
     </div>
   `;
 
-  // Save foundation results & transition after delay
+  // Compute Chapter-wise Weakness Map from results
   const state = State.get();
   state.foundationDone = true;
-  if (results) state.lastTestResult = results;
+  if (results) {
+    state.lastTestResult = results;
+    if (results.questionResults && results.questionResults.length > 0) {
+      const chapterMap = {};
+      results.questionResults.forEach(r => {
+        const chId = r.question.chapter || 'ch01';
+        if (!chapterMap[chId]) {
+          const chObj = DB.chapters.find(c => c.id === chId) || { id: chId, name: 'Biology Chapter', icon: '📖', weightage: 6, class: '11' };
+          chapterMap[chId] = {
+            chapterId: chId,
+            chapterName: chObj.name,
+            icon: chObj.icon || '📖',
+            classLevel: chObj.class || '11',
+            weightage: chObj.weightage || 6,
+            total: 0,
+            incorrect: 0,
+            correct: 0,
+          };
+        }
+        chapterMap[chId].total++;
+        if (r.status === 'correct') chapterMap[chId].correct++;
+        if (r.status === 'incorrect') chapterMap[chId].incorrect++;
+      });
+
+      const newWeaknessMap = Object.values(chapterMap).map(ch => {
+        const accuracy = ch.total > 0 ? Math.round((ch.correct / ch.total) * 100) : 0;
+        const severity = ch.total > 0 ? (ch.incorrect / ch.total) : 0.5;
+        const priority = Math.round(severity * ch.weightage * 10);
+        return {
+          chapterId: ch.chapterId,
+          chapterName: ch.chapterName,
+          icon: ch.icon,
+          classLevel: ch.classLevel,
+          weightage: ch.weightage,
+          severity,
+          performance: accuracy,
+          questionsWrong: ch.incorrect,
+          totalQuestions: ch.total,
+          priority,
+          daysToExam: 120,
+        };
+      });
+
+      newWeaknessMap.sort((a, b) => b.priority - a.priority || b.severity - a.severity);
+      state.weaknessMap = newWeaknessMap;
+    }
+  }
   State.save(state);
 
-  setTimeout(() => App.navigate('weakness-map'), 2800);
+  setTimeout(() => App.navigate('weakness-map'), 2400);
 }
 
-/* ---- Weakness Map ---- */
+/* ---- Weakness Map (Chapter-wise) ---- */
 function renderWeaknessMap(container) {
   const state = State.get();
   const items = state.weaknessMap || DB.weaknessMap;
 
-  const severityLabel = s => s >= 0.8 ? 'Critical' : s >= 0.6 ? 'High' : s >= 0.4 ? 'Medium' : 'Low';
-  const severityColor = s => s >= 0.8 ? 'error' : s >= 0.6 ? 'warning' : s >= 0.4 ? 'primary' : 'teal';
-  const barColor = s => s >= 0.8 ? 'var(--error-500)' : s >= 0.6 ? 'var(--warning-500)' : 'var(--primary-500)';
+  const severityLabel = s => s >= 0.75 ? 'Critical' : s >= 0.5 ? 'High' : s >= 0.25 ? 'Medium' : 'Low';
+  const severityColor = s => s >= 0.75 ? 'error' : s >= 0.5 ? 'warning' : s >= 0.25 ? 'primary' : 'teal';
+  const barColor = s => s >= 0.75 ? 'var(--error-500)' : s >= 0.5 ? 'var(--warning-500)' : 'var(--primary-500)';
 
   container.innerHTML = `
-    <div style="max-width:720px;">
+    <div style="max-width:760px;">
       <div style="margin-bottom:var(--sp-6);">
-        <div class="page-title">Your Weakness Map</div>
-        <div class="page-subtitle">Ranked by how much it's hurting your score. Let's fix the leaks.</div>
+        <div class="page-title">Chapter-wise Weakness Map</div>
+        <div class="page-subtitle">Ranked by chapter priority. Let's conquer the weak chapters.</div>
       </div>
 
-      <div class="meme-banner">Vibe check complete. Here's where you need to lock in.</div>
+      <div class="meme-banner">Chapter diagnostic complete. Here is your chapter-by-chapter priority breakdown.</div>
 
       <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
         ${items.map((w, i) => `
           <div class="weakness-item">
-            <div class="weakness-header">
-              <div>
-                <div style="font-size:var(--text-xs);font-weight:600;color:var(--neutral-500);margin-bottom:2px;">#${i + 1} Priority</div>
-                <div class="weakness-name">${w.subSkillName}</div>
-                <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">${w.chapterName}</div>
+            <div class="weakness-header" style="align-items:center;">
+              <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                <div style="font-size:28px;">${w.icon || '📖'}</div>
+                <div>
+                  <div style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);text-transform:uppercase;letter-spacing:0.5px;">#${i + 1} Priority Chapter</div>
+                  <div class="weakness-name" style="font-size:var(--text-md);">${escapeHtml(w.chapterName)}</div>
+                  <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">
+                    ${w.classLevel ? `Class ${w.classLevel}` : 'NEET Syllabus'}
+                  </div>
+                </div>
               </div>
-              <div class="weakness-meta">
+              <div class="weakness-meta" style="align-items:flex-end;">
                 <span class="badge badge-${severityColor(w.severity)}">${severityLabel(w.severity)}</span>
-                <span class="badge badge-neutral">Weightage: ${w.weightage}/10</span>
-                <span class="badge badge-primary">Priority: ${w.priority}</span>
+                <button class="btn btn-outline btn-sm" onclick="App.navigate('chapter-test')">
+                  Practice Chapter →
+                </button>
               </div>
             </div>
             <div>
               <div class="weakness-bar-row">
-                <span class="weakness-bar-label">Performance</span>
+                <span class="weakness-bar-label">Chapter Mastery</span>
                 <div class="weakness-bar-track">
                   <div class="weakness-bar-fill" style="width:${w.performance}%;background:${barColor(w.severity)};border-radius:var(--radius-full);height:100%;"></div>
                 </div>
-                <span style="font-size:var(--text-xs);font-weight:600;color:var(--neutral-700);min-width:32px;text-align:right;">${w.performance}%</span>
+                <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-700);min-width:36px;text-align:right;">${w.performance}%</span>
               </div>
             </div>
           </div>
         `).join('')}
       </div>
 
-      <div style="margin-top:var(--sp-6);text-align:center;">
+      <div style="margin-top:var(--sp-6);display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
         <button class="btn btn-primary btn-lg" onclick="App.navigate('home')">
-          Take me to Home Base →
+          Take me to Home Dashboard →
+        </button>
+        <button class="btn btn-secondary btn-lg" onclick="App.navigate('chapter-test')">
+          Explore Chapter Tests
         </button>
       </div>
     </div>
@@ -201,13 +339,27 @@ function renderHome(container) {
   const badgeProgress = Math.round((earnedBadges.length / allBadges.length) * 100);
   const desc = DB.badgeDescriptions || {};
 
+  const classTag = state.student?.classLevel ? `Class ${state.student.classLevel}` : 'NEET 2025';
+  const streakCount = perf.currentStreak || 0;
+
   container.innerHTML = `
     <!-- Hero Section -->
     <div class="home-hero" style="margin-bottom:var(--sp-6);">
       <div class="hero-content">
-        <h1 class="hero-title">Bio Rank – Bio Rank</h1>
-        <p class="hero-subtitle">Biology Hits Different Here</p>
-        <p class="hero-greeting">Good ${getTimeGreeting()}, ${name} — ready to level up?</p>
+        <div class="hero-badge">🎯 NEET Biology Prep &middot; Target 360/360</div>
+        <h1 class="hero-title">Dream big. Lock in. Make it happen.</h1>
+        <p class="hero-subtitle">Turn concepts into confidence and mistakes into mastery with daily focused chapter practice.</p>
+
+        <div class="hero-footer">
+          <div class="hero-greeting-box">
+            <span class="hero-greeting">Good ${getTimeGreeting()}, <strong>${escapeHtml(name)}</strong> 👋</span>
+            <span class="hero-pill-tag">🔥 ${streakCount} Day Streak</span>
+            <span class="hero-pill-tag">📚 ${escapeHtml(classTag)}</span>
+          </div>
+          <button class="hero-cta-btn" onclick="App.navigate('chapter-test')">
+            Start Chapter Practice →
+          </button>
+        </div>
       </div>
     </div>
 
@@ -221,27 +373,34 @@ function renderHome(container) {
         <div class="hero-slider" id="hero-slider">
           <div class="slider-track" id="slider-track">
             ${(DB.homeSlides || []).map((s, i) => `
-              <div class="slider-slide ${i === 0 ? 'active' : ''}" data-index="${i}">
-                <div class="slider-slide-bg slider-bg-${i % 5}"></div>
+              <div class="slider-slide slider-theme-${s.theme || 'emerald'} ${i === 0 ? 'active' : ''}" data-index="${i}">
+                <div class="slider-slide-bg slider-bg-${s.theme || 'emerald'}"></div>
                 <div class="slider-slide-content">
-                  <div class="slider-emoji">${s.emoji}</div>
-                  <h3 class="slider-title">${s.title}</h3>
-                  <p class="slider-subtitle">${s.subtitle}</p>
-                  <button class="btn btn-primary btn-sm slider-cta" onclick="App.navigate('${s.screen}')">${s.cta} →</button>
+                  <div class="slider-header-row">
+                    <span class="slider-tag">${escapeHtml(s.tag || 'NEET 2025')}</span>
+                    <span class="slider-badge-icon">${s.emoji}</span>
+                  </div>
+                  <h3 class="slider-title">${escapeHtml(s.title)}</h3>
+                  <p class="slider-subtitle">${escapeHtml(s.subtitle)}</p>
+                  <button class="slider-cta" onclick="App.navigate('${s.screen}')">${escapeHtml(s.cta)} →</button>
                 </div>
               </div>
             `).join('')}
           </div>
-          <button class="slider-nav slider-prev" onclick="HomeSlider.prev()" aria-label="Previous slide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
-          </button>
-          <button class="slider-nav slider-next" onclick="HomeSlider.next()" aria-label="Next slide">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
-          </button>
-          <div class="slider-dots" id="slider-dots">
-            ${(DB.homeSlides || []).map((s, i) => `
-              <button class="slider-dot ${i === 0 ? 'active' : ''}" onclick="HomeSlider.goTo(${i})" aria-label="Go to slide ${i + 1}"></button>
-            `).join('')}
+          <div class="slider-controls-bar">
+            <div class="slider-dots" id="slider-dots">
+              ${(DB.homeSlides || []).map((s, i) => `
+                <button class="slider-dot ${i === 0 ? 'active' : ''}" onclick="HomeSlider.goTo(${i})" aria-label="Go to slide ${i + 1}"></button>
+              `).join('')}
+            </div>
+            <div class="slider-arrows">
+              <button class="slider-nav slider-prev" onclick="HomeSlider.prev()" aria-label="Previous slide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+              </button>
+              <button class="slider-nav slider-next" onclick="HomeSlider.next()" aria-label="Next slide">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -559,7 +718,7 @@ function renderChapterTest(container) {
                   </div>
                 </div>
                 <div class="chapter-name">${ch.name}</div>
-                <div class="chapter-meta">~${ch.questions} Qs &nbsp;|&nbsp; Wt. ${ch.weightage}/10</div>
+                <div class="chapter-meta">~${ch.questions} Qs</div>
                 <div class="progress-bar" style="width:100%;height:4px;">
                   <div class="progress-fill ${prog >= 70 ? 'success' : prog >= 50 ? '' : 'error'}" style="width:${prog}%;"></div>
                 </div>
@@ -584,15 +743,129 @@ function renderChapterTest(container) {
   `;
 }
 
+/* ---- Chapter Test Config State ---- */
+const ChTestConfig = {
+  chapterId: null,
+  chapterName: null,
+  chapterIcon: null,
+  questionCount: 45,
+  timeMin: 45,
+};
+
+/* ---- Open chapter config modal ---- */
 window.startChapterTest = function(chapterId, chapterName) {
-  const questions = getQuestionsByChapter(chapterId, 10);
-  if (questions.length === 0) { App.showToast('No questions available for this chapter yet'); return; }
+  const ch = DB.chapters.find(c => c.id === chapterId) || {};
+  ChTestConfig.chapterId   = chapterId;
+  ChTestConfig.chapterName = chapterName;
+  ChTestConfig.chapterIcon = ch.icon || '📖';
+  ChTestConfig.questionCount = 45;
+  ChTestConfig.timeMin       = 45;
+
+  // Remove any existing modal
+  const old = document.getElementById('chtest-modal-backdrop');
+  if (old) old.remove();
+
+  const backdrop = document.createElement('div');
+  backdrop.id = 'chtest-modal-backdrop';
+  backdrop.className = 'chtest-modal-backdrop';
+  backdrop.innerHTML = `
+    <div class="chtest-modal" role="dialog" aria-modal="true" aria-labelledby="ctm-title">
+      <div class="chtest-modal-handle"></div>
+
+      <div class="chtest-modal-title">
+        <span>${ch.icon || '📖'}</span>
+        <span id="ctm-title">${escapeHtml(chapterName)}</span>
+      </div>
+      <div class="chtest-modal-sub">Customise your practice session before starting</div>
+
+      <!-- Question Count -->
+      <div class="chtest-modal-label">📝 How many questions?</div>
+      <div class="chtest-pill-row" id="ctm-q-row">
+        ${[30, 45, 60, 90].map(n => `
+          <button class="chtest-pill${n === 45 ? ' selected' : ''}"
+                  data-q="${n}"
+                  onclick="ChTestConfig.setQ(${n})">
+            ${n}
+            <span>questions</span>
+          </button>
+        `).join('')}
+      </div>
+
+      <!-- Time Limit -->
+      <div class="chtest-modal-label">⏱️ Time limit?</div>
+      <div class="chtest-pill-row" id="ctm-t-row">
+        ${[30, 45, 60, 90].map(m => `
+          <button class="chtest-pill time-pill${m === 45 ? ' selected' : ''}"
+                  data-t="${m}"
+                  onclick="ChTestConfig.setT(${m})">
+            ${m}
+            <span>minutes</span>
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="chtest-modal-divider"></div>
+
+      <div class="chtest-modal-actions">
+        <button class="btn btn-secondary" onclick="ChTestConfig.close()">Cancel</button>
+        <button class="btn btn-primary" onclick="ChTestConfig.launch()">
+          Start Test →
+        </button>
+      </div>
+    </div>
+  `;
+
+  // Close on backdrop click (outside the modal card)
+  backdrop.addEventListener('click', (e) => {
+    if (e.target === backdrop) ChTestConfig.close();
+  });
+
+  document.body.appendChild(backdrop);
+  document.body.classList.add('drawer-open'); // prevent background scroll
+};
+
+/* ---- Modal helpers ---- */
+ChTestConfig.setQ = function(n) {
+  ChTestConfig.questionCount = n;
+  document.querySelectorAll('#ctm-q-row .chtest-pill').forEach(el => {
+    el.classList.toggle('selected', Number(el.dataset.q) === n);
+  });
+};
+
+ChTestConfig.setT = function(m) {
+  ChTestConfig.timeMin = m;
+  document.querySelectorAll('#ctm-t-row .chtest-pill').forEach(el => {
+    el.classList.toggle('selected', Number(el.dataset.t) === m);
+  });
+};
+
+ChTestConfig.close = function() {
+  const backdrop = document.getElementById('chtest-modal-backdrop');
+  if (backdrop) backdrop.remove();
+  document.body.classList.remove('drawer-open');
+};
+
+ChTestConfig.launch = function() {
+  const { chapterId, chapterName, questionCount, timeMin } = ChTestConfig;
+  const questions = getQuestionsByChapter(chapterId, questionCount);
+  if (questions.length === 0) {
+    App.showToast('No questions available for this chapter yet');
+    return;
+  }
+  ChTestConfig.close();
   App.navigate('test', {
     questions,
     mode: 'chapter',
-    meta: { chapterId, chapterName, title: chapterName }
+    meta: {
+      chapterId,
+      chapterName,
+      title: chapterName,
+      timeLimitMin: timeMin,
+      questionCount,
+    },
   });
 };
+
 
 /* ============================================================
    IMPROVEMENT BOOK — Create Your Own Test, Chapter Progress,

@@ -11,6 +11,9 @@ function renderProfile(container) {
   const initial = (name.charAt(0) || 'S').toUpperCase();
   const username = student.username || autoUsername(name);
   const hasPassword = !!student.passwordUpdatedAt;
+  const classLabel = student.classLevel === 'Dropper'
+    ? 'Dropper'
+    : (student.classLevel ? (student.classLevel.startsWith('Class') ? student.classLevel : `Class ${student.classLevel}`) : 'Class 12th');
 
   container.innerHTML = `
     <div style="max-width:760px;">
@@ -29,8 +32,13 @@ function renderProfile(container) {
           <input type="file" id="profile-pic-input" accept="image/*" style="display:none;" onchange="Profile.onPictureSelected(this)" />
         </div>
         <div style="flex:1;min-width:200px;">
-          <div style="font-size:var(--text-xl);font-weight:800;color:var(--neutral-900);">${name}</div>
-          <div style="font-size:var(--text-sm);color:var(--neutral-500);font-weight:600;margin-top:2px;">@${username} &middot; Bio Rank #${perf.rank ?? '—'} &middot; 🔥 ${perf.currentStreak ?? 0} day streak</div>
+          <div style="font-size:var(--text-xl);font-weight:800;color:var(--neutral-900);">${escapeHtml(name)}</div>
+          <div style="font-size:var(--text-sm);color:var(--neutral-500);font-weight:600;margin-top:4px;display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+            <span>@${escapeHtml(username)}</span> &middot;
+            <span class="vibe-tag fire" style="font-size:11px;padding:2px 8px;">${escapeHtml(classLabel)}</span> &middot;
+            <span>Bio Rank #${perf.rank ?? '—'}</span> &middot;
+            <span>🔥 ${perf.currentStreak ?? 0} day streak</span>
+          </div>
           ${student.avatarDataUrl ? `<button class="btn btn-ghost btn-sm" style="padding-left:0;margin-top:var(--sp-1);" onclick="Profile.removePicture()">Remove photo</button>` : ''}
         </div>
         <button class="btn btn-outline btn-sm" onclick="App.navigate('config')">Edit Details</button>
@@ -44,7 +52,7 @@ function renderProfile(container) {
         <div class="grid-2" style="gap:var(--sp-4);align-items:end;">
           <div class="form-group" style="margin-bottom:0;">
             <label class="form-label" for="profile-username">Username</label>
-            <input class="form-input" id="profile-username" type="text" value="${username}" placeholder="e.g. bio_aryan" autocomplete="username" />
+            <input class="form-input" id="profile-username" type="text" value="${escapeHtml(username)}" placeholder="e.g. bio_aryan" autocomplete="username" />
           </div>
           <button class="btn btn-primary" style="height:44px;" onclick="Profile.saveUsername()">Save Username</button>
         </div>
@@ -75,6 +83,10 @@ function renderProfile(container) {
 
       <!-- Study Info -->
       <div class="perf-stats-grid" style="margin-bottom:var(--sp-5);">
+        <div class="stat-card">
+          <div class="stat-label">Class / Stage</div>
+          <div class="stat-value" style="font-size:var(--text-2xl);color:var(--primary-600);">${escapeHtml(classLabel)}</div>
+        </div>
         <div class="stat-card">
           <div class="stat-label">Target Year</div>
           <div class="stat-value" style="font-size:var(--text-2xl);">NEET ${student.targetYear || '—'}</div>
@@ -115,9 +127,14 @@ function renderProfile(container) {
         ${(!student.strongAreas?.length && !student.weakAreas?.length) ? `<p style="color:var(--neutral-500);font-size:var(--text-sm);">No confidence areas set yet. Complete the setup to personalise your study plan.</p>` : ''}
       </div>
 
-      <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
-        <button class="btn btn-primary" onclick="App.navigate('performance')">View Full Performance →</button>
-        <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
+      <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:var(--sp-6);">
+        <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
+          <button class="btn btn-primary" onclick="App.navigate('performance')">View Full Performance →</button>
+          <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
+        </div>
+        <button class="btn btn-outline" style="color:var(--error-600);border-color:var(--error-200);" onclick="App.logout(true)">
+          🚪 Log Out
+        </button>
       </div>
     </div>
   `;
@@ -146,35 +163,47 @@ const Profile = {
       return;
     }
     if (file.size > 2 * 1024 * 1024) {
-      App.showToast('Image too large — please pick one under 2MB');
+      App.showToast('Please choose an image under 2MB');
       return;
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = (e) => {
+      const dataUrl = e.target.result;
       const state = State.get();
-      state.student = Object.assign({}, state.student, { avatarDataUrl: reader.result });
+      state.student = Object.assign({}, state.student, { avatarDataUrl: dataUrl });
       State.save(state);
+
+      const avatar = document.getElementById('profile-pic-avatar');
+      if (avatar) {
+        avatar.style.backgroundImage = `url('${dataUrl}')`;
+        avatar.textContent = '';
+      }
       App.showToast('✅ Profile picture updated');
-      App.navigate('profile'); // re-render to show the new picture + Remove button
     };
-    reader.onerror = () => App.showToast('Could not read that image — try another file');
     reader.readAsDataURL(file);
   },
 
+  /* -- Remove picture: revert to initial avatar -- */
   removePicture() {
     const state = State.get();
     state.student = Object.assign({}, state.student, { avatarDataUrl: null });
     State.save(state);
+
+    const avatar = document.getElementById('profile-pic-avatar');
+    if (avatar) {
+      avatar.style.backgroundImage = '';
+      const initial = (state.student.name?.charAt(0) || 'S').toUpperCase();
+      avatar.textContent = initial;
+    }
     App.showToast('Profile picture removed');
     App.navigate('profile');
   },
 
-  /* -- Username: simple local validation + save -- */
+  /* -- Username: validate and persist locally -- */
   saveUsername() {
     const input = document.getElementById('profile-username');
-    if (!input) return;
-    const value = input.value.trim().toLowerCase();
+    const value = (input ? input.value : '').toLowerCase().trim();
 
     if (!/^[a-z0-9_]{3,20}$/.test(value)) {
       App.showToast('Username must be 3–20 characters: letters, numbers, underscore only');
@@ -251,6 +280,7 @@ function renderSettings(container) {
         <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
           <button class="btn btn-outline btn-block" onclick="App.navigate('config')">Edit Profile Details</button>
           <button class="btn btn-outline btn-block" onclick="App.navigate('help')">Help &amp; Support</button>
+          <button class="btn btn-outline btn-block" style="color:var(--error-600);border-color:var(--error-200);" onclick="App.logout(true)">🚪 Log Out</button>
         </div>
       </div>
 

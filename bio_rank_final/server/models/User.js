@@ -18,6 +18,7 @@ const userSchema = new mongoose.Schema(
 
     // Fields already present in the frontend's student profile shape —
     // included so the profile screen can map 1:1 once connected.
+    classLevel: { type: String, default: '12th' },
     targetYear: { type: String, default: null },
     board: { type: String, default: null },
     studyHoursPerDay: { type: String, default: null },

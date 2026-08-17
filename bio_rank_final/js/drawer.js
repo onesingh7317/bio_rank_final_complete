@@ -95,8 +95,9 @@
   function handleMenuAction(action) {
     switch (action) {
       case 'logout': {
-        const confirmed = window.confirm('Log out and reset your local progress on this device?');
-        if (confirmed && window.State && typeof State.reset === 'function') {
+        if (window.App && typeof App.logout === 'function') {
+          App.logout(true);
+        } else {
           State.reset();
           window.location.reload();
         }

@@ -25,8 +25,8 @@
           <div class="topbar-brand">
             <div class="brand-icon small">B</div>
             <span class="brand-name">Bio Rank</span>
+            <span class="vibe-tag fire" style="pointer-events:auto;">Beta</span>
           </div>
-          <span class="vibe-tag fire" style="margin-left:var(--sp-2);">Beta</span>
           <div class="topbar-actions" id="topbar-actions">
             <div class="streak-badge" id="topbar-streak">
               <svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M13.5 0.67s.74 2.65.74 4.8c0 2.06-1.35 3.73-3.41 3.73-2.07 0-3.63-1.67-3.63-3.73l.03-.36C5.21 7.51 4 10.62 4 14c0 4.42 3.58 8 8 8s8-3.58 8-8C20 8.61 17.41 3.8 13.5 0.67z"/></svg>
@@ -47,8 +47,8 @@
                   <span class="more-menu-icon">🆘</span><span>Help &amp; Support</span>
                 </a>
                 <div class="more-menu-divider"></div>
-                <a href="#" class="more-menu-item more-menu-logout" data-action="logout" role="menuitem">
-                  <span class="more-menu-icon">🚪</span><span>Logout</span>
+                <a href="#" class="more-menu-item more-menu-logout" onclick="App.logout(true); return false;" role="menuitem">
+                  <span class="more-menu-icon">🚪</span><span>Log Out</span>
                 </a>
               </div>
             </div>
@@ -126,6 +126,25 @@
         <a href="#" class="drawer-nav-item" data-screen="performance" aria-label="Performance and Ranking">
           <svg class="drawer-nav-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
           <span>Performance</span>
+        </a>
+
+        <div style="height:1px;background:var(--neutral-100);margin:var(--sp-2) var(--sp-4);"></div>
+
+        <a href="#" class="drawer-nav-item" data-screen="profile" aria-label="Profile">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">👤</span>
+          <span>Profile</span>
+        </a>
+        <a href="#" class="drawer-nav-item" data-screen="settings" aria-label="Settings">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">⚙️</span>
+          <span>Settings</span>
+        </a>
+        <a href="#" class="drawer-nav-item" data-screen="help" aria-label="Help & Support">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">🆘</span>
+          <span>Help &amp; Support</span>
+        </a>
+        <a href="#" class="drawer-nav-item" onclick="App.logout(true); return false;" aria-label="Log Out" style="color:var(--error-600);">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">🚪</span>
+          <span style="font-weight:700;">Log Out</span>
         </a>
       </nav>
     </aside>

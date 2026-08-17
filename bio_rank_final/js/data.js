@@ -3,6 +3,13 @@
    Replace API calls here when backend is ready.
    ============================================================ */
 
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = String(str ?? '');
+  return div.innerHTML;
+}
+window.escapeHtml = escapeHtml;
+
 const DB = {
 
   /* ---- Biology Chapters ---- */
@@ -329,37 +336,31 @@ const DB = {
     { id: 'guessed',        label: 'Guessed',         description: 'Had no idea, guessed randomly' },
   ],
 
-  /* ---- Mock Weakness Map ---- */
+  /* ---- Mock Weakness Map (Chapter-wise) ---- */
   weaknessMap: [
     {
-      subSkillId: 'ss05', subSkillName: 'Light reaction steps (Z-scheme)',
-      chapterName: 'Photosynthesis', severity: 0.85, weightage: 8, priority: 0,
-      performance: 25, daysToExam: 120
+      chapterId: 'ch04', chapterName: 'Photosynthesis', icon: '🌿', classLevel: '11',
+      severity: 0.85, weightage: 8, priority: 0, performance: 25, daysToExam: 120, questionsWrong: 6
     },
     {
-      subSkillId: 'ss12', subSkillName: 'Transcription & translation',
-      chapterName: 'Molecular Basis of Inheritance', severity: 0.80, weightage: 9, priority: 0,
-      performance: 30, daysToExam: 120
+      chapterId: 'ch19', chapterName: 'Molecular Basis of Inheritance', icon: '🔗', classLevel: '12',
+      severity: 0.80, weightage: 9, priority: 0, performance: 30, daysToExam: 120, questionsWrong: 5
     },
     {
-      subSkillId: 'ss10', subSkillName: 'Mendelian genetics problems',
-      chapterName: 'Principles of Inheritance', severity: 0.75, weightage: 9, priority: 0,
-      performance: 38, daysToExam: 120
+      chapterId: 'ch18', chapterName: 'Principles of Inheritance', icon: '🧩', classLevel: '12',
+      severity: 0.75, weightage: 9, priority: 0, performance: 38, daysToExam: 120, questionsWrong: 5
     },
     {
-      subSkillId: 'ss08', subSkillName: 'Neurotransmitter mechanisms',
-      chapterName: 'Neural Control', severity: 0.70, weightage: 8, priority: 0,
-      performance: 40, daysToExam: 120
+      chapterId: 'ch12', chapterName: 'Neural Control & Coordination', icon: '🧠', classLevel: '11',
+      severity: 0.70, weightage: 8, priority: 0, performance: 40, daysToExam: 120, questionsWrong: 4
     },
     {
-      subSkillId: 'ss09', subSkillName: 'Hormonal feedback loops',
-      chapterName: 'Chemical Coordination', severity: 0.65, weightage: 7, priority: 0,
-      performance: 45, daysToExam: 120
+      chapterId: 'ch13', chapterName: 'Chemical Coordination', icon: '⚗️', classLevel: '11',
+      severity: 0.65, weightage: 7, priority: 0, performance: 45, daysToExam: 120, questionsWrong: 4
     },
     {
-      subSkillId: 'ss07', subSkillName: 'Krebs cycle yield calculation',
-      chapterName: 'Respiration in Plants', severity: 0.60, weightage: 6, priority: 0,
-      performance: 50, daysToExam: 120
+      chapterId: 'ch05', chapterName: 'Respiration in Plants', icon: '💨', classLevel: '11',
+      severity: 0.60, weightage: 6, priority: 0, performance: 50, daysToExam: 120, questionsWrong: 3
     },
   ],
 
@@ -460,10 +461,36 @@ const DB = {
 
   /* ---- Homepage Slides ---- */
   homeSlides: [
-    { id: 's1', emoji: '🧬', title: 'Learn Biology, Not Memorize',    subtitle: '28 chapters broken into sub-skills so you actually understand, not just cram.', cta: 'Start Learning',  screen: 'chapter-test' },
-    { id: 's3', emoji: '⚡', title: 'Streak & Consistency',             subtitle: 'Build a daily habit. Miss a day, lose your streak. Consistency is king.',        cta: 'Keep Streak Going', screen: 'home' },
-    { id: 's4', emoji: '🏆', title: 'Bio Rank Leaderboard',            subtitle: 'Compete with thousands of NEET aspirants. Climb the ranks with every test.',     cta: 'View Leaderboard',  screen: 'performance' },
-    { id: 's5', emoji: '🏅', title: 'Achievements & Badges',           subtitle: 'Unlock badges as you hit milestones. Collect them all and flex your progress.',  cta: 'See Badges',        screen: 'performance' },
+    {
+      id: 's1',
+      tag: '⚡ 100% HIGH YIELD',
+      emoji: '🧬',
+      title: 'Stop cramming. Start dominating.',
+      subtitle: 'Break 28 chapters into high-yield sub-skills. Understand mechanisms, predict the questions.',
+      cta: 'Explore Chapters',
+      screen: 'chapter-test',
+      theme: 'emerald'
+    },
+    {
+      id: 's2',
+      tag: '🔥 LOCK IN PROTOCOL',
+      emoji: '⚡',
+      title: 'Consistency is your superpower.',
+      subtitle: '10 focused questions a day beats 10 hours of panic. Keep the streak burning.',
+      cta: 'Start Daily Practice',
+      screen: 'chapter-test',
+      theme: 'sunset'
+    },
+    {
+      id: 's3',
+      tag: '🎯 ZERO REGRETS',
+      emoji: '💡',
+      title: 'Turn wrong answers into rank fuel.',
+      subtitle: 'Auto-tag conceptual slips & silly mistakes. Re-test on Day 1, 4, 10 until 100% locked in.',
+      cta: 'Open Improvement Book',
+      screen: 'improvement-book',
+      theme: 'violet'
+    },
   ],
 
   /* ---- Badge descriptions ---- */
@@ -481,6 +508,7 @@ const DB = {
     name: '',
     username: '',
     avatarDataUrl: null,      // local/frontend-only picture preview (base64), no cloud storage
+    classLevel: '12th',       // '11th', '12th', 'Dropper'
     targetYear: '2025',
     studyHoursPerDay: '4',
     board: 'CBSE',

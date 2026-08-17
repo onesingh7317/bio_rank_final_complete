@@ -1,37 +1,50 @@
 /* ============================================================
-   weakness.js — Weakness Analysis, Micro-Retest, Spaced Re-Test,
-                 Improvement Verified, Performance Update
+   weakness.js — Chapter-wise Weakness Analysis, Micro-Retest,
+                 Spaced Re-Test, Improvement Verified, Performance Update
    ============================================================ */
 
-/* ---- Weakness Analysis (sub-skill level) ---- */
+/* ---- Chapter-wise Weakness Analysis ---- */
 function renderWeaknessAnalysis(container, results) {
   if (!results) { App.navigate('home'); return; }
 
   const state = State.get();
   const incorrectQs = (results.questionResults || []).filter(r => r.status === 'incorrect');
 
-  // Group by sub-skill
-  const subSkillMap = {};
+  // Group by chapter
+  const chapterMap = {};
   incorrectQs.forEach(r => {
-    const key = r.question.subSkill || 'general';
-    const ss = DB.subSkills.find(s => s.id === key);
-    const ssName = ss ? ss.name : 'General Biology';
-    const ch = DB.chapters.find(c => c.id === r.question.chapter);
-    if (!subSkillMap[key]) {
-      subSkillMap[key] = { name: ssName, chapter: ch ? ch.name : '', questions: [], errorTypes: {} };
+    const chId = r.question.chapter || 'general';
+    const ch = DB.chapters.find(c => c.id === chId);
+    const chName = ch ? ch.name : 'General Biology';
+    const chIcon = ch ? ch.icon : '📖';
+    const chClass = ch ? ch.class : '11';
+    const chWeightage = ch ? ch.weightage : 6;
+
+    if (!chapterMap[chId]) {
+      const totalInTest = (results.questionResults || []).filter(q => (q.question.chapter || 'general') === chId).length;
+      chapterMap[chId] = {
+        id: chId,
+        name: chName,
+        icon: chIcon,
+        classLevel: chClass,
+        weightage: chWeightage,
+        questions: [],
+        totalInTest: totalInTest || 1,
+        errorTypes: {},
+      };
     }
-    subSkillMap[key].questions.push(r);
+    chapterMap[chId].questions.push(r);
     const et = r.errorType || 'untagged';
-    subSkillMap[key].errorTypes[et] = (subSkillMap[key].errorTypes[et] || 0) + 1;
+    chapterMap[chId].errorTypes[et] = (chapterMap[chId].errorTypes[et] || 0) + 1;
   });
 
-  const subSkills = Object.values(subSkillMap);
+  const chapters = Object.values(chapterMap);
 
-  const getPriority = (ss) => {
-    const wm = state.weaknessMap?.find(w => w.subSkillName === ss.name);
-    return wm ? wm.severity : 0.5;
+  const getPriority = (c) => {
+    const wm = state.weaknessMap?.find(w => w.chapterId === c.id || w.chapterName === c.name);
+    return wm ? wm.severity : (c.questions.length / c.totalInTest);
   };
-  subSkills.sort((a, b) => getPriority(b) - getPriority(a));
+  chapters.sort((a, b) => getPriority(b) - getPriority(a));
 
   const dominantError = (errorTypes) => {
     const entries = Object.entries(errorTypes).filter(([k]) => k !== 'untagged');
@@ -52,12 +65,12 @@ function renderWeaknessAnalysis(container, results) {
     return               { label: 'Medium',   cls: 'medium',   badge: 'primary' };
   };
 
-  const topSubSkill = subSkills[0] || null;
+  const topChapter = chapters[0] || null;
 
   // Save analysis to state for micro-retest
   const analysisData = {
-    subSkills,
-    topSubSkill,
+    chapters,
+    topChapter,
     results,
   };
   const s = State.get();
@@ -65,30 +78,32 @@ function renderWeaknessAnalysis(container, results) {
   State.save(s);
 
   container.innerHTML = `
-    <div style="max-width:720px;">
+    <div style="max-width:760px;">
       <div style="margin-bottom:var(--sp-6);">
-        <div class="page-title">Weakness Analysis</div>
-        <div class="page-subtitle">Sub-skill breakdown — here's where the points slipped</div>
+        <div class="page-title">Chapter-wise Weakness Analysis</div>
+        <div class="page-subtitle">Chapter breakdown — here's where the points slipped</div>
       </div>
 
-      ${subSkills.length === 0 ? `
+      ${chapters.length === 0 ? `
         <div class="card" style="text-align:center;padding:var(--sp-10);">
-          <div style="font-size:48px;margin-bottom:var(--sp-3);">✅</div>
-          <div style="font-weight:700;font-size:var(--text-xl);color:var(--success-600);">No weak sub-skills identified!</div>
-          <p style="color:var(--neutral-500);margin-top:var(--sp-2);">You actually himmed this. Goosebumps fr.</p>
+          <div style="font-size:48px;margin-bottom:var(--sp-3);">🎉</div>
+          <div style="font-weight:700;font-size:var(--text-xl);color:var(--success-600);">No weak chapters identified!</div>
+          <p style="color:var(--neutral-500);margin-top:var(--sp-2);">You himmed every chapter in this test. Goosebumps fr.</p>
         </div>
-      ` : subSkills.map((ss, i) => {
-        const sev = severityFromRatio(ss.questions.length, results.totalQuestions);
-        const dom = dominantError(ss.errorTypes);
-        const accuracy = Math.round(((results.totalQuestions - ss.questions.length) / results.totalQuestions) * 100);
-        const wm = state.weaknessMap?.find(w => w.subSkillName === ss.name);
+      ` : chapters.map((ch, i) => {
+        const sev = severityFromRatio(ch.questions.length, ch.totalInTest);
+        const dom = dominantError(ch.errorTypes);
+        const accuracy = Math.max(0, Math.round(((ch.totalInTest - ch.questions.length) / ch.totalInTest) * 100));
 
         return `
           <div class="sub-skill-card ${sev.cls}" style="margin-bottom:var(--sp-3);">
             <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-3);margin-bottom:var(--sp-3);">
-              <div>
-                <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:2px;">${ss.chapter}</div>
-                <div style="font-weight:700;font-size:var(--text-md);color:var(--neutral-900);">${ss.name}</div>
+              <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                <div style="font-size:28px;">${ch.icon || '📖'}</div>
+                <div>
+                  <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:2px;">Class ${ch.classLevel}</div>
+                  <div style="font-weight:700;font-size:var(--text-md);color:var(--neutral-900);">${escapeHtml(ch.name)}</div>
+                </div>
               </div>
               <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
                 <span class="badge badge-${sev.badge}">${sev.label} Priority</span>
@@ -96,24 +111,20 @@ function renderWeaknessAnalysis(container, results) {
               </div>
             </div>
 
-            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin-bottom:var(--sp-3);">
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:var(--sp-3);margin-bottom:var(--sp-3);">
               <div style="text-align:center;background:var(--neutral-50);border-radius:var(--radius-sm);padding:var(--sp-3);">
-                <div style="font-size:var(--text-xl);font-weight:700;color:var(--error-500);">${ss.questions.length}</div>
+                <div style="font-size:var(--text-xl);font-weight:700;color:var(--error-500);">${ch.questions.length}</div>
                 <div style="font-size:var(--text-xs);color:var(--neutral-500);">Wrong</div>
               </div>
               <div style="text-align:center;background:var(--neutral-50);border-radius:var(--radius-sm);padding:var(--sp-3);">
                 <div style="font-size:var(--text-xl);font-weight:700;color:var(--primary-600);">${accuracy}%</div>
-                <div style="font-size:var(--text-xs);color:var(--neutral-500);">Performance</div>
-              </div>
-              <div style="text-align:center;background:var(--neutral-50);border-radius:var(--radius-sm);padding:var(--sp-3);">
-                <div style="font-size:var(--text-xl);font-weight:700;color:var(--neutral-700);">${wm ? wm.weightage : '—'}</div>
-                <div style="font-size:var(--text-xs);color:var(--neutral-500);">NEET wt.</div>
+                <div style="font-size:var(--text-xs);color:var(--neutral-500);">Accuracy</div>
               </div>
             </div>
 
             <div style="font-size:var(--text-sm);color:var(--neutral-600);">
               Error breakdown: 
-              ${Object.entries(ss.errorTypes).filter(([k]) => k !== 'untagged').map(([k,v]) => 
+              ${Object.entries(ch.errorTypes).filter(([k]) => k !== 'untagged').map(([k,v]) => 
                 `<strong>${errorLabel(k)}</strong>: ${v}`
               ).join(' &nbsp;|&nbsp; ') || 'No errors tagged yet'}
             </div>
@@ -122,104 +133,79 @@ function renderWeaknessAnalysis(container, results) {
       }).join('')}
 
       <div style="margin-top:var(--sp-6);display:flex;gap:var(--sp-3);flex-wrap:wrap;">
-        ${topSubSkill ? `
+        ${topChapter ? `
           <button class="btn btn-primary btn-lg" onclick="App.navigate('micro-retest', {
-            subSkillId: '${topSubSkill.name}',
-            subSkillName: '${topSubSkill.name}',
-            chapterName: '${topSubSkill.chapter}',
+            chapterId: '${topChapter.id}',
+            chapterName: '${topChapter.name.replace(/'/g, "\\'")}',
             fromAnalysis: true
           })">
-            Start Targeted Micro-Retest →
+            Start Targeted Chapter Practice →
           </button>
         ` : ''}
-        <button class="btn btn-secondary" onclick="App.navigate('home')">Nah, I'm out</button>
+        <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
       </div>
     </div>
   `;
 }
 
-/* ---- Targeted Micro-Retest Setup ---- */
+/* ---- Targeted Chapter Practice Setup ---- */
 function renderMicroRetest(container, data) {
   if (!data) { App.navigate('home'); return; }
-  const { subSkillId, subSkillName, chapterName, fromAnalysis } = data;
+  const chapterId = data.chapterId || data.subSkillId || 'ch04';
+  const chapterName = data.chapterName || data.subSkillName || (DB.chapters.find(c => c.id === chapterId)?.name || 'Biology Chapter');
 
   container.innerHTML = `
     <div class="retest-setup">
       <div class="retest-target-badge">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/><line x1="21.17" y1="8" x2="11.99" y2="8"/><line x1="3.95" y1="6.06" x2="8.54" y2="14"/><line x1="10.88" y1="21.94" x2="15.46" y2="14"/></svg>
-        Targeted Micro-Retest
+        Targeted Chapter Practice
       </div>
 
-      <h2 style="font-size:var(--text-2xl);font-weight:800;color:var(--neutral-900);margin-bottom:var(--sp-3);">${subSkillName}</h2>
-      <p style="color:var(--neutral-500);margin-bottom:var(--sp-6);">${chapterName}</p>
+      <h2 style="font-size:var(--text-2xl);font-weight:800;color:var(--neutral-900);margin-bottom:var(--sp-3);">${escapeHtml(chapterName)}</h2>
+      <p style="color:var(--neutral-500);margin-bottom:var(--sp-6);">High-yield practice set designed to strengthen your command on this chapter</p>
 
       <div class="card" style="text-align:left;margin-bottom:var(--sp-6);">
-        <div style="font-weight:600;color:var(--neutral-800);margin-bottom:var(--sp-4);">Why this retest?</div>
+        <div style="font-weight:600;color:var(--neutral-800);margin-bottom:var(--sp-4);">Why this chapter practice?</div>
         <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
           <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
             <div style="width:24px;height:24px;background:var(--error-100);color:var(--error-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">!</div>
-            <div style="font-size:var(--text-sm);color:var(--neutral-700);">This sub-skill appeared in your incorrect answers. Targeted practice will close the gap faster than general revision.</div>
+            <div style="font-size:var(--text-sm);color:var(--neutral-700);">This chapter was identified as a priority weakness from your test results.</div>
           </div>
           <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
             <div style="width:24px;height:24px;background:var(--primary-100);color:var(--primary-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">5</div>
-            <div style="font-size:var(--text-sm);color:var(--neutral-700);">5 focused questions — estimated 8–10 minutes</div>
+            <div style="font-size:var(--text-sm);color:var(--neutral-700);">5 high-yield questions — estimated 8–10 minutes</div>
           </div>
           <div style="display:flex;gap:var(--sp-3);align-items:flex-start;">
             <div style="width:24px;height:24px;background:var(--teal-100);color:var(--teal-500);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;">→</div>
-            <div style="font-size:var(--text-sm);color:var(--neutral-700);">After completion, you'll move to the Spaced Re-Test schedule (Day 1 → Day 4 → Day 10)</div>
+            <div style="font-size:var(--text-sm);color:var(--neutral-700);">Wrong questions are automatically scheduled for Spaced Review (Day 1 → Day 4 → Day 10)</div>
           </div>
         </div>
       </div>
 
-      <div style="background:var(--warning-100);border:1px solid var(--warning-400);border-radius:var(--radius-md);padding:var(--sp-4);margin-bottom:var(--sp-6);text-align:left;">
-        <div style="font-weight:600;color:var(--warning-600);margin-bottom:var(--sp-1);">Spaced Re-Test Schedule</div>
-        <div style="display:flex;gap:var(--sp-4);">
-          <div style="text-align:center;"><div style="font-weight:700;color:var(--warning-600);">Day 1</div><div style="font-size:var(--text-xs);color:var(--neutral-500);">Today</div></div>
-          <div style="display:flex;align-items:center;color:var(--neutral-300);">→</div>
-          <div style="text-align:center;"><div style="font-weight:700;color:var(--neutral-700);">Day 4</div><div style="font-size:var(--text-xs);color:var(--neutral-500);">4 days later</div></div>
-          <div style="display:flex;align-items:center;color:var(--neutral-300);">→</div>
-          <div style="text-align:center;"><div style="font-weight:700;color:var(--neutral-700);">Day 10</div><div style="font-size:var(--text-xs);color:var(--neutral-500);">10 days later</div></div>
-        </div>
-      </div>
-
-      <button class="btn btn-primary btn-lg btn-block" onclick="launchMicroRetest('${subSkillId}','${subSkillName}','${chapterName}')">
-        Let's gooo →
+      <button class="btn btn-primary btn-lg btn-block" onclick="launchMicroRetest('${chapterId}','${chapterName.replace(/'/g, "\\'")}')">
+        Start Chapter Practice →
       </button>
       <button class="btn btn-ghost btn-block" style="margin-top:var(--sp-3);" onclick="App.navigate('home')">
-        Skip for now (coward behavior)
+        Back to Dashboard
       </button>
     </div>
   `;
 }
 
-window.launchMicroRetest = function(subSkillId, subSkillName, chapterName) {
-  const questions = getQuestionsBySubSkill(subSkillId, 5);
+window.launchMicroRetest = function(chapterId, chapterName) {
+  let questions = DB.questions.filter(q => q.chapter === chapterId).slice(0, 5);
+  if (questions.length === 0) {
+    questions = DB.questions.slice(0, 5);
+  }
   TestEngine.start({
     questions,
     mode: 'micro',
-    meta: { subSkillId, subSkillName, chapterName, title: subSkillName },
+    meta: { chapterId, chapterName, title: chapterName || 'Targeted Practice' },
     onComplete(results) {
-      // Add to spaced retest schedule
-      const state = State.get();
-      const exists = (state.spacedRetests || []).find(r => r.subSkillId === subSkillId);
-      if (!exists) {
-        state.spacedRetests = state.spacedRetests || [];
-        state.spacedRetests.unshift({
-          subSkillId,
-          subSkillName,
-          chapterName,
-          checkpoints: [
-            { day: 1,  status: 'completed', date: new Date().toISOString(), score: results.accuracy },
-            { day: 4,  status: 'due',       date: null, score: null },
-            { day: 10, status: 'upcoming',  date: null, score: null },
-          ]
-        });
-        State.save(state);
+      if (typeof processTestResultForSpacedReview === 'function') {
+        processTestResultForSpacedReview(results);
       }
-      App.navigate('spaced-retest', {
-        subSkillId, subSkillName, chapterName,
-        microResults: results
-      });
+      App.navigate('result', results);
     }
   });
 };
@@ -344,9 +330,10 @@ window.launchSpacedTest = function(subSkillId, subSkillName, chapterName, day) {
 function renderImprovementVerified(container, data) {
   if (!data) { App.navigate('home'); return; }
   const { subSkillName, chapterName } = data;
+  const titleName = chapterName || subSkillName || 'Biology Chapter';
 
   const state = State.get();
-  const wm = state.weaknessMap?.find(w => w.subSkillName === subSkillName);
+  const wm = state.weaknessMap?.find(w => w.chapterName === chapterName || w.chapterName === titleName || w.subSkillName === subSkillName);
   const oldPerf = wm ? wm.performance : 40;
   const newPerf = Math.min(oldPerf + 30 + Math.floor(Math.random() * 15), 92);
 
@@ -358,9 +345,8 @@ function renderImprovementVerified(container, data) {
 
       <div class="card" style="text-align:left;margin-bottom:var(--sp-6);">
         <div style="margin-bottom:var(--sp-4);">
-          <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:2px;">Sub-skill improved</div>
-          <div style="font-weight:700;font-size:var(--text-lg);color:var(--neutral-900);">${subSkillName}</div>
-          <div style="font-size:var(--text-sm);color:var(--neutral-500);">${chapterName}</div>
+          <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:2px;">Chapter mastery leveled up</div>
+          <div style="font-weight:700;font-size:var(--text-lg);color:var(--neutral-900);">${escapeHtml(titleName)}</div>
         </div>
         <div style="display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:var(--sp-4);">
           <div style="text-align:center;padding:var(--sp-4);background:var(--error-100);border-radius:var(--radius-md);">

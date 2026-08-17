@@ -265,8 +265,53 @@ const App = (() => {
     }
   }
 
+  /* ---- Log Out function ---- */
+  function logout(confirmFirst = false) {
+    if (confirmFirst) {
+      const ok = window.confirm('Are you sure you want to log out from this device?');
+      if (!ok) return;
+    }
+    // Clear student state
+    try {
+      localStorage.removeItem('bioready_v1');
+      sessionStorage.clear();
+    } catch (e) {
+      console.warn('Storage clear error', e);
+    }
+
+    // Clear any admin tokens or mock auth tokens
+    if (window.ApiClient && typeof ApiClient.clearToken === 'function') {
+      ApiClient.clearToken();
+    }
+
+    // Remove hash if any
+    if (window.location.hash) {
+      history.replaceState(null, '', window.location.pathname + window.location.search);
+    }
+
+    // Reset State object in memory
+    if (window.State && typeof State.reset === 'function') {
+      State.reset();
+    }
+
+    // Close any open menus or drawers
+    const moreMenu = document.getElementById('more-menu');
+    const moreBtn  = document.getElementById('more-btn');
+    const drawer   = document.getElementById('nav-drawer');
+    const overlay  = document.getElementById('drawer-overlay');
+    if (moreMenu) moreMenu.classList.remove('open');
+    if (moreBtn) moreBtn.classList.remove('active');
+    if (drawer) drawer.classList.remove('open');
+    if (overlay) overlay.classList.remove('active');
+    document.body.classList.remove('drawer-open');
+
+    // Update shell & navigate to config screen
+    navigate('config');
+    showToast('Logged out successfully');
+  }
+
   /* ---- Public API ---- */
-  return { navigate, showToast, init, SCREENS };
+  return { navigate, showToast, init, logout, SCREENS };
 })();
 
 // `const App = ...` above only creates a local/module-scope binding — it does
@@ -278,3 +323,4 @@ window.App = App;
 
 /* ---- Boot ---- */
 document.addEventListener('DOMContentLoaded', () => App.init());
+

@@ -10,6 +10,7 @@ const fullLengthTestSchema = new mongoose.Schema(
     description: { type: String, default: '', trim: true },
     numberOfQuestions: { type: Number, required: true, min: 1 },
     durationMinutes: { type: Number, required: true, min: 1 },
+    questions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
 
     isDeleted: { type: Boolean, default: false },
   },
