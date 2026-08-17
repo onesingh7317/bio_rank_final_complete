@@ -1815,136 +1815,672 @@ function renderPerformance(container) {
   renderPerfTrendChart();
 }
 
-/* ---- Result Screen ---- */
+/* ---- Result Screen (Redesigned with Mistake Analysis) ---- */
+let _resultFilter = 'all'; // 'all' | 'incorrect' | 'correct' | 'skipped'
+let _expandedQuestions = new Set();
+
 function renderResult(container, results) {
   if (!results) { App.navigate('home'); return; }
 
+  // Store results reference
+  window._currentResults = results;
+
+  // Run existing background processors
   processTestResultForSpacedReview(results);
   recordChapterTestAttempt(results);
 
+  // Attempt identifier for persistent mistake tagging
+  if (!results._attemptKey) {
+    results._attemptKey = `attempt_${Date.now()}_${results.mode || 'test'}`;
+  }
+  const attemptKey = results._attemptKey;
+
+  // Restore any previously saved mistake reasons from State for this attempt or questions
+  const state = State.get();
+  const savedReasons = (state.mistakeReasons && state.mistakeReasons[attemptKey]) || {};
+  results.questionResults.forEach((r, idx) => {
+    const qId = r.questionId || r.question.id || `q_${idx}`;
+    if (savedReasons[qId]) {
+      r.errorType = savedReasons[qId];
+    } else if (!r.errorType && state.mistakeReasons && state.mistakeReasons[qId]) {
+      // Global fallback for question ID
+      r.errorType = state.mistakeReasons[qId];
+    }
+  });
+
+  // Calculate metrics
+  const totalQ = results.totalQuestions || results.questionResults.length || 1;
+  const correctCount = results.correct || 0;
+  const incorrectCount = results.incorrect || 0;
+  const unattemptedCount = results.unattempted || (totalQ - correctCount - incorrectCount);
+  const accuracy = results.accuracy !== undefined ? results.accuracy : Math.round((correctCount / totalQ) * 100);
+  const maxMarks = totalQ * 4;
+  const neetScore = results.neetScore !== undefined ? results.neetScore : (correctCount * 4 - incorrectCount * 1);
   const timeStr = formatSeconds(results.timeSpent || 0);
-  const incorrectQs = results.questionResults.filter(r => r.status === 'incorrect');
+  const avgSeconds = results.timeSpent ? Math.round(results.timeSpent / totalQ) : 0;
+  const rank = state.performance?.rank ? `#${state.performance.rank}` : '#142';
+
+  // Group performance by chapter
+  const chapterBreakdown = {};
+  results.questionResults.forEach((r, i) => {
+    const chId = r.question.chapter || 'general';
+    const chObj = DB.chapters.find(c => c.id === chId);
+    const chName = chObj ? chObj.name : (r.question.chapterName || 'General Biology');
+    const chIcon = chObj ? chObj.icon : '📖';
+
+    if (!chapterBreakdown[chId]) {
+      chapterBreakdown[chId] = {
+        id: chId,
+        name: chName,
+        icon: chIcon,
+        total: 0,
+        correct: 0,
+        incorrect: 0,
+        unattempted: 0,
+        reasons: {}
+      };
+    }
+    chapterBreakdown[chId].total++;
+    if (r.status === 'correct') chapterBreakdown[chId].correct++;
+    else if (r.status === 'incorrect') {
+      chapterBreakdown[chId].incorrect++;
+      if (r.errorType) {
+        chapterBreakdown[chId].reasons[r.errorType] = (chapterBreakdown[chId].reasons[r.errorType] || 0) + 1;
+      }
+    } else {
+      chapterBreakdown[chId].unattempted++;
+    }
+  });
+
+  // Mistakes aggregation for analysis
+  const mistakeCounts = {};
+  DB.errorTypes.forEach(et => { mistakeCounts[et.id] = 0; });
+  let totalTaggedMistakes = 0;
+
+  results.questionResults.forEach(r => {
+    if (r.status === 'incorrect' || r.status === 'skipped') {
+      if (r.errorType) {
+        mistakeCounts[r.errorType] = (mistakeCounts[r.errorType] || 0) + 1;
+        totalTaggedMistakes++;
+      }
+    }
+  });
+
+  // Find dominant mistake reason
+  let dominantReason = null;
+  let maxReasonCount = 0;
+  Object.entries(mistakeCounts).forEach(([id, count]) => {
+    if (count > maxReasonCount) {
+      maxReasonCount = count;
+      dominantReason = DB.errorTypes.find(et => et.id === id);
+    }
+  });
+
+  // Actionable Insight computation
+  let insightTitle = 'Continuous Improvement';
+  let insightDesc = 'Review your solutions and tag the reasons for any missed questions to get tailored recommendations.';
+  let insightRecom = 'Practice daily with timed tests to maintain your edge.';
+
+  if (dominantReason) {
+    if (dominantReason.id === 'conceptual_gap') {
+      insightTitle = 'Primary Challenge: Concept Clarity 🧠';
+      insightDesc = `You lost ${maxReasonCount} question(s) due to core concept gaps. Factual biology questions require crystal clear conceptual foundation.`;
+      insightRecom = '💡 Recommended: Re-read NCERT theory for weak chapters and re-attempt concept-specific quizzes.';
+    } else if (dominantReason.id === 'time') {
+      insightTitle = 'Primary Challenge: Time Management ⏱️';
+      insightDesc = `You reported time pressure on ${maxReasonCount} question(s). Average pace was ${avgSeconds}s/question (NEET Biology target is ~40–50s).`;
+      insightRecom = '💡 Recommended: Practice timed chapter tests to build rapid question elimination instinct.';
+    } else if (dominantReason.id === 'confused') {
+      insightTitle = 'Primary Challenge: Option Elimination 🤔';
+      insightDesc = `You were stuck between 2 close options on ${maxReasonCount} question(s). This shows good partial knowledge but needs precise distinction.`;
+      insightRecom = '💡 Recommended: Focus on exception cases, keywords in NCERT lines, and assertion-reason patterns.';
+    } else if (dominantReason.id === 'silly_mistake') {
+      insightTitle = 'Primary Challenge: Careless Errors ⚠️';
+      insightDesc = `You made ${maxReasonCount} avoidable silly mistake(s) on questions you knew. In NEET, negative marking on known questions heavily impacts rank.`;
+      insightRecom = '💡 Recommended: Read NOT / INCORRECT keywords twice before confirming your option bubble.';
+    } else if (dominantReason.id === 'misread') {
+      insightTitle = 'Primary Challenge: Question Interpretation 😵';
+      insightDesc = `${maxReasonCount} question(s) were misread or misinterpreted.`;
+      insightRecom = '💡 Recommended: Underline key conditions in questions before selecting answers.';
+    } else if (dominantReason.id === 'memory_lapse') {
+      insightTitle = 'Primary Challenge: Factual Recall 📚';
+      insightDesc = `${maxReasonCount} question(s) slipped due to factual or data memory gaps.`;
+      insightRecom = '💡 Recommended: Make one-page formula/examples flashcards for direct NCERT tables.';
+    } else if (dominantReason.id === 'guessed') {
+      insightTitle = 'Primary Challenge: Random Guessing 🎯';
+      insightDesc = `You guessed on ${maxReasonCount} question(s). Random guessing carries a negative penalty in NEET.`;
+      insightRecom = '💡 Recommended: Skip questions with zero familiarity unless you can eliminate at least 2 options.';
+    }
+  } else if (incorrectCount === 0 && unattemptedCount === 0) {
+    insightTitle = 'Outstanding Mastery! 🌟';
+    insightDesc = 'Flawless performance! 100% accuracy with zero mistakes.';
+    insightRecom = '💡 Recommended: Keep the momentum going by attempting Full-Length Mock Tests.';
+  }
+
+  // Filter questions according to current active tab
+  const filteredQuestionResults = results.questionResults.map((r, originalIdx) => ({ ...r, originalIdx })).filter(r => {
+    if (_resultFilter === 'incorrect') return r.status === 'incorrect';
+    if (_resultFilter === 'correct') return r.status === 'correct';
+    if (_resultFilter === 'skipped') return r.status === 'skipped';
+    return true;
+  });
+
+  const correctPct = Math.round((correctCount / totalQ) * 100);
+  const incorrectPct = Math.round((incorrectCount / totalQ) * 100);
+  const unattemptedPct = 100 - correctPct - incorrectPct;
 
   container.innerHTML = `
-    <div style="max-width:760px;">
-      <!-- Score Hero -->
-      <div class="result-hero">
-        <div class="result-score">${results.neetScore}</div>
-        <div class="result-score-label">NEET Score &nbsp;(+4 correct, −1 wrong) ${results.neetScore > 0 ? '— W move' : "— it's giving practice energy"}</div>
-        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-4);margin-top:var(--sp-5);">
-          <div><div style="font-size:var(--text-2xl);font-weight:700;">${results.accuracy}%</div><div style="font-size:var(--text-xs);opacity:0.8;">Accuracy</div></div>
-          <div><div style="font-size:var(--text-2xl);font-weight:700;">${timeStr}</div><div style="font-size:var(--text-xs);opacity:0.8;">Time Taken</div></div>
-          <div><div style="font-size:var(--text-2xl);font-weight:700;">${results.totalQuestions}</div><div style="font-size:var(--text-xs);opacity:0.8;">Questions</div></div>
-        </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="result-stats" style="margin-bottom:var(--sp-5);">
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--success-500);">${results.correct}</span>
-          <span class="result-stat-label">Correct</span>
-        </div>
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--error-500);">${results.incorrect}</span>
-          <span class="result-stat-label">Incorrect</span>
-        </div>
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--neutral-500);">${results.unattempted}</span>
-          <span class="result-stat-label">Skipped</span>
-        </div>
-      </div>
-
-      <!-- Error Tagging -->
-      ${incorrectQs.length > 0 ? `
-        <div class="card" style="margin-bottom:var(--sp-5);">
-          <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-2);">Tag Your Mistakes</div>
-          <div style="font-size:var(--text-sm);color:var(--neutral-500);margin-bottom:var(--sp-4);">Why'd you get it wrong? Be honest. This feeds your improvement plan so you don't fumble the same way twice.</div>
-          ${incorrectQs.map((r, i) => `
-            <div class="q-result-row">
-              <div class="q-result-num incorrect">${results.questionResults.indexOf(r) + 1}</div>
-              <div class="q-result-info">
-                <div class="q-result-text">${r.question.text.substring(0, 100)}${r.question.text.length > 100 ? '…' : ''}</div>
-                <div class="q-result-answer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-1);">
-                  <div>
-                    Your answer: ${r.selected !== null && r.selected !== undefined ? r.question.options[r.selected] : 'Not attempted'}
-                    &nbsp;|&nbsp; Correct: ${r.question.options[r.question.correct]}
-                  </div>
-                  <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._currentResults.questionResults[${results.questionResults.indexOf(r)}].question, ${results.questionResults.indexOf(r) + 1})" title="Report issue in this question">
-                    ⚠️ Report Issue
-                  </button>
-                </div>
-                <div class="error-tag-group" id="tag-group-${i}">
-                  ${DB.errorTypes.map(et => `
-                    <button class="error-tag ${r.errorType === et.id ? 'selected' : ''}"
-                      data-type="${et.id}"
-                      onclick="tagError(${i}, '${et.id}', this)"
-                      title="${et.description}">
-                      ${et.label}
-                    </button>
-                  `).join('')}
-                </div>
-              </div>
-            </div>
-          `).join('')}
-        </div>
-      ` : `
-        <div class="card" style="margin-bottom:var(--sp-5);text-align:center;padding:var(--sp-8);">
-          <div style="font-size:48px;margin-bottom:var(--sp-3);">🎉</div>
-          <div style="font-weight:700;font-size:var(--text-xl);color:var(--success-600);">Flawless. No mistakes to tag. You himmed.</div>
-        </div>
-      `}
-
-      <!-- Question-wise Review (All Answers) -->
-      <div class="card" style="margin-bottom:var(--sp-5);">
-        <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-3);">Question Review (All Answers &amp; Explanations)</div>
-        ${results.questionResults.map((r, i) => `
-          <div class="q-result-row" style="align-items:flex-start;padding:var(--sp-3) 0;border-bottom:1px solid var(--neutral-100);">
-            <div class="q-result-num ${r.status}">${i + 1}</div>
-            <div class="q-result-info" style="flex:1;">
-              <div class="q-result-text" style="font-weight:600;margin-bottom:var(--sp-1);line-height:1.4;">${r.question.text}</div>
-              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:var(--sp-1);">
-                Your answer: <strong>${r.selected !== null && r.selected !== undefined ? ['A','B','C','D'][r.selected] + '. ' + r.question.options[r.selected] : 'Not attempted'}</strong>
-                &nbsp;|&nbsp; Correct: <strong style="color:var(--success-600);">${['A','B','C','D'][r.question.correct]}. ${r.question.options[r.question.correct]}</strong>
-              </div>
-              ${r.question.explanation ? `
-                <div style="font-size:var(--text-xs);color:var(--neutral-500);background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);margin-top:var(--sp-1);">
-                  💡 <strong>Explanation:</strong> ${r.question.explanation}
-                </div>
-              ` : ''}
-            </div>
-            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-1);margin-left:var(--sp-2);">
-              <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
-                ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
-              </span>
-              <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._currentResults.questionResults[${i}].question, ${i + 1})" title="Report error in this question">
-                ⚠️ Report
-              </button>
+    <div class="result-v2-container">
+      
+      <!-- ================= 1. Score & Hero Header ================= -->
+      <div class="result-v2-hero">
+        <div class="result-v2-hero-header">
+          <div class="result-v2-pill-badge">
+            <span>🎉 Test Completed</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:var(--sp-2);">
+            <div class="result-v2-neet-badge">
+              <span>🎯 NEET Score: <strong>${neetScore}</strong> / ${maxMarks}</span>
             </div>
           </div>
-        `).join('')}
+        </div>
+
+        <div class="result-v2-main-score-box">
+          <div>
+            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.85);margin-bottom:6px;font-weight:800;">Score Achieved</div>
+            <div style="display:flex;align-items:baseline;gap:10px;">
+              <span class="result-v2-score-num">${correctCount}</span>
+              <span class="result-v2-score-max">/ ${totalQ} Correct</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6 Compact Statistics -->
+        <div class="result-v2-stats-grid">
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#a7f3d0;">${accuracy}%</div>
+            <div class="result-v2-stat-tile-label">Accuracy</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#6ee7b7;">${correctCount}</div>
+            <div class="result-v2-stat-tile-label">Correct (+${correctCount * 4})</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#fca5a5;">${incorrectCount}</div>
+            <div class="result-v2-stat-tile-label">Wrong (−${incorrectCount})</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#cbd5e1;">${unattemptedCount}</div>
+            <div class="result-v2-stat-tile-label">Skipped (0)</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val">${timeStr}</div>
+            <div class="result-v2-stat-tile-label">Time Spent</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#fef08a;">${rank}</div>
+            <div class="result-v2-stat-tile-label">Bio Rank</div>
+          </div>
+        </div>
       </div>
 
-      <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
-        <button class="btn btn-primary btn-lg" onclick="proceedToWeaknessAnalysis()">
-          Show me what to fix →
-        </button>
-        <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
+      <!-- ================= 2. Question Review Section ================= -->
+      <div class="result-section" id="question-review-section">
+        <div class="result-section-header">
+          <div>
+            <div class="result-section-title">
+              <span>📝 Question Review & Solutions</span>
+            </div>
+            <div class="result-section-subtitle">Click any question to view full solution, options, and tag mistake reasons</div>
+          </div>
+        </div>
+
+        <!-- Filter tabs -->
+        <div class="q-review-filter-tabs">
+          <button class="q-review-tab-btn ${_resultFilter === 'all' ? 'active' : ''}" onclick="setResultFilter('all')">
+            All Questions (${totalQ})
+          </button>
+          <button class="q-review-tab-btn ${_resultFilter === 'incorrect' ? 'active' : ''}" onclick="setResultFilter('incorrect')">
+            ❌ Incorrect (${incorrectCount})
+          </button>
+          <button class="q-review-tab-btn ${_resultFilter === 'correct' ? 'active' : ''}" onclick="setResultFilter('correct')">
+            ✅ Correct (${correctCount})
+          </button>
+          <button class="q-review-tab-btn ${_resultFilter === 'skipped' ? 'active' : ''}" onclick="setResultFilter('skipped')">
+            — Skipped (${unattemptedCount})
+          </button>
+        </div>
+
+        <!-- Question Cards List -->
+        <div class="q-review-list">
+          ${filteredQuestionResults.map(r => {
+            const q = r.question;
+            const qNum = r.originalIdx + 1;
+            const isExpanded = _expandedQuestions.has(r.originalIdx) || _resultFilter === 'incorrect';
+            const userAnsText = r.selected !== null && r.selected !== undefined ? ['A','B','C','D'][r.selected] + '. ' + q.options[r.selected] : 'Not attempted';
+            const correctAnsText = ['A','B','C','D'][q.correct] + '. ' + q.options[q.correct];
+            const chName = q.chapter ? (DB.chapters.find(c => c.id === q.chapter)?.name || q.chapter) : '';
+
+            return `
+              <div class="q-review-card status-${r.status}" id="q-card-${r.originalIdx}">
+                <div class="q-review-card-header" onclick="toggleQuestionExpand(${r.originalIdx})">
+                  <div class="q-review-card-topline">
+                    <div class="q-review-meta">
+                      <span class="q-review-num-chip ${r.status}">
+                        ${r.status === 'correct' ? `Q${qNum} · Correct ✅` : r.status === 'incorrect' ? `Q${qNum} · Wrong ❌` : `Q${qNum} · Skipped —`}
+                      </span>
+                      ${chName ? `<span style="font-size:11px;color:var(--neutral-500);font-weight:600;">${escapeHtml(chName)}</span>` : ''}
+                      ${q.ncertReference ? `<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:10px;">📖 ${escapeHtml(q.ncertReference)}</span>` : ''}
+                    </div>
+                    <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                      <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
+                        ${r.status === 'correct' ? '+4 Marks' : r.status === 'incorrect' ? '−1 Mark' : '0 Marks'}
+                      </span>
+                      <span style="font-size:12px;color:var(--neutral-400);">${isExpanded ? '▲' : '▼'}</span>
+                    </div>
+                  </div>
+
+                  <div class="q-review-text">${q.text}</div>
+
+                  ${r.status === 'correct' ? `
+                    <div class="q-review-correct-badge-row">
+                      <span class="q-review-correct-pill">✓ Choice: <strong>${escapeHtml(correctAnsText)}</strong></span>
+                    </div>
+                  ` : `
+                    <div class="q-review-answers-compact">
+                      <div>
+                        Your Answer: <strong style="${r.status === 'incorrect' ? 'color:var(--error-700);' : ''}">${escapeHtml(userAnsText)}</strong>
+                      </div>
+                      <div>
+                        Correct Answer: <strong style="color:var(--success-700);">${escapeHtml(correctAnsText)}</strong>
+                      </div>
+                    </div>
+                  `}
+                </div>
+
+                <!-- "Why did I get this wrong?" Section for incorrect / skipped -->
+                ${r.status !== 'correct' ? `
+                  <div class="why-wrong-box">
+                    <div class="why-wrong-header">
+                      <span>🤔 Why did I get this wrong?</span>
+                      ${r.errorType ? `<span style="font-size:11px;color:#b45309;font-weight:700;">Saved ✓</span>` : ''}
+                    </div>
+                    <div class="why-wrong-options-grid">
+                      ${DB.errorTypes.map(et => `
+                        <button type="button" 
+                          class="why-wrong-chip ${r.errorType === et.id ? 'selected' : ''}" 
+                          onclick="selectMistakeReason(${r.originalIdx}, '${et.id}', event)"
+                          title="${et.description}">
+                          <span>${et.icon || '📌'}</span>
+                          <span>${et.label}</span>
+                        </button>
+                      `).join('')}
+                    </div>
+                  </div>
+                ` : ''}
+
+                <!-- Collapsible Explanation Details -->
+                <div class="q-review-card-details" style="${isExpanded ? 'display:block;' : 'display:none;'}">
+                  <div style="font-size:11px;font-weight:700;color:var(--neutral-500);text-transform:uppercase;margin-bottom:var(--sp-2);">Options:</div>
+                  <div class="q-review-options-list">
+                    ${q.options.map((opt, oi) => {
+                      const isCorrect = oi === q.correct;
+                      const isUserSelected = oi === r.selected;
+                      const cls = isCorrect ? 'is-correct' : (isUserSelected && !isCorrect ? 'is-user-wrong' : '');
+                      return `
+                        <div class="q-review-opt ${cls}">
+                          <div>
+                            <strong>${['A','B','C','D'][oi]}.</strong> ${escapeHtml(opt)}
+                          </div>
+                          <div>
+                            ${isCorrect ? '<span style="font-size:11px;font-weight:700;color:var(--success-700);">✓ Correct Answer</span>' : ''}
+                            ${isUserSelected && !isCorrect ? '<span style="font-size:11px;font-weight:700;color:var(--error-700);">✗ Your Choice</span>' : ''}
+                          </div>
+                        </div>
+                      `;
+                    }).join('')}
+                  </div>
+
+                  ${q.explanation ? `
+                    <div class="q-review-exp-box">
+                      <div style="font-weight:700;color:var(--primary-700);margin-bottom:4px;display:flex;align-items:center;gap:4px;">
+                        <span>💡 Detailed Solution</span>
+                      </div>
+                      <div>${q.explanation}</div>
+                    </div>
+                  ` : ''}
+
+                  <div style="display:flex;justify-content:flex-end;margin-top:var(--sp-3);">
+                    <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--neutral-500);" onclick="openQuestionReportModal(window._currentResults.questionResults[${r.originalIdx}].question, ${qNum})">
+                      ⚠️ Report Question Issue
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            `;
+          }).join('')}
+        </div>
       </div>
+
+      <!-- ================= 3. My Mistake Analysis ================= -->
+      <div class="result-section" id="mistake-analysis-section">
+        <div class="result-section-header">
+          <div>
+            <div class="result-section-title">
+              <span>🔍 My Mistake Analysis</span>
+              <span class="badge badge-primary" style="font-size:11px;">Why did you lose marks?</span>
+            </div>
+            <div class="result-section-subtitle">
+              ${incorrectCount > 0 
+                ? 'Tag your wrong questions below to reveal what causes your mark loss.' 
+                : 'Zero incorrect questions! No mistakes to analyze.'}
+            </div>
+          </div>
+        </div>
+
+        ${incorrectCount > 0 ? `
+          <div class="mistake-analysis-card">
+            <div style="margin-bottom:var(--sp-4);font-size:var(--text-xs);font-weight:700;color:var(--neutral-600);text-transform:uppercase;letter-spacing:0.5px;">
+              Mark Loss Distribution (${totalTaggedMistakes}/${incorrectCount} tagged)
+            </div>
+
+            ${DB.errorTypes.map(et => {
+              const count = mistakeCounts[et.id] || 0;
+              const barPct = incorrectCount > 0 ? Math.round((count / incorrectCount) * 100) : 0;
+              if (count === 0 && totalTaggedMistakes > 0) return '';
+              return `
+                <div class="mistake-analysis-row">
+                  <div class="mistake-analysis-label">
+                    <span>${et.icon || '📌'}</span>
+                    <span>${et.label}</span>
+                  </div>
+                  <div class="mistake-analysis-bar-wrap">
+                    <div class="mistake-analysis-bar-fill" style="width:${barPct}%;"></div>
+                  </div>
+                  <div class="mistake-analysis-count">
+                    ${count} Qs (${count > 0 ? `−${count}` : '0'})
+                  </div>
+                </div>
+              `;
+            }).join('')}
+
+            ${totalTaggedMistakes === 0 ? `
+              <div style="text-align:center;padding:var(--sp-3);background:var(--white);border-radius:var(--radius-md);border:1px dashed var(--neutral-300);font-size:var(--text-xs);color:var(--neutral-500);">
+                👉 Select reasons under the <strong>Question Review</strong> cards above to see your personalized mistake breakdown.
+              </div>
+            ` : ''}
+
+            <!-- Actionable Insights Callout -->
+            <div class="actionable-insight-box">
+              <div class="actionable-insight-title">
+                <span>💡 ${insightTitle}</span>
+              </div>
+              <div class="actionable-insight-desc">
+                ${insightDesc}
+              </div>
+              <div class="actionable-insight-recom">
+                ${insightRecom}
+              </div>
+            </div>
+          </div>
+        ` : `
+          <div style="text-align:center;padding:var(--sp-6);background:#ecfdf5;border-radius:var(--radius-md);border:1px solid #a7f3d0;">
+            <div style="font-size:32px;margin-bottom:var(--sp-2);">🏆</div>
+            <div style="font-weight:700;font-size:var(--text-base);color:#065f46;">Zero Mistakes! Perfect Execution.</div>
+            <p style="font-size:var(--text-xs);color:#047857;margin-top:4px;">You answered every attempted question correctly. Continue practicing full tests to maintain peak accuracy.</p>
+          </div>
+        `}
+      </div>
+
+      <!-- ================= 4. Performance Overview ================= -->
+      <div class="result-section">
+        <div class="result-section-header">
+          <div>
+            <div class="result-section-title">
+              <span>📊 Performance Overview</span>
+            </div>
+            <div class="result-section-subtitle">Visual breakdown of your test accuracy, score distribution, and speed</div>
+          </div>
+        </div>
+
+        <div class="result-perf-grid">
+          <!-- Score Distribution -->
+          <div class="result-perf-card">
+            <div class="result-perf-card-title">
+              <span>🎯 Score Distribution</span>
+            </div>
+            <div>
+              <div style="display:flex;justify-content:space-between;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
+                <span style="color:var(--success-600);">${correctCount} Correct</span>
+                <span style="color:var(--error-600);">${incorrectCount} Wrong</span>
+                <span style="color:var(--neutral-500);">${unattemptedCount} Skipped</span>
+              </div>
+              <div class="result-perf-ratio-bar">
+                <div class="result-perf-ratio-seg correct" style="width:${correctPct}%;"></div>
+                <div class="result-perf-ratio-seg incorrect" style="width:${incorrectPct}%;"></div>
+                <div class="result-perf-ratio-seg unattempted" style="width:${Math.max(0, unattemptedPct)}%;"></div>
+              </div>
+              <div class="result-perf-legend">
+                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:var(--success-500);"></div> Correct (${correctPct}%)</div>
+                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:var(--error-500);"></div> Wrong (${incorrectPct}%)</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Accuracy Status -->
+          <div class="result-perf-card">
+            <div class="result-perf-card-title">
+              <span>🎯 Accuracy Rating</span>
+            </div>
+            <div>
+              <div style="font-size:var(--text-2xl);font-weight:800;color:${accuracy >= 80 ? 'var(--success-600)' : accuracy >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
+                ${accuracy}%
+              </div>
+              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-top:2px;">
+                ${accuracy >= 85 ? '🌟 Excellent NEET Readiness' : accuracy >= 65 ? '👍 Good Foundation, Refine Weak Spots' : '⚠️ Concept Revision Required'}
+              </div>
+              <div class="progress-bar" style="height:6px;margin-top:var(--sp-2);">
+                <div class="progress-fill ${accuracy >= 80 ? 'success' : ''}" style="width:${accuracy}%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Time Efficiency -->
+          <div class="result-perf-card">
+            <div class="result-perf-card-title">
+              <span>⏱️ Speed & Efficiency</span>
+            </div>
+            <div>
+              <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">
+                ${avgSeconds}s <span style="font-size:var(--text-xs);font-weight:500;color:var(--neutral-500);">/ question</span>
+              </div>
+              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-top:2px;">
+                ${avgSeconds <= 50 ? '⚡ Fast & efficient pace' : avgSeconds <= 75 ? '⏱️ On target for NEET (~72s max)' : '🐢 High time per question'}
+              </div>
+              <div style="font-size:11px;color:var(--neutral-400);margin-top:var(--sp-2);">
+                Total time: ${timeStr}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ================= 5. Chapter-wise Performance ================= -->
+      <div class="result-section">
+        <div class="result-section-header">
+          <div>
+            <div class="result-section-title">
+              <span>📚 Chapter-wise Breakdown</span>
+            </div>
+            <div class="result-section-subtitle">Performance and mistake pattern across chapters in this test</div>
+          </div>
+        </div>
+
+        <div>
+          ${Object.values(chapterBreakdown).map(ch => {
+            const chAcc = ch.total > 0 ? Math.round((ch.correct / ch.total) * 100) : 0;
+            const reasonEntries = Object.entries(ch.reasons);
+            return `
+              <div class="result-chapter-card">
+                <div class="result-chapter-header">
+                  <div class="result-chapter-name">
+                    <span>${ch.icon}</span>
+                    <span>${escapeHtml(ch.name)}</span>
+                  </div>
+                  <div class="result-chapter-stats">
+                    <span style="font-weight:700;color:${chAcc >= 75 ? 'var(--success-600)' : chAcc >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
+                      ${chAcc}% Accuracy
+                    </span>
+                    <span style="color:var(--neutral-400);">•</span>
+                    <span style="color:var(--success-600);font-weight:600;">${ch.correct} Correct</span>
+                    <span style="color:var(--neutral-400);">•</span>
+                    <span style="color:var(--error-600);font-weight:600;">${ch.incorrect} Wrong</span>
+                  </div>
+                </div>
+
+                <div class="progress-bar" style="height:5px;">
+                  <div class="progress-fill ${chAcc >= 80 ? 'success' : ''}" style="width:${chAcc}%;"></div>
+                </div>
+
+                ${reasonEntries.length > 0 ? `
+                  <div class="result-chapter-mistake-tags">
+                    <span style="font-size:11px;font-weight:700;color:var(--neutral-500);align-self:center;">Mistakes:</span>
+                    ${reasonEntries.map(([rid, cnt]) => {
+                      const etObj = DB.errorTypes.find(e => e.id === rid);
+                      return `
+                        <span class="result-chapter-mistake-pill">
+                          ${etObj ? etObj.icon : '⚠️'} ${etObj ? etObj.label : rid} — ${cnt}
+                        </span>
+                      `;
+                    }).join('')}
+                  </div>
+                ` : ''}
+              </div>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- ================= 6. Improvement Section & Actions ================= -->
+      <div class="result-section" style="background:#f0fdf4;border-color:#bbf7d0;">
+        <div class="result-section-header">
+          <div>
+            <div class="result-section-title" style="color:#065f46;">
+              <span>🚀 Improve Your Weak Areas</span>
+            </div>
+            <div class="result-section-subtitle" style="color:#047857;">
+              Targeted practice loops to convert mistakes into guaranteed NEET marks
+            </div>
+          </div>
+        </div>
+
+        <p style="font-size:var(--text-xs);color:#166534;line-height:1.5;margin-bottom:var(--sp-4);">
+          All incorrect questions are automatically synced to your <strong>Improvement Book</strong> for Spaced Re-testing (Day 1 → Day 4 → Day 10).
+        </p>
+
+        <div class="result-v2-actions">
+          <button class="btn btn-primary" onclick="proceedToWeaknessAnalysis()">
+            Practice Weak Chapters →
+          </button>
+          <button class="btn btn-secondary" onclick="setResultFilter('incorrect'); document.getElementById('question-review-section').scrollIntoView({ behavior: 'smooth' });">
+            Review Wrong Questions (${incorrectCount})
+          </button>
+          <button class="btn btn-outline" onclick="App.navigate('improvement-book')">
+            Open Improvement Book 📖
+          </button>
+          <button class="btn btn-ghost" onclick="App.navigate('home')">
+            Back to Dashboard 🏠
+          </button>
+        </div>
+      </div>
+
     </div>
   `;
-
-  // Store results reference
-  window._currentResults = results;
 }
 
+/* ---- Question Review Filter & Toggle Handlers ---- */
+window.setResultFilter = function(filter) {
+  _resultFilter = filter;
+  const container = document.getElementById('screen-container');
+  if (container && window._currentResults) {
+    renderResult(container, window._currentResults);
+  }
+};
+
+window.toggleQuestionExpand = function(originalIdx) {
+  if (_expandedQuestions.has(originalIdx)) {
+    _expandedQuestions.delete(originalIdx);
+  } else {
+    _expandedQuestions.add(originalIdx);
+  }
+  const card = document.getElementById(`q-card-${originalIdx}`);
+  if (card) {
+    const details = card.querySelector('.q-review-card-details');
+    const arrow = card.querySelector('.q-review-card-topline span:last-child');
+    if (details) {
+      const isNowExpanded = _expandedQuestions.has(originalIdx);
+      details.style.display = isNowExpanded ? 'block' : 'none';
+      if (arrow) arrow.textContent = isNowExpanded ? '▲' : '▼';
+    }
+  }
+};
+
+/* ---- Save & Tag Student Mistake Reason ---- */
+window.selectMistakeReason = function(originalIdx, reasonId, event) {
+  if (event) event.stopPropagation();
+
+  if (!window._currentResults) return;
+  const r = window._currentResults.questionResults[originalIdx];
+  if (!r) return;
+
+  // Toggle or assign reason
+  const newReason = (r.errorType === reasonId) ? null : reasonId;
+  r.errorType = newReason;
+
+  // Save to State (localStorage)
+  try {
+    const state = State.get();
+    if (!state.mistakeReasons) state.mistakeReasons = {};
+
+    const attemptKey = window._currentResults._attemptKey || 'last_attempt';
+    if (!state.mistakeReasons[attemptKey]) {
+      state.mistakeReasons[attemptKey] = {};
+    }
+
+    const qId = r.questionId || r.question.id || `q_${originalIdx}`;
+    if (newReason) {
+      state.mistakeReasons[attemptKey][qId] = newReason;
+      state.mistakeReasons[qId] = newReason; // general backup
+    } else {
+      delete state.mistakeReasons[attemptKey][qId];
+      delete state.mistakeReasons[qId];
+    }
+    State.save(state);
+
+    if (window.App && App.showToast) {
+      const et = DB.errorTypes.find(e => e.id === newReason);
+      if (et) {
+        App.showToast(`Reason saved: ${et.icon || '📌'} ${et.label}`);
+      }
+    }
+  } catch (err) {
+    console.warn('Could not persist mistake reason:', err);
+  }
+
+  // Re-render result screen to update mistake analysis and chapter stats in real-time
+  const container = document.getElementById('screen-container');
+  if (container) {
+    renderResult(container, window._currentResults);
+  }
+};
+
 window.tagError = function(incorrectIdx, errorTypeId, btn) {
-  const group = btn.closest('.error-tag-group');
-  group.querySelectorAll('.error-tag').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
   if (window._currentResults) {
     const incorrectQs = window._currentResults.questionResults.filter(r => r.status === 'incorrect');
     if (incorrectQs[incorrectIdx]) {
-      incorrectQs[incorrectIdx].errorType = errorTypeId;
+      const originalIdx = window._currentResults.questionResults.indexOf(incorrectQs[incorrectIdx]);
+      window.selectMistakeReason(originalIdx, errorTypeId);
     }
   }
 };
@@ -1956,7 +2492,7 @@ window.proceedToWeaknessAnalysis = function() {
 function formatSeconds(secs) {
   const m = Math.floor(secs / 60);
   const s = secs % 60;
-  return `${m}m ${s}s`;
+  return `${m.toString().padStart(2, '0')}m ${s.toString().padStart(2, '0')}s`;
 }
 
 /* ============================================================

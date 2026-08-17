@@ -329,11 +329,14 @@ const DB = {
 
   /* ---- Error Types ---- */
   errorTypes: [
-    { id: 'conceptual_gap', label: 'Conceptual Gap', description: 'Did not know the concept' },
-    { id: 'silly_mistake',  label: 'Silly Mistake',  description: 'Knew it but made a careless error' },
-    { id: 'misread',        label: 'Misread',         description: 'Misread the question or options' },
-    { id: 'time',           label: 'Time Pressure',   description: 'Ran out of time to think properly' },
-    { id: 'guessed',        label: 'Guessed',         description: 'Had no idea, guessed randomly' },
+    { id: 'conceptual_gap', label: 'Concept not clear', icon: '🧠', description: 'Did not know or understand the core concept' },
+    { id: 'time',           label: 'Time pressure', icon: '⏱️', description: 'Ran out of time to think properly' },
+    { id: 'confused',       label: 'Confused between 2 options', icon: '🤔', description: 'Narrowed down to 2 choices but picked wrong one' },
+    { id: 'misread',        label: 'Question misunderstood', icon: '😵', description: 'Misread the question or option text' },
+    { id: 'silly_mistake',  label: 'Silly mistake', icon: '⚠️', description: 'Knew it but made a careless mistake' },
+    { id: 'guessed',        label: 'Guessed the answer', icon: '🎯', description: 'Had no idea, guessed blindly' },
+    { id: 'memory_lapse',   label: 'Did not remember the fact', icon: '📚', description: 'Direct NCERT factual recall gap' },
+    { id: 'other',          label: 'Other reason', icon: '📝', description: 'Other reason' },
   ],
 
   /* ---- Mock Weakness Map (Chapter-wise) ---- */
@@ -893,6 +896,7 @@ const State = {
       }
       if (!state.masteredPool) state.masteredPool = [];
       if (!state.fullLengthTests) state.fullLengthTests = {};
+      if (!state.mistakeReasons) state.mistakeReasons = {};
       if (state.performance && !state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
       return state;
     } catch {
@@ -931,6 +935,7 @@ const State = {
       masteredPool: [],
       fullLengthTests: {},
       ncertProgress: {},
+      mistakeReasons: {},
       lastTestResult: null,
       lastWeaknessAnalysis: null,
       currentScreen: 'config',
