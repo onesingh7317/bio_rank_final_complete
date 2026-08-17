@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Bio Rank — NEET Biology Prep</title>
+    <meta name="description" content="Bio Rank is an independent educational platform for NEET Biology preparation, featuring chapter-wise PYQs, practice tests, smart revision, and performance analysis." />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/jpeg" href="logo-square.jpg" />
+    <link rel="apple-touch-icon" href="logo-square.jpg" />
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -23,7 +26,7 @@
             <span></span><span></span><span></span>
           </button>
           <div class="topbar-brand">
-            <div class="brand-icon small">B</div>
+            <img src="logo-square.jpg" alt="Bio Rank Logo" class="brand-logo-img small" />
             <span class="brand-name">Bio Rank</span>
             <span class="vibe-tag fire" style="pointer-events:auto;">Beta</span>
           </div>
@@ -43,6 +46,12 @@
                 <a href="#" class="more-menu-item" data-screen="settings" role="menuitem">
                   <span class="more-menu-icon">⚙️</span><span>Settings</span>
                 </a>
+                <a href="#" class="more-menu-item" data-screen="about" role="menuitem">
+                  <span class="more-menu-icon">ℹ️</span><span>About Us</span>
+                </a>
+                <a href="#" class="more-menu-item" data-screen="contact" role="menuitem">
+                  <span class="more-menu-icon">✉️</span><span>Contact Us</span>
+                </a>
                 <a href="#" class="more-menu-item" data-screen="help" role="menuitem">
                   <span class="more-menu-icon">🆘</span><span>Help &amp; Support</span>
                 </a>
@@ -59,6 +68,77 @@
         <main id="screen-container" class="screen-container">
           <!-- Screens are rendered here by JavaScript -->
         </main>
+
+        <!-- Redesigned Website Footer -->
+        <footer class="site-footer hidden" id="site-footer">
+          <div class="site-footer-inner">
+            
+            <!-- Top Grid -->
+            <div class="site-footer-grid">
+              
+              <!-- 1. LEFT SECTION (Brand) -->
+              <div class="footer-brand-col">
+                <div class="footer-brand-header">
+                  <img src="logo-square.jpg" alt="Bio Rank Logo" class="footer-brand-logo" />
+                  <span class="footer-brand-name">Bio Rank</span>
+                </div>
+                <p class="footer-tagline">Master Biology. Build Your Rank.</p>
+                <p class="footer-desc">NEET Biology practice, PYQs, tests &amp; smart revision.</p>
+              </div>
+
+              <!-- 2. QUICK LINKS -->
+              <div class="footer-nav-col">
+                <h4 class="footer-heading">Quick Links</h4>
+                <ul class="footer-links-list">
+                  <li><a href="#" class="footer-link" onclick="App.navigate('home'); return false;">Home</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('pyq-test'); return false;">PYQs</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('chapter-test'); return false;">Tests</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('performance'); return false;">Rank</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('improvement-book'); return false;">Improvement Book</a></li>
+                </ul>
+              </div>
+
+              <!-- 3. LEGAL -->
+              <div class="footer-nav-col">
+                <h4 class="footer-heading">Legal</h4>
+                <ul class="footer-links-list">
+                  <li><a href="#" class="footer-link" onclick="App.navigate('privacy-policy'); return false;">Privacy Policy</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('terms'); return false;">Terms &amp; Conditions</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('disclaimer'); return false;">Disclaimer</a></li>
+                </ul>
+              </div>
+
+              <!-- 4. SUPPORT / INFORMATION -->
+              <div class="footer-nav-col">
+                <h4 class="footer-heading">Support</h4>
+                <ul class="footer-links-list">
+                  <li><a href="#" class="footer-link" onclick="App.navigate('about'); return false;">About Us</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('contact'); return false;">Contact Us</a></li>
+                  <li><a href="#" class="footer-link" onclick="App.navigate('help'); return false;">FAQs &amp; Help</a></li>
+                </ul>
+              </div>
+
+            </div>
+
+            <!-- Subtle Divider -->
+            <div class="footer-divider"></div>
+
+            <!-- BOTTOM BAR -->
+            <div class="site-footer-bottom">
+              <div class="footer-copyright">
+                &copy; 2026 Bio Rank. All Rights Reserved.
+              </div>
+              <div class="footer-bottom-links">
+                <a href="#" class="footer-bottom-link" onclick="App.navigate('about'); return false;">About Us</a>
+                <span class="footer-dot-sep">•</span>
+                <a href="#" class="footer-bottom-link" onclick="App.navigate('contact'); return false;">Contact Us</a>
+                <span class="footer-dot-sep">•</span>
+                <a href="#" class="footer-bottom-link" onclick="App.navigate('disclaimer'); return false;">Disclaimer</a>
+              </div>
+            </div>
+
+          </div>
+        </footer>
 
         <!-- Bottom Navigation (mobile) -->
         <nav class="bottom-nav hidden" id="bottom-nav">
@@ -92,7 +172,16 @@
 
     <!-- Side Navigation Drawer -->
     <aside class="nav-drawer" id="nav-drawer" aria-hidden="true" aria-label="Main navigation">
-      <div class="drawer-header">
+      <!-- Drawer Brand Header -->
+      <div style="display:flex;align-items:center;gap:12px;padding:var(--sp-4) var(--sp-4) var(--sp-3);border-bottom:1px solid var(--neutral-100);">
+        <img src="logo-square.jpg" alt="Bio Rank" class="brand-logo-img" style="width:38px;height:38px;border-radius:10px;" />
+        <div>
+          <div style="font-weight:800;font-size:var(--text-base);color:var(--neutral-900);line-height:1.2;">Bio Rank</div>
+          <div style="font-size:11px;color:var(--neutral-500);font-weight:600;">NEET Biology Prep</div>
+        </div>
+      </div>
+
+      <div class="drawer-header" style="border-top:none;padding-top:var(--sp-3);">
         <div class="drawer-user">
           <div class="drawer-avatar" id="drawer-avatar">A</div>
           <div class="drawer-user-info">
@@ -141,6 +230,14 @@
         <a href="#" class="drawer-nav-item" data-screen="settings" aria-label="Settings">
           <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">⚙️</span>
           <span>Settings</span>
+        </a>
+        <a href="#" class="drawer-nav-item" data-screen="about" aria-label="About Us">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">ℹ️</span>
+          <span>About Us</span>
+        </a>
+        <a href="#" class="drawer-nav-item" data-screen="contact" aria-label="Contact Us">
+          <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">✉️</span>
+          <span>Contact Us</span>
         </a>
         <a href="#" class="drawer-nav-item" data-screen="help" aria-label="Help & Support">
           <span style="font-size:18px;margin-right:var(--sp-2);display:inline-block;width:24px;text-align:center;">🆘</span>

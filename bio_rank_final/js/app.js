@@ -12,8 +12,9 @@ const App = (() => {
     'pyq-test', 'chapter-test', 'improvement-book', 'performance',
     'test', 'result', 'weakness-analysis', 'micro-retest',
     'spaced-retest', 'improvement-verified', 'feedback', 'platform-improvement',
-    'profile', 'settings', 'help',
+    'profile', 'settings', 'help', 'contact',
     'full-length-test', 'flt-result', 'flt-review',
+    'about', 'privacy-policy', 'terms', 'disclaimer',
     // Admin panel screens — added in Stage 8. 'admin' is the route-guard
     // entry point (checks role against the backend, then redirects);
     // it is never the final screen a renderer targets directly.
@@ -24,6 +25,7 @@ const App = (() => {
   ];
 
   let current = { screen: null, data: null };
+  let isNavigatingFromHash = false;
 
   /* ---- Navigate to a screen ---- */
   function navigate(screen, data) {
@@ -32,6 +34,20 @@ const App = (() => {
       return;
     }
     current = { screen, data };
+
+    // Update browser URL hash for direct access and history support
+    try {
+      const currentHash = window.location.hash.replace(/^#\/?/, '');
+      if (!isNavigatingFromHash && currentHash !== screen) {
+        if (window.history && window.history.pushState) {
+          window.history.pushState({ screen, data }, '', `#${screen}`);
+        } else {
+          window.location.hash = screen;
+        }
+      }
+    } catch (e) {
+      console.warn('History navigation update failed', e);
+    }
 
     // Scroll to top on screen change
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -74,56 +90,61 @@ const App = (() => {
     updateNav(screen);
     updateShellVisibility(screen);
 
-    // Persist current screen — but never an admin screen. Reloading the
-    // app should always re-run the 'admin' guard fresh (which re-checks
-    // the token against the backend), not restore straight into a
-    // previously-visited admin screen from localStorage.
-    if (!(screen === 'admin' || screen.startsWith('admin-'))) {
-      const state = State.get();
-      state.currentScreen = screen;
-      State.save(state);
+    // Persist current screen — but never an admin screen or temporary modal.
+    if (!(screen === 'admin' || screen.startsWith('admin-') || screen === 'test')) {
+      const state = (window.State && typeof State.get === 'function') ? State.get() : {};
+      if (state && typeof State.save === 'function') {
+        state.currentScreen = screen;
+        State.save(state);
+      }
     }
   }
 
   /* ---- Map screen names to render functions ---- */
   const RENDERERS = {
-    'config':               renderConfig,
-    'foundation':           renderFoundation,
-    'analyzing':            renderAnalyzing,
-    'weakness-map':         renderWeaknessMap,
-    'home':                 renderHome,
-    'pyq-test':             renderPYQTest,
-    'chapter-test':         renderChapterTest,
-    'improvement-book':     renderImprovementBook,
-    'performance':          renderPerformance,
-    'result':               renderResult,
-    'weakness-analysis':    renderWeaknessAnalysis,
-    'micro-retest':         renderMicroRetest,
-    'spaced-retest':        renderSpacedRetest,
-    'improvement-verified': renderImprovementVerified,
-    'feedback':             renderFeedback,
-    'platform-improvement': renderPlatformImprovement,
-    'profile':              renderProfile,
-    'settings':             renderSettings,
-    'help':                 renderHelp,
-    'full-length-test':     renderFullLengthTest,
-    'flt-result':           renderFLTResult,
-    'flt-review':           renderFLTReview,
+    'config':               typeof renderConfig === 'function' ? renderConfig : null,
+    'foundation':           typeof renderFoundation === 'function' ? renderFoundation : null,
+    'analyzing':            typeof renderAnalyzing === 'function' ? renderAnalyzing : null,
+    'weakness-map':         typeof renderWeaknessMap === 'function' ? renderWeaknessMap : null,
+    'home':                 typeof renderHome === 'function' ? renderHome : null,
+    'pyq-test':             typeof renderPYQTest === 'function' ? renderPYQTest : null,
+    'chapter-test':         typeof renderChapterTest === 'function' ? renderChapterTest : null,
+    'improvement-book':     typeof renderImprovementBook === 'function' ? renderImprovementBook : null,
+    'performance':          typeof renderPerformance === 'function' ? renderPerformance : null,
+    'result':               typeof renderResult === 'function' ? renderResult : null,
+    'weakness-analysis':    typeof renderWeaknessAnalysis === 'function' ? renderWeaknessAnalysis : null,
+    'micro-retest':         typeof renderMicroRetest === 'function' ? renderMicroRetest : null,
+    'spaced-retest':        typeof renderSpacedRetest === 'function' ? renderSpacedRetest : null,
+    'improvement-verified': typeof renderImprovementVerified === 'function' ? renderImprovementVerified : null,
+    'feedback':             typeof renderFeedback === 'function' ? renderFeedback : null,
+    'platform-improvement': typeof renderPlatformImprovement === 'function' ? renderPlatformImprovement : null,
+    'profile':              typeof renderProfile === 'function' ? renderProfile : null,
+    'settings':             typeof renderSettings === 'function' ? renderSettings : null,
+    'help':                 typeof renderHelp === 'function' ? renderHelp : null,
+    'contact':              typeof renderContact === 'function' ? renderContact : null,
+    'full-length-test':     typeof renderFullLengthTest === 'function' ? renderFullLengthTest : null,
+    'flt-result':           typeof renderFLTResult === 'function' ? renderFLTResult : null,
+    'flt-review':           typeof renderFLTReview === 'function' ? renderFLTReview : null,
+    // Information & About Screens
+    'about':                typeof renderAbout === 'function' ? renderAbout : null,
+    'privacy-policy':       typeof renderPrivacyPolicy === 'function' ? renderPrivacyPolicy : null,
+    'terms':                typeof renderTerms === 'function' ? renderTerms : null,
+    'disclaimer':           typeof renderDisclaimer === 'function' ? renderDisclaimer : null,
     // Admin panel
-    'admin':                renderAdminGuard,
-    'admin-login':          renderAdminLogin,
-    'admin-chapters':       renderAdminChapters,
-    'admin-subskills':      renderAdminSubSkills,
-    'admin-questions':      renderAdminQuestions,
-    'admin-question-form':  renderAdminQuestionForm,
-    'admin-ncert-focus':    renderAdminNcertFocus,
-    'admin-ncert-form':     renderAdminNcertForm,
-    'admin-csv-import':     renderAdminCsvImport,
-    'admin-fulltests':      renderAdminFullLengthTests,
-    'admin-flt-questions':  renderAdminFLTQuestions,
-    'admin-reports':        renderAdminReports,
-    'admin-auditlogs':      renderAdminAuditLogs,
-    'ncert-bio-focus':      renderNcertBioFocus,
+    'admin':                typeof renderAdminGuard === 'function' ? renderAdminGuard : null,
+    'admin-login':          typeof renderAdminLogin === 'function' ? renderAdminLogin : null,
+    'admin-chapters':       typeof renderAdminChapters === 'function' ? renderAdminChapters : null,
+    'admin-subskills':      typeof renderAdminSubSkills === 'function' ? renderAdminSubSkills : null,
+    'admin-questions':      typeof renderAdminQuestions === 'function' ? renderAdminQuestions : null,
+    'admin-question-form':  typeof renderAdminQuestionForm === 'function' ? renderAdminQuestionForm : null,
+    'admin-ncert-focus':    typeof renderAdminNcertFocus === 'function' ? renderAdminNcertFocus : null,
+    'admin-ncert-form':     typeof renderAdminNcertForm === 'function' ? renderAdminNcertForm : null,
+    'admin-csv-import':     typeof renderAdminCsvImport === 'function' ? renderAdminCsvImport : null,
+    'admin-fulltests':      typeof renderAdminFullLengthTests === 'function' ? renderAdminFullLengthTests : null,
+    'admin-flt-questions':  typeof renderAdminFLTQuestions === 'function' ? renderAdminFLTQuestions : null,
+    'admin-reports':        typeof renderAdminReports === 'function' ? renderAdminReports : null,
+    'admin-auditlogs':      typeof renderAdminAuditLogs === 'function' ? renderAdminAuditLogs : null,
+    'ncert-bio-focus':      typeof renderNcertBioFocus === 'function' ? renderNcertBioFocus : null,
   };
 
   /* ---- Update nav active states ---- */
@@ -131,7 +152,6 @@ const App = (() => {
     const navItems = document.querySelectorAll('.bottom-nav-item, .drawer-nav-item[data-screen], .more-menu-item[data-screen]');
     navItems.forEach(item => {
       const target = item.getAttribute('data-screen');
-      // Highlight the nav item that matches, or home for non-nav screens
       const isActive = target === screen
         || (screen === 'ncert-bio-focus' && target === 'ncert-bio-focus')
         || (screen === 'weakness-map' && target === 'home')
@@ -154,23 +174,31 @@ const App = (() => {
 
   /* ---- Show/hide shell elements based on screen ---- */
   function updateShellVisibility(screen) {
-    const state = State.get();
+    const state = (window.State && typeof State.get === 'function') ? State.get() : { configured: false };
     const isOnboarding = ['config', 'foundation', 'analyzing'].includes(screen);
-    // Admin screens are a fully separate area — the student bottom-nav/
-    // topbar chrome should never layer on top of them, regardless of
-    // whether the student's own onboarding is complete.
     const isAdminScreen = screen === 'admin' || screen.startsWith('admin-');
-    const showChrome = state.configured && !isOnboarding && !isAdminScreen;
+    const isTestScreen = screen === 'test';
+    const isPublicInfoScreen = ['about', 'privacy-policy', 'terms', 'disclaimer', 'help', 'contact'].includes(screen);
+
+    // Chrome is visible whenever user is configured, or on public info screens
+    const showChrome = (!isOnboarding && !isAdminScreen && !isTestScreen) && (state.configured || isPublicInfoScreen);
 
     const topbar    = document.getElementById('topbar');
     const bottomNav = document.getElementById('bottom-nav');
+    const footer    = document.getElementById('site-footer');
 
     if (showChrome) {
       topbar?.classList.remove('hidden');
-      bottomNav?.classList.remove('hidden');
+      if (state.configured) {
+        bottomNav?.classList.remove('hidden');
+      } else {
+        bottomNav?.classList.add('hidden');
+      }
+      footer?.classList.remove('hidden');
     } else {
       topbar?.classList.add('hidden');
       bottomNav?.classList.add('hidden');
+      footer?.classList.add('hidden');
     }
 
     // Update student info in topbar/drawer
@@ -179,9 +207,9 @@ const App = (() => {
 
   /* ---- Update student info + streak display ---- */
   function updateStudentInfo(state) {
-    const name = state.student?.name || 'Student';
-    const streak = state.performance?.currentStreak || 0;
-    const rank = state.performance?.rank;
+    const name = state?.student?.name || 'Student';
+    const streak = state?.performance?.currentStreak || 0;
+    const rank = state?.performance?.rank;
     const initial = (name.charAt(0) || 'S').toUpperCase();
 
     const tStreak = document.getElementById('topbar-streak-count');
@@ -202,7 +230,7 @@ const App = (() => {
   /* ---- Error state HTML ---- */
   function renderErrorState(err) {
     return `
-      <div class="card" style="text-align:center;padding:var(--sp-10);max-width:480px;margin:0 auto;">
+      <div class="card" style="text-align:center;padding:var(--sp-10);max-width:480px;margin:var(--sp-6) auto;">
         <div style="font-size:48px;margin-bottom:var(--sp-4);">⚠️</div>
         <h2 style="font-size:var(--text-xl);font-weight:700;color:var(--neutral-900);margin-bottom:var(--sp-2);">Something went wrong</h2>
         <p style="color:var(--neutral-500);margin-bottom:var(--sp-5);">An error occurred while loading this screen. Please try again.</p>
@@ -222,7 +250,20 @@ const App = (() => {
     toastTimer = setTimeout(() => toast.classList.remove('show'), 2800);
   }
 
-  /* ---- Wire up nav click handlers ---- */
+  /* ---- Parse route from hash ---- */
+  function getScreenFromHash() {
+    const raw = window.location.hash.replace(/^#\/?/, '').trim();
+    if (!raw) return null;
+    // Map aliases
+    if (raw === 'contact-us' || raw === 'contact') return 'contact';
+    if (raw === 'privacy' || raw === 'privacy_policy') return 'privacy-policy';
+    if (raw === 'terms-and-conditions' || raw === 'tos') return 'terms';
+    if (raw === 'about-us') return 'about';
+    if (SCREENS.includes(raw)) return raw;
+    return null;
+  }
+
+  /* ---- Wire up nav click handlers & history listeners ---- */
   function bindNav() {
     document.querySelectorAll('.bottom-nav-item').forEach(item => {
       item.addEventListener('click', (e) => {
@@ -231,6 +272,28 @@ const App = (() => {
         if (screen) navigate(screen);
       });
     });
+
+    // Browser back / forward support (popstate & hashchange)
+    const handleRoutePop = (e) => {
+      const targetScreen = (e.state && e.state.screen) || getScreenFromHash();
+      if (targetScreen && SCREENS.includes(targetScreen)) {
+        if (current.screen !== targetScreen) {
+          isNavigatingFromHash = true;
+          navigate(targetScreen, e.state ? e.state.data : null);
+          isNavigatingFromHash = false;
+        }
+      } else if (!targetScreen) {
+        const state = (window.State && typeof State.get === 'function') ? State.get() : {};
+        if (state.configured) {
+          isNavigatingFromHash = true;
+          navigate('home');
+          isNavigatingFromHash = false;
+        }
+      }
+    };
+
+    window.addEventListener('popstate', handleRoutePop);
+    window.addEventListener('hashchange', handleRoutePop);
 
     // Keyboard: Escape closes any overlay/test
     document.addEventListener('keydown', (e) => {
@@ -245,20 +308,26 @@ const App = (() => {
   function init() {
     bindNav();
 
-    // Admin entry point: visiting the app with #admin in the URL routes
-    // straight to the admin guard, independent of student onboarding
-    // state. This is a deliberate choice — there is no other URL-based
-    // routing anywhere in this app (navigate() is purely in-memory), and
-    // a visible "Admin" link in the student-facing nav/drawer would
-    // advertise the admin panel to every regular student, which isn't
-    // appropriate. A hash check is the minimal option that doesn't
-    // require introducing full URL routing just for this one entry point.
-    if (window.location.hash === '#admin') {
+    // Check for direct URL hash routing (e.g. #about, #admin, #pyq-test, etc.)
+    const hashScreen = getScreenFromHash();
+    if (hashScreen === 'admin' || (hashScreen && hashScreen.startsWith('admin-'))) {
       navigate('admin');
       return;
     }
 
-    const state = State.get();
+    const state = (window.State && typeof State.get === 'function') ? State.get() : {};
+
+    // Allow direct access to public informational routes even before onboarding
+    const publicScreens = ['about', 'privacy-policy', 'terms', 'disclaimer', 'help', 'contact'];
+    if (hashScreen && publicScreens.includes(hashScreen)) {
+      navigate(hashScreen);
+      return;
+    }
+
+    if (hashScreen && SCREENS.includes(hashScreen) && state.configured) {
+      navigate(hashScreen);
+      return;
+    }
 
     // Decide starting screen
     if (!state.configured) {
@@ -321,13 +390,8 @@ const App = (() => {
   return { navigate, showToast, init, logout, SCREENS };
 })();
 
-// `const App = ...` above only creates a local/module-scope binding — it does
-// NOT add a `window.App` property (unlike `var`). drawer.js's click handlers
-// (including the Profile item in the "more" menu) guard on `window.App`
-// before calling App.navigate(), so without this line those clicks silently
-// no-op.
+// Assign to window for global access across scripts
 window.App = App;
 
 /* ---- Boot ---- */
 document.addEventListener('DOMContentLoaded', () => App.init());
-

@@ -17,7 +17,7 @@ function renderConfig(container) {
   container.innerHTML = `
     <div class="config-screen">
       <div class="config-logo">
-        <div class="brand-icon" style="width:56px;height:56px;font-size:24px;border-radius:var(--radius-lg);margin:0 auto var(--sp-4);">B</div>
+        <img src="/logo-square.jpg" alt="Bio Rank Logo" class="config-logo-img" style="width:76px;height:76px;border-radius:var(--radius-xl);object-fit:cover;margin:0 auto var(--sp-4);box-shadow:0 8px 24px rgba(6,78,59,0.22);border:2px solid #ecfdf5;display:block;" />
         <h1 style="font-size:var(--text-3xl);font-weight:800;color:var(--neutral-900);">Welcome to Bio Rank</h1>
         <p style="color:var(--neutral-500);margin-top:var(--sp-2);">NEET Biology, but make it actually fun. No cap.</p>
       </div>
@@ -346,7 +346,10 @@ function renderHome(container) {
     <!-- Hero Section -->
     <div class="home-hero" style="margin-bottom:var(--sp-6);">
       <div class="hero-content">
-        <div class="hero-badge">🎯 NEET Biology Prep &middot; Target 360/360</div>
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-3);flex-wrap:wrap;">
+          <img src="logo-square.jpg" alt="Bio Rank Logo" style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.18);border:2px solid rgba(255,255,255,0.35);object-fit:cover;" />
+          <div class="hero-badge" style="margin-bottom:0;">🎯 NEET Biology Prep &middot; Target 360/360</div>
+        </div>
         <h1 class="hero-title">Dream big. Lock in. Make it happen.</h1>
         <p class="hero-subtitle">Turn concepts into confidence and mistakes into mastery with daily focused chapter practice.</p>
 

@@ -947,3 +947,6 @@ const State = {
     return this.defaultState();
   }
 };
+
+window.State = State;
+window.DB = DB;
