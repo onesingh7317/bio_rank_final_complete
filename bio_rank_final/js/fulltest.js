@@ -213,9 +213,14 @@ function renderFLTReview(container, results) {
                 ${r.selected === undefined || r.selected === null ? `<div style="font-size:var(--text-xs);color:var(--neutral-400);font-weight:600;">Not attempted</div>` : ''}
                 ${r.question.explanation ? `<div class="flt-review-explanation">${r.question.explanation}</div>` : ''}
               </div>
-              <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
-                ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
-              </span>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-1);margin-left:var(--sp-2);">
+                <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
+                  ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
+                </span>
+                <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._fltLastResults.questionResults[${i}].question, ${i + 1})" title="Report error in this question">
+                  ⚠️ Report
+                </button>
+              </div>
             </div>
           </div>
         `).join('')}

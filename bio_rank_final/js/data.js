@@ -558,10 +558,29 @@ function getQuestionsBySubSkill(subSkillId, limit = 5) {
 }
 
 /* ---- Helper: build the question set for a Full Length Test.
-   The demo Biology question bank is smaller than a real 90-question
-   NEET paper, so the pool is shuffled and cycled to fill numberOfQuestions.
-   This keeps every attempt frontend-only with no backend/API involved. ---- */
+   If specific questions have been added by the admin to this test,
+   those questions are loaded. Otherwise, the question pool is used. ---- */
 function getFullLengthTestQuestions(test) {
+  // 1. Check if test has specific assigned questions
+  if (test && Array.isArray(test.questions) && test.questions.length > 0) {
+    const resolved = test.questions.map((q) => {
+      if (typeof q === 'object' && q !== null && q.text) return q;
+      const qId = typeof q === 'object' ? q._id : q;
+      const found = (DB.questions || []).find((dq) => dq.id === qId || dq._id === qId);
+      return found || (typeof q === 'object' ? q : null);
+    }).filter(Boolean);
+
+    if (resolved.length > 0) {
+      // If target numberOfQuestions is greater than assigned questions, cycle or return assigned
+      const targetCount = test.numberOfQuestions || resolved.length;
+      if (resolved.length >= targetCount) {
+        return resolved.slice(0, targetCount);
+      }
+      return resolved;
+    }
+  }
+
+  // 2. Fallback to pool if no specific questions are assigned
   const pool = DB.questions;
   if (pool.length === 0) return [];
   const shuffled = [...pool];
@@ -570,7 +589,8 @@ function getFullLengthTestQuestions(test) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   const qs = [];
-  for (let i = 0; i < test.numberOfQuestions; i++) {
+  const count = test.numberOfQuestions || 90;
+  for (let i = 0; i < count; i++) {
     qs.push(shuffled[i % shuffled.length]);
   }
   return qs;

@@ -1615,9 +1615,14 @@ function renderResult(container, results) {
               <div class="q-result-num incorrect">${results.questionResults.indexOf(r) + 1}</div>
               <div class="q-result-info">
                 <div class="q-result-text">${r.question.text.substring(0, 100)}${r.question.text.length > 100 ? '…' : ''}</div>
-                <div class="q-result-answer">
-                  Your answer: ${r.selected !== null && r.selected !== undefined ? r.question.options[r.selected] : 'Not attempted'}
-                  &nbsp;|&nbsp; Correct: ${r.question.options[r.question.correct]}
+                <div class="q-result-answer" style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:var(--sp-1);">
+                  <div>
+                    Your answer: ${r.selected !== null && r.selected !== undefined ? r.question.options[r.selected] : 'Not attempted'}
+                    &nbsp;|&nbsp; Correct: ${r.question.options[r.question.correct]}
+                  </div>
+                  <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._currentResults.questionResults[${results.questionResults.indexOf(r)}].question, ${results.questionResults.indexOf(r) + 1})" title="Report issue in this question">
+                    ⚠️ Report Issue
+                  </button>
                 </div>
                 <div class="error-tag-group" id="tag-group-${i}">
                   ${DB.errorTypes.map(et => `
@@ -1640,19 +1645,32 @@ function renderResult(container, results) {
         </div>
       `}
 
-      <!-- Question-wise Review -->
+      <!-- Question-wise Review (All Answers) -->
       <div class="card" style="margin-bottom:var(--sp-5);">
-        <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-3);">Question Review</div>
+        <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-3);">Question Review (All Answers &amp; Explanations)</div>
         ${results.questionResults.map((r, i) => `
-          <div class="q-result-row">
+          <div class="q-result-row" style="align-items:flex-start;padding:var(--sp-3) 0;border-bottom:1px solid var(--neutral-100);">
             <div class="q-result-num ${r.status}">${i + 1}</div>
-            <div class="q-result-info">
-              <div class="q-result-text">${r.question.text.substring(0, 80)}${r.question.text.length > 80 ? '…' : ''}</div>
-              ${r.status === 'incorrect' ? `<div class="q-result-answer">Correct: ${r.question.options[r.question.correct]}</div>` : ''}
+            <div class="q-result-info" style="flex:1;">
+              <div class="q-result-text" style="font-weight:600;margin-bottom:var(--sp-1);line-height:1.4;">${r.question.text}</div>
+              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:var(--sp-1);">
+                Your answer: <strong>${r.selected !== null && r.selected !== undefined ? ['A','B','C','D'][r.selected] + '. ' + r.question.options[r.selected] : 'Not attempted'}</strong>
+                &nbsp;|&nbsp; Correct: <strong style="color:var(--success-600);">${['A','B','C','D'][r.question.correct]}. ${r.question.options[r.question.correct]}</strong>
+              </div>
+              ${r.question.explanation ? `
+                <div style="font-size:var(--text-xs);color:var(--neutral-500);background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);margin-top:var(--sp-1);">
+                  💡 <strong>Explanation:</strong> ${r.question.explanation}
+                </div>
+              ` : ''}
             </div>
-            <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
-              ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
-            </span>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-1);margin-left:var(--sp-2);">
+              <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
+                ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
+              </span>
+              <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._currentResults.questionResults[${i}].question, ${i + 1})" title="Report error in this question">
+                ⚠️ Report
+              </button>
+            </div>
           </div>
         `).join('')}
       </div>
@@ -1777,6 +1795,92 @@ const HomeReveal = (() => {
 
   return { init };
 })();
+
+window.openQuestionReportModal = function (questionData, qNumber) {
+  if (!questionData) return;
+  const qId = questionData.id || questionData._id || '';
+  const qText = questionData.text || '';
+  const chapterName = questionData.chapterName || (window.DB && window.DB.chapters && window.DB.chapters.find(c => c.id === questionData.chapter)?.name) || questionData.chapter || 'General';
+
+  let modal = document.getElementById('global-question-report-modal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'global-question-report-modal';
+    document.body.appendChild(modal);
+  }
+
+  modal.innerHTML = `
+    <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:99999;display:flex;align-items:center;justify-content:center;padding:var(--sp-4);">
+      <div class="card" style="max-width:480px;width:100%;background:var(--surface);box-shadow:var(--shadow-xl);border-radius:var(--radius-lg);padding:var(--sp-5);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);">
+          <div style="font-weight:700;font-size:var(--text-base);display:flex;align-items:center;gap:var(--sp-2);">
+            <span>⚠️ Report Question ${qNumber ? `#${qNumber}` : ''}</span>
+          </div>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('global-question-report-modal').remove()" style="font-size:16px;line-height:1;padding:4px 8px;">✕</button>
+        </div>
+
+        <p style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:var(--sp-3);line-height:1.4;background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);border-left:3px solid var(--primary-500);">
+          "${qText.length > 100 ? qText.substring(0, 100) + '…' : qText}"
+        </p>
+
+        <form id="global-report-form" onsubmit="event.preventDefault(); window.submitGlobalQuestionReport('${qId}', '${(qText || '').replace(/'/g, "\\'")}');">
+          <div class="form-group" style="margin-bottom:var(--sp-3);">
+            <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">What issue did you find?</label>
+            <select class="form-select form-select-sm" id="global-report-reason" required style="width:100%;">
+              <option value="Incorrect Answer / Wrong Correct Option">Incorrect Answer / Wrong Correct Option</option>
+              <option value="Question Formulation / Typo Error">Question Formulation / Typo Error</option>
+              <option value="Incorrect / Incomplete Options">Incorrect / Incomplete Options</option>
+              <option value="Wrong or Misleading Explanation">Wrong or Misleading Explanation</option>
+              <option value="Other">Other Issue</option>
+            </select>
+          </div>
+
+          <div class="form-group" style="margin-bottom:var(--sp-4);">
+            <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">Details (optional):</label>
+            <textarea class="form-input form-input-sm" id="global-report-comments" rows="3" placeholder="Explain what looks wrong so the admin team can fix it…" style="width:100%;font-size:var(--text-xs);"></textarea>
+          </div>
+
+          <div style="display:flex;gap:var(--sp-2);justify-content:flex-end;">
+            <button class="btn btn-outline btn-sm" type="button" onclick="document.getElementById('global-question-report-modal').remove()">Cancel</button>
+            <button class="btn btn-primary btn-sm" type="submit" id="global-report-submit-btn">Submit Report</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+};
+
+window.submitGlobalQuestionReport = async function (qId, qText) {
+  const reason = document.getElementById('global-report-reason')?.value || 'General Issue';
+  const comments = document.getElementById('global-report-comments')?.value.trim() || '';
+  const btn = document.getElementById('global-report-submit-btn');
+  if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+
+  try {
+    if (window.ApiClient) {
+      await ApiClient.post('/reports', {
+        questionId: qId,
+        questionText: qText,
+        reason,
+        comments,
+      });
+    }
+    const modal = document.getElementById('global-question-report-modal');
+    if (modal) modal.remove();
+    if (window.App && App.showToast) {
+      App.showToast('✅ Question reported for admin review. Thank you!');
+    } else {
+      alert('✅ Question reported for admin review. Thank you!');
+    }
+  } catch (err) {
+    if (btn) { btn.disabled = false; btn.textContent = 'Submit Report'; }
+    alert('Could not submit report: ' + err.message);
+  }
+};
+
+window.reportQuestionDirectly = function (qId, text, chapter) {
+  window.openQuestionReportModal({ id: qId, text, chapter });
+};
 
 window.HomeSlider = HomeSlider;
 window.HomeReveal = HomeReveal;

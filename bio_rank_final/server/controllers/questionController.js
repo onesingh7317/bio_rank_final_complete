@@ -34,17 +34,14 @@ async function validateQuestionInput(body, { partial = false } = {}) {
     }
   }
 
-  if (!partial || subSkillId !== undefined) {
-    if (!subSkillId || !mongoose.Types.ObjectId.isValid(subSkillId)) {
-      errors.push('subSkillId is required and must be a valid id.');
+  if (subSkillId) {
+    if (!mongoose.Types.ObjectId.isValid(subSkillId)) {
+      errors.push('subSkillId must be a valid id if provided.');
     } else {
       const subSkill = await SubSkill.findOne({ _id: subSkillId, isDeleted: false });
       if (!subSkill) {
         errors.push('subSkillId does not reference an existing, active sub-skill.');
       } else {
-        // Must belong to the given chapter (or, on partial update where
-        // chapterId isn't being changed, the question's *current* chapter —
-        // the controller passes the effective chapterId in for that case).
         const effectiveChapterId = chapterId !== undefined ? chapterId : body._effectiveChapterId;
         if (effectiveChapterId && subSkill.chapterId.toString() !== effectiveChapterId.toString()) {
           errors.push('subSkillId does not belong to the given chapterId.');
@@ -53,13 +50,13 @@ async function validateQuestionInput(body, { partial = false } = {}) {
     }
   }
 
-  if (!partial || bloomLevel !== undefined) {
+  if (bloomLevel !== undefined && bloomLevel !== null && bloomLevel !== '') {
     if (!isValidBloomLevel(bloomLevel)) {
       errors.push(`bloomLevel must be one of: ${VALID_BLOOM_LEVELS.join(', ')}.`);
     }
   }
 
-  if (!partial || weightage !== undefined) {
+  if (weightage !== undefined && weightage !== null && weightage !== '') {
     if (!isValidWeightage(weightage)) {
       errors.push('weightage must be a number between 0 and 10.');
     }

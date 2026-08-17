@@ -30,10 +30,43 @@ const ApiClient = (() => {
   const MockStore = (() => {
     function load() {
       const raw = localStorage.getItem(MOCK_STORAGE_KEY);
+      let data = null;
       if (raw) {
-        try { return JSON.parse(raw); } catch (e) {}
+        try { data = JSON.parse(raw); } catch (e) {}
       }
-      return initDefaults();
+      if (!data) {
+        data = initDefaults();
+      }
+
+      // Ensure fullLengthTests always exist and questions array is defined
+      if (!Array.isArray(data.fullLengthTests) || data.fullLengthTests.length === 0) {
+        data.fullLengthTests = initDefaults().fullLengthTests;
+      }
+
+      const dbTests = (window.DB && window.DB.fullLengthTests) || [];
+      dbTests.forEach((dt, idx) => {
+        const found = data.fullLengthTests.find((t) => t._id === dt.id || t.id === dt.id || t._id === `flt_${idx + 1}`);
+        if (!found) {
+          data.fullLengthTests.push({
+            _id: dt.id || `flt_${idx + 1}`,
+            title: dt.title,
+            description: dt.description || 'Full syllabus mock test',
+            numberOfQuestions: dt.numberOfQuestions || 90,
+            durationMinutes: dt.durationMinutes || 90,
+            questions: [],
+          });
+        }
+      });
+
+      data.fullLengthTests.forEach((t) => {
+        if (!Array.isArray(t.questions)) t.questions = [];
+      });
+
+      if (!Array.isArray(data.reports)) {
+        data.reports = [];
+      }
+
+      return data;
     }
 
     function save(data) {
@@ -66,7 +99,20 @@ const ApiClient = (() => {
         { _id: 'ss_04', chapterId: chapters[2]._id, name: 'Enzyme Kinetics & Inhibitors', bloomLevel: 'analyze', questionCount: 10, active: true },
       ];
 
-      const questions = [
+      const rawQuestions = (window.DB && window.DB.questions) || [];
+      const questions = rawQuestions.length ? rawQuestions.map((q, idx) => ({
+        _id: q.id || `q_${idx + 1}`,
+        chapterId: q.chapter || (chapters[0] && chapters[0]._id) || 'ch01',
+        subSkillId: q.subSkill || 'ss_01',
+        bloomLevel: q.bloomLevel || 'remember',
+        weightage: q.weightage || 4,
+        year: q.year || 2024,
+        text: q.text || '',
+        options: Array.isArray(q.options) ? q.options : ['Option A', 'Option B', 'Option C', 'Option D'],
+        correctOption: Number(q.correct ?? (q.correctOption || 0)),
+        explanation: q.explanation || '',
+        isFoundation: !!q.isFoundation,
+      })) : [
         {
           _id: 'q_01',
           chapterId: chapters[0]._id,
@@ -111,12 +157,16 @@ const ApiClient = (() => {
       const fullLengthTests = ((window.DB && window.DB.fullLengthTests) || [
         { id: 'flt01', title: 'Full Length Test 1', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
         { id: 'flt02', title: 'Full Length Test 2', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
+        { id: 'flt03', title: 'Full Length Test 3', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
+        { id: 'flt04', title: 'Full Length Test 4', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
+        { id: 'flt05', title: 'Full Length Test 5', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
       ]).map((t, idx) => ({
         _id: t.id || `flt_${idx + 1}`,
         title: t.title,
         description: t.description || 'Full syllabus mock test',
         numberOfQuestions: t.numberOfQuestions || 90,
         durationMinutes: t.durationMinutes || 90,
+        questions: Array.isArray(t.questions) ? t.questions : (idx === 0 ? ['q_01', 'q_02'] : ['q_03']),
       }));
 
       const auditLogs = [
@@ -385,7 +435,11 @@ const ApiClient = (() => {
     // Full Length Tests
     if (cleanPath === '/admin/full-length-tests') {
       if (method === 'GET') {
-        return { fullLengthTests: data.fullLengthTests };
+        const tests = data.fullLengthTests.map((t) => ({
+          ...t,
+          questions: Array.isArray(t.questions) ? t.questions : [],
+        }));
+        return { fullLengthTests: tests };
       }
       if (method === 'POST') {
         const newFLT = {
@@ -394,6 +448,7 @@ const ApiClient = (() => {
           description: body.description || '',
           numberOfQuestions: Number(body.numberOfQuestions) || 90,
           durationMinutes: Number(body.durationMinutes) || 90,
+          questions: Array.isArray(body.questions) ? body.questions : [],
         };
         data.fullLengthTests.push(newFLT);
         MockStore.save(data);
@@ -402,28 +457,107 @@ const ApiClient = (() => {
       }
     }
 
-    if (cleanPath.startsWith('/admin/full-length-tests/') && method === 'PUT') {
-      const id = cleanPath.replace('/admin/full-length-tests/', '');
-      const idx = data.fullLengthTests.findIndex((t) => t._id === id);
-      if (idx !== -1) {
-        data.fullLengthTests[idx] = { ...data.fullLengthTests[idx], ...body };
+    // Single FLT get/update/delete
+    if (cleanPath.startsWith('/admin/full-length-tests/')) {
+      const sub = cleanPath.replace('/admin/full-length-tests/', '');
+      const parts = sub.split('/');
+      const id = parts[0];
+
+      const idx = data.fullLengthTests.findIndex((t) => t._id === id || t.id === id);
+      if (idx === -1) {
+        throw new ApiError('Test not found', 404);
+      }
+      const test = data.fullLengthTests[idx];
+      if (!Array.isArray(test.questions)) test.questions = [];
+
+      // Sub-route: /admin/full-length-tests/:id/questions
+      if (parts[1] === 'questions') {
+        // DELETE /admin/full-length-tests/:id/questions/:questionId
+        if (parts[2] && method === 'DELETE') {
+          const qIdToRemove = parts[2];
+          test.questions = test.questions.filter((qId) => (typeof qId === 'object' ? qId._id : qId) !== qIdToRemove);
+          data.fullLengthTests[idx] = test;
+          MockStore.save(data);
+          MockStore.addAuditLog('REMOVE_FLT_QUESTION', 'FullLengthTest', id, `Removed question from test "${test.title}"`);
+          return { ok: true, fullLengthTest: test };
+        }
+
+        // POST /admin/full-length-tests/:id/questions (add single, multiple, or new)
+        if (method === 'POST') {
+          if (body?.questionId) {
+            const qId = body.questionId;
+            if (!test.questions.includes(qId)) {
+              test.questions.push(qId);
+            }
+            MockStore.save(data);
+            MockStore.addAuditLog('ADD_FLT_QUESTION', 'FullLengthTest', id, `Added question to test "${test.title}"`);
+            return { ok: true, fullLengthTest: test };
+          } else if (body?.questionIds && Array.isArray(body.questionIds)) {
+            body.questionIds.forEach((qId) => {
+              if (!test.questions.includes(qId)) test.questions.push(qId);
+            });
+            MockStore.save(data);
+            MockStore.addAuditLog('ADD_FLT_QUESTIONS', 'FullLengthTest', id, `Added ${body.questionIds.length} question(s) to test "${test.title}"`);
+            return { ok: true, fullLengthTest: test };
+          } else if (body?.text) {
+            const newQuestion = {
+              _id: `q_${Date.now()}`,
+              chapterId: body.chapterId || (data.chapters[0] && data.chapters[0]._id) || 'ch_1',
+              subSkillId: body.subSkillId || (data.subSkills[0] && data.subSkills[0]._id) || 'ss_01',
+              bloomLevel: body.bloomLevel || 'remember',
+              weightage: Number(body.weightage) || 4,
+              year: body.year ? Number(body.year) : undefined,
+              text: body.text,
+              options: body.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+              correctOption: Number(body.correctOption) || 0,
+              explanation: body.explanation || '',
+              isFoundation: !!body.isFoundation,
+            };
+            data.questions.push(newQuestion);
+            test.questions.push(newQuestion._id);
+            MockStore.save(data);
+            MockStore.addAuditLog('CREATE_AND_ADD_FLT_QUESTION', 'FullLengthTest', id, `Created & added new question to test "${test.title}"`);
+            return { ok: true, question: newQuestion, fullLengthTest: test };
+          }
+        }
+      }
+
+      // GET /admin/full-length-tests/:id
+      if (method === 'GET') {
+        const populatedQuestions = test.questions
+          .map((qId) => {
+            if (typeof qId === 'object' && qId !== null) return qId;
+            return (
+              data.questions.find((q) => q._id === qId || q.id === qId) ||
+              (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === qId || q._id === qId)) ||
+              null
+            );
+          })
+          .filter(Boolean);
+
+        return {
+          fullLengthTest: {
+            ...test,
+            populatedQuestions,
+          },
+        };
+      }
+
+      // PUT /admin/full-length-tests/:id
+      if (method === 'PUT') {
+        data.fullLengthTests[idx] = { ...test, ...body };
         MockStore.save(data);
         MockStore.addAuditLog('UPDATE_FLT', 'FullLengthTest', id, `Updated test "${data.fullLengthTests[idx].title}"`);
         return { fullLengthTest: data.fullLengthTests[idx] };
       }
-      throw new ApiError('Test not found', 404);
-    }
 
-    if (cleanPath.startsWith('/admin/full-length-tests/') && method === 'DELETE') {
-      const id = cleanPath.replace('/admin/full-length-tests/', '');
-      const idx = data.fullLengthTests.findIndex((t) => t._id === id);
-      if (idx !== -1) {
+      // DELETE /admin/full-length-tests/:id
+      if (method === 'DELETE') {
         data.fullLengthTests.splice(idx, 1);
         MockStore.save(data);
         MockStore.addAuditLog('DELETE_FLT', 'FullLengthTest', id, 'Deleted test');
         return { ok: true };
       }
-      throw new ApiError('Test not found', 404);
     }
 
     // Audit Logs
@@ -437,6 +571,63 @@ const ApiClient = (() => {
         auditLogs: paginated,
         pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
       };
+    }
+
+    // Question Issue Reports
+    if (cleanPath === '/reports' || cleanPath === '/admin/reports') {
+      if (method === 'POST') {
+        const newReport = {
+          _id: `rep_${Date.now()}`,
+          questionId: body.questionId || '',
+          questionText: body.questionText || '',
+          chapterName: body.chapterName || '',
+          reason: body.reason || 'General Issue',
+          comments: body.comments || '',
+          status: 'pending', // 'pending' | 'resolved' | 'dismissed'
+          createdAt: new Date().toISOString(),
+        };
+        if (!Array.isArray(data.reports)) data.reports = [];
+        data.reports.unshift(newReport);
+        MockStore.save(data);
+        MockStore.addAuditLog('REPORT_QUESTION', 'Question', newReport.questionId, `Reported issue: ${newReport.reason}`);
+        return { ok: true, report: newReport };
+      }
+      if (method === 'GET') {
+        let reports = data.reports || [];
+        const status = urlParams.get('status');
+        if (status && status !== 'all') {
+          reports = reports.filter((r) => r.status === status);
+        }
+        const page = Number(urlParams.get('page')) || 1;
+        const limit = Number(urlParams.get('limit')) || 20;
+        const total = reports.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const paginated = reports.slice((page - 1) * limit, page * limit);
+        return {
+          reports: paginated,
+          totalPending: (data.reports || []).filter((r) => r.status === 'pending').length,
+          pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+        };
+      }
+    }
+
+    if (cleanPath.startsWith('/admin/reports/')) {
+      const repId = cleanPath.replace('/admin/reports/', '').split('/')[0];
+      const repIdx = (data.reports || []).findIndex((r) => r._id === repId);
+      if (repIdx === -1) throw new ApiError('Report not found', 404);
+
+      if (method === 'PUT' || method === 'PATCH') {
+        data.reports[repIdx] = { ...data.reports[repIdx], ...body };
+        MockStore.save(data);
+        MockStore.addAuditLog('UPDATE_REPORT', 'QuestionReport', repId, `Updated report status to "${body.status}"`);
+        return { ok: true, report: data.reports[repIdx] };
+      }
+      if (method === 'DELETE') {
+        data.reports.splice(repIdx, 1);
+        MockStore.save(data);
+        MockStore.addAuditLog('DELETE_REPORT', 'QuestionReport', repId, 'Deleted report');
+        return { ok: true };
+      }
     }
 
     return { ok: true };

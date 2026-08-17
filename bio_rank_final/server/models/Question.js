@@ -14,13 +14,14 @@ const mongoose = require('mongoose');
 const questionSchema = new mongoose.Schema(
   {
     chapterId: { type: mongoose.Schema.Types.ObjectId, ref: 'Chapter', required: true },
-    subSkillId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubSkill', required: true },
+    subSkillId: { type: mongoose.Schema.Types.ObjectId, ref: 'SubSkill', required: false, default: null },
     bloomLevel: {
       type: String,
       enum: ['remember', 'understand', 'apply', 'analyze'],
-      required: true,
+      required: false,
+      default: 'remember',
     },
-    weightage: { type: Number, required: true, min: 0, max: 10 },
+    weightage: { type: Number, required: false, default: 4, min: 0, max: 10 },
     year: { type: Number, default: null }, // nullable — not every question is tied to a PYQ year
 
     text: { type: String, required: true, trim: true },

@@ -132,11 +132,16 @@ const TestEngine = (() => {
           <!-- Question -->
           <div>
             <div class="question-card">
-              <div class="question-number">
-                <span class="q-chip">Q${state.current + 1}</span>
-                <span style="color:var(--neutral-400);font-weight:400;">
-                  ${q.chapter ? getChapterName(q.chapter) : ''} &nbsp;|&nbsp; ${q.bloomLevel || ''}
-                </span>
+              <div class="question-number" style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:var(--sp-2);">
+                  <span class="q-chip">Q${state.current + 1}</span>
+                  <span style="color:var(--neutral-400);font-weight:400;">
+                    ${q.chapter ? getChapterName(q.chapter) : ''}
+                  </span>
+                </div>
+                <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--neutral-400);padding:2px 8px;height:auto;" onclick="TestEngine.openReportModal()" title="Report an error or issue with this question">
+                  ⚠️ Report Issue
+                </button>
               </div>
               <div class="question-text">${q.text}</div>
               <div class="options-list" id="options-list">
@@ -306,7 +311,96 @@ const TestEngine = (() => {
     return ch ? ch.name : chapterId;
   }
 
+  /* ---- Question Issue Reporting ---- */
+  function openReportModal() {
+    const q = state.questions[state.current];
+    if (!q) return;
+
+    let modal = document.getElementById('test-report-modal');
+    if (!modal) {
+      modal = document.createElement('div');
+      modal.id = 'test-report-modal';
+      document.body.appendChild(modal);
+    }
+
+    modal.innerHTML = `
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:var(--sp-4);">
+        <div class="card" style="max-width:480px;width:100%;background:var(--surface);box-shadow:var(--shadow-xl);border-radius:var(--radius-lg);padding:var(--sp-5);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);">
+            <div style="font-weight:700;font-size:var(--text-base);display:flex;align-items:center;gap:var(--sp-2);">
+              <span>⚠️ Report Question #${state.current + 1}</span>
+            </div>
+            <button class="btn btn-ghost btn-sm" onclick="TestEngine.closeReportModal()" style="font-size:16px;line-height:1;padding:4px 8px;">✕</button>
+          </div>
+
+          <p style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:var(--sp-3);line-height:1.4;background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);border-left:3px solid var(--primary-500);">
+            "${q.text.length > 90 ? q.text.substring(0, 90) + '…' : q.text}"
+          </p>
+
+          <form onsubmit="event.preventDefault(); TestEngine.submitReport();">
+            <div class="form-group" style="margin-bottom:var(--sp-3);">
+              <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">What issue did you find?</label>
+              <select class="form-select form-select-sm" id="test-report-reason" required style="width:100%;">
+                <option value="Incorrect Answer / Wrong Correct Option">Incorrect Answer / Wrong Correct Option</option>
+                <option value="Question Formulation / Typo Error">Question Formulation / Typo Error</option>
+                <option value="Incorrect / Incomplete Options">Incorrect / Incomplete Options</option>
+                <option value="Wrong or Misleading Explanation">Wrong or Misleading Explanation</option>
+                <option value="Other">Other Issue</option>
+              </select>
+            </div>
+
+            <div class="form-group" style="margin-bottom:var(--sp-4);">
+              <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">Details (optional):</label>
+              <textarea class="form-input form-input-sm" id="test-report-comments" rows="3" placeholder="Describe the error so our team can review and fix it…" style="width:100%;font-size:var(--text-xs);"></textarea>
+            </div>
+
+            <div style="display:flex;gap:var(--sp-2);justify-content:flex-end;">
+              <button class="btn btn-outline btn-sm" type="button" onclick="TestEngine.closeReportModal()">Cancel</button>
+              <button class="btn btn-primary btn-sm" type="submit" id="test-report-submit-btn">Submit Report</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+  }
+
+  function closeReportModal() {
+    const modal = document.getElementById('test-report-modal');
+    if (modal) modal.remove();
+  }
+
+  async function submitReport() {
+    const q = state.questions[state.current];
+    if (!q) return;
+
+    const reason = document.getElementById('test-report-reason')?.value || 'General Issue';
+    const comments = document.getElementById('test-report-comments')?.value.trim() || '';
+    const btn = document.getElementById('test-report-submit-btn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Submitting…'; }
+
+    try {
+      if (window.ApiClient) {
+        await ApiClient.post('/reports', {
+          questionId: q.id || q._id,
+          questionText: q.text,
+          chapterName: getChapterName(q.chapter),
+          reason,
+          comments,
+        });
+      }
+      closeReportModal();
+      if (window.App && App.showToast) {
+        App.showToast('✅ Question reported for admin review. Thank you!');
+      } else {
+        alert('Thank you! Question reported for admin review.');
+      }
+    } catch (err) {
+      if (btn) { btn.disabled = false; btn.textContent = 'Submit Report'; }
+      alert('Could not submit report: ' + err.message);
+    }
+  }
+
   /* ---- Public API ---- */
-  return { start, goTo, nextQ, prevQ, selectAnswer, toggleFlag, confirmSubmit };
+  return { start, goTo, nextQ, prevQ, selectAnswer, toggleFlag, confirmSubmit, openReportModal, closeReportModal, submitReport };
 
 })();

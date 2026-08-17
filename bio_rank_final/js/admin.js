@@ -16,7 +16,13 @@ const AdminState = {
   editingSubSkillId: null,
   editingQuestionId: null,
   editingFLTId: null,
-  questionFilters: { chapterId: '', subSkillId: '', bloomLevel: '', page: 1 },
+  activeFLTId: null,
+  activeFLT: null,
+  fltActiveTab: 'assigned', // 'assigned' | 'add-bank' | 'add-new'
+  fltBankFilters: { chapterId: '', search: '', page: 1 },
+  fltSelectedBankQuestionIds: new Set(),
+  questionFilters: { chapterId: '', page: 1 },
+  reportFilter: 'all',
   subSkillChapterFilter: '',
   importPreview: null, // last /preview response, held until confirm
   cachedChapters: [],  // used to populate dropdowns without refetching every render
@@ -300,9 +306,7 @@ const Admin = {
     const f = AdminState.questionFilters;
     const params = new URLSearchParams();
     if (f.chapterId) params.set('chapterId', f.chapterId);
-    if (f.subSkillId) params.set('subSkillId', f.subSkillId);
-    if (f.bloomLevel) params.set('bloomLevel', f.bloomLevel);
-    params.set('page', f.page);
+    params.set('page', f.page || 1);
     params.set('limit', 20);
 
     try {
@@ -321,20 +325,6 @@ const Admin = {
 
   onQuestionChapterFilterChange(value) {
     AdminState.questionFilters.chapterId = value;
-    AdminState.questionFilters.subSkillId = '';
-    AdminState.questionFilters.page = 1;
-    Admin.loadQuestions();
-    populateSubSkillFilterDropdown(value);
-  },
-
-  onQuestionSubSkillFilterChange(value) {
-    AdminState.questionFilters.subSkillId = value;
-    AdminState.questionFilters.page = 1;
-    Admin.loadQuestions();
-  },
-
-  onQuestionBloomFilterChange(value) {
-    AdminState.questionFilters.bloomLevel = value;
     AdminState.questionFilters.page = 1;
     Admin.loadQuestions();
   },
@@ -362,9 +352,6 @@ const Admin = {
 
   async saveQuestion() {
     const chapterId = document.getElementById('admin-q-chapter').value;
-    const subSkillId = document.getElementById('admin-q-subskill').value;
-    const bloomLevel = document.getElementById('admin-q-bloom').value;
-    const weightage = Number(document.getElementById('admin-q-weightage').value);
     const yearRaw = document.getElementById('admin-q-year').value.trim();
     const text = document.getElementById('admin-q-text').value.trim();
     const options = [1, 2, 3, 4].map((n) => document.getElementById(`admin-q-option-${n}`).value.trim());
@@ -380,11 +367,10 @@ const Admin = {
       return;
     }
 
-    // correctRadio.value is "0"-"3" (0-indexed), matching the backend's
-    // expected shape directly — no 1-4 conversion here. That conversion
-    // only happens in the CSV importer, not this manual form.
     const payload = {
-      chapterId, subSkillId, bloomLevel, weightage,
+      chapterId,
+      bloomLevel: 'remember',
+      weightage: 4,
       year: yearRaw ? Number(yearRaw) : undefined,
       text, options,
       correctOption: Number(correctRadio.value),
@@ -531,6 +517,404 @@ const Admin = {
     }
   },
 
+  /* ---------------- Full-length test questions management ---------------- */
+
+  openFLTQuestions(id) {
+    AdminState.activeFLTId = id;
+    AdminState.fltActiveTab = 'assigned';
+    AdminState.fltSelectedBankQuestionIds = new Set();
+    AdminState.fltBankFilters = { chapterId: '', search: '', page: 1 };
+    App.navigate('admin-flt-questions', { testId: id });
+  },
+
+  async loadFLTQuestionsView(testId) {
+    const id = testId || AdminState.activeFLTId;
+    if (!id) {
+      App.navigate('admin-fulltests');
+      return;
+    }
+    AdminState.activeFLTId = id;
+
+    const titleEl = document.getElementById('admin-flt-qview-title');
+    const descEl = document.getElementById('admin-flt-qview-desc');
+    const badgeEl = document.getElementById('admin-flt-qview-badge');
+
+    let t = null;
+    try {
+      const res = await ApiClient.get(`/admin/full-length-tests/${id}`);
+      t = res.fullLengthTest;
+    } catch (err) {
+      console.warn('Could not fetch FLT from API, using fallback store', err);
+      t = (AdminState.cachedFLTs || []).find((x) => x._id === id || x.id === id)
+        || (window.DB && window.DB.fullLengthTests && window.DB.fullLengthTests.find((x) => x.id === id || x._id === id))
+        || { _id: id, title: 'Full Length Test', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90, questions: [] };
+    }
+
+    if (!t) {
+      t = { _id: id, title: 'Full Length Test', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90, questions: [] };
+    }
+
+    if (!Array.isArray(t.questions)) t.questions = [];
+    if (!Array.isArray(t.populatedQuestions) || t.populatedQuestions.length === 0) {
+      t.populatedQuestions = t.questions.map((qId) => {
+        if (typeof qId === 'object' && qId !== null && qId.text) return qId;
+        const rawId = typeof qId === 'object' ? qId._id : qId;
+        return (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === rawId || q._id === rawId))
+          || { _id: rawId, text: 'Question ' + rawId, options: ['Option A', 'Option B', 'Option C', 'Option D'], correctOption: 0 };
+      }).filter(Boolean);
+    }
+
+    AdminState.activeFLT = t;
+
+    if (titleEl) titleEl.textContent = t.title;
+    if (descEl) {
+      descEl.textContent = `${t.description ? t.description + ' · ' : ''}⏱️ ${t.durationMinutes} min · Target: ${t.numberOfQuestions} questions`;
+    }
+
+    const qCount = (t.populatedQuestions && t.populatedQuestions.length) || (t.questions && t.questions.length) || 0;
+    const target = t.numberOfQuestions || 90;
+    if (badgeEl) {
+      badgeEl.textContent = `${qCount} / ${target} Questions Added`;
+      badgeEl.className = `badge ${qCount >= target ? 'badge-success' : 'badge-primary'}`;
+    }
+
+    Admin.renderFLTTabContent();
+  },
+
+  switchFLTTab(tabName) {
+    AdminState.fltActiveTab = tabName;
+    const tabBtns = document.querySelectorAll('.flt-tab-btn');
+    tabBtns.forEach((btn) => {
+      btn.classList.toggle('btn-primary', btn.dataset.tab === tabName);
+      btn.classList.toggle('btn-ghost', btn.dataset.tab !== tabName);
+    });
+    Admin.renderFLTTabContent();
+  },
+
+  renderFLTTabContent() {
+    const container = document.getElementById('admin-flt-tab-content');
+    if (!container || !AdminState.activeFLT) return;
+
+    if (AdminState.fltActiveTab === 'assigned') {
+      Admin.renderFLTAssignedTab(container);
+    } else if (AdminState.fltActiveTab === 'add-bank') {
+      Admin.renderFLTBankTab(container);
+    } else if (AdminState.fltActiveTab === 'add-new') {
+      Admin.renderFLTNewQuestionTab(container);
+    }
+  },
+
+  renderFLTAssignedTab(container) {
+    const t = AdminState.activeFLT;
+    const questions = t.populatedQuestions || [];
+    const target = t.numberOfQuestions || 90;
+
+    container.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+        <div>
+          <h3 style="margin:0 0 var(--sp-1) 0;font-size:var(--text-lg);font-weight:700;">Assigned Questions (${questions.length})</h3>
+          <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">
+            ${questions.length >= target ? '✅ Target question count reached!' : `Need ${target - questions.length} more question(s) to reach target of ${target}.`}
+          </p>
+        </div>
+        <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm" onclick="Admin.switchFLTTab('add-bank')">🔍 Add from Question Bank</button>
+          <button class="btn btn-outline btn-sm" onclick="Admin.switchFLTTab('add-new')">➕ Create New Question</button>
+        </div>
+      </div>
+
+      ${questions.length === 0 ? `
+        <div class="card" style="text-align:center;padding:var(--sp-8);">
+          <div style="font-size:36px;margin-bottom:var(--sp-2);">📝</div>
+          <div style="font-weight:700;font-size:var(--text-md);margin-bottom:var(--sp-1);">No questions added to this test yet</div>
+          <p style="color:var(--neutral-500);font-size:var(--text-sm);margin-bottom:var(--sp-4);max-width:440px;margin-left:auto;margin-right:auto;">
+            You can browse and select existing questions from your question bank or create brand new questions specifically for this test.
+          </p>
+          <div style="display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
+            <button class="btn btn-primary btn-sm" onclick="Admin.switchFLTTab('add-bank')">🔍 Add from Question Bank</button>
+            <button class="btn btn-outline btn-sm" onclick="Admin.switchFLTTab('add-new')">➕ Create New Question</button>
+          </div>
+        </div>
+      ` : `
+        <div class="flt-assigned-list">
+          ${questions.map((q, idx) => adminFLTAssignedQuestionCard(q, idx, t._id)).join('')}
+        </div>
+      `}
+    `;
+  },
+
+  async renderFLTBankTab(container) {
+    container.innerHTML = `
+      <div style="margin-bottom:var(--sp-4);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);flex-wrap:wrap;gap:var(--sp-2);">
+          <div>
+            <h3 style="margin:0 0 var(--sp-1) 0;font-size:var(--text-lg);font-weight:700;">Question Bank Selector</h3>
+            <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Browse, search, and add questions from your question bank into this test.</p>
+          </div>
+          <div id="flt-bank-selection-bar" style="display:flex;gap:var(--sp-2);align-items:center;"></div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-3);">
+          <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--sp-2);">
+            <div>
+              <label class="form-label" style="font-size:var(--text-xs);margin-bottom:2px;">Chapter</label>
+              <select class="form-select form-select-sm" id="flt-bank-filter-chapter" onchange="Admin.onFLTBankChapterFilterChange(this.value)"></select>
+            </div>
+            <div>
+              <label class="form-label" style="font-size:var(--text-xs);margin-bottom:2px;">Search Keyword</label>
+              <input class="form-input form-input-sm" id="flt-bank-search" placeholder="Search question text…" oninput="Admin.onFLTBankSearchChange(this.value)" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="flt-bank-questions-list"><p style="color:var(--neutral-500);">Loading questions…</p></div>
+      <div id="flt-bank-questions-pagination"></div>
+    `;
+
+    await populateChapterDropdown('flt-bank-filter-chapter', AdminState.fltBankFilters.chapterId);
+    Admin.loadFLTBankQuestions();
+  },
+
+  async renderFLTNewQuestionTab(container) {
+    const t = AdminState.activeFLT;
+    container.innerHTML = `
+      <div class="card card-lg" style="margin-bottom:var(--sp-4);">
+        <div style="margin-bottom:var(--sp-4);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-3);">
+          <h3 style="margin:0 0 var(--sp-1) 0;font-size:var(--text-lg);font-weight:700;">➕ Create &amp; Add Question to "${escapeHtml(t.title)}"</h3>
+          <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">This question will be saved into the Question Bank and immediately attached to this test.</p>
+        </div>
+
+        <form onsubmit="event.preventDefault(); Admin.saveNewQuestionToFLT();">
+          <div class="form-group">
+            <label class="form-label">Chapter</label>
+            <select class="form-select" id="flt-newq-chapter" required></select>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Year (optional, e.g. PYQ 2024)</label>
+            <input class="form-input" type="number" id="flt-newq-year" placeholder="2024" />
+          </div>
+          <div class="form-group"><label class="form-label">Question Text</label><textarea class="form-input" id="flt-newq-text" rows="3" placeholder="Enter question text…" required></textarea></div>
+
+          <div class="form-group">
+            <label class="form-label">Options (select the correct one)</label>
+            ${[1, 2, 3, 4].map((n) => `
+              <div style="display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2);">
+                <input type="radio" name="flt-newq-correct" value="${n - 1}" id="flt-newq-correct-${n}" ${n === 1 ? 'checked' : ''} />
+                <input class="form-input" id="flt-newq-option-${n}" placeholder="Option ${n}" required style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-input" id="flt-newq-explanation" rows="3" placeholder="Explain why the correct answer is right…" required></textarea></div>
+
+          <div class="form-group" style="display:flex;align-items:center;gap:var(--sp-2);">
+            <input type="checkbox" id="flt-newq-foundation" />
+            <label class="form-label" style="margin:0;" for="flt-newq-foundation">Include in foundation/onboarding assessment</label>
+          </div>
+
+          <div id="flt-newq-error" style="color:var(--error-600);font-size:var(--text-sm);margin-bottom:var(--sp-3);display:none;"></div>
+
+          <div style="display:flex;gap:var(--sp-3);">
+            <button class="btn btn-primary" type="submit">Save &amp; Add to Test</button>
+            <button class="btn btn-outline" type="button" onclick="Admin.switchFLTTab('assigned')">Cancel</button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    await populateChapterDropdown('flt-newq-chapter');
+  },
+
+  async loadFLTBankQuestions() {
+    const listEl = document.getElementById('flt-bank-questions-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading questions…</p>';
+
+    const f = AdminState.fltBankFilters;
+    const params = new URLSearchParams();
+    if (f.chapterId) params.set('chapterId', f.chapterId);
+    params.set('page', f.page || 1);
+    params.set('limit', 20);
+
+    try {
+      const res = await ApiClient.get(`/admin/questions?${params.toString()}`);
+      let questions = res.questions || [];
+
+      if (f.search) {
+        const s = f.search.toLowerCase().trim();
+        questions = questions.filter((q) => (q.text || '').toLowerCase().includes(s));
+      }
+
+      const assignedQIds = new Set(
+        (AdminState.activeFLT?.populatedQuestions || AdminState.activeFLT?.questions || []).map((q) => (typeof q === 'object' ? q._id : q))
+      );
+
+      const testId = AdminState.activeFLTId;
+
+      listEl.innerHTML = questions.length
+        ? questions
+            .map((q) =>
+              adminFLTBankQuestionCard(
+                q,
+                testId,
+                assignedQIds.has(q._id),
+                AdminState.fltSelectedBankQuestionIds.has(q._id)
+              )
+            )
+            .join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-4);">No questions match the current filters.</p>';
+
+      Admin.updateFLTBankSelectionBar();
+
+      renderAdminPagination('flt-bank-questions-pagination', res.pagination, (page) => {
+        AdminState.fltBankFilters.page = page;
+        Admin.loadFLTBankQuestions();
+      });
+    } catch (err) {
+      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  onFLTBankChapterFilterChange(val) {
+    AdminState.fltBankFilters.chapterId = val;
+    AdminState.fltBankFilters.page = 1;
+    Admin.loadFLTBankQuestions();
+  },
+
+  onFLTBankSearchChange(val) {
+    AdminState.fltBankFilters.search = val;
+    Admin.loadFLTBankQuestions();
+  },
+
+  toggleFLTBankSelect(qId) {
+    if (AdminState.fltSelectedBankQuestionIds.has(qId)) {
+      AdminState.fltSelectedBankQuestionIds.delete(qId);
+    } else {
+      AdminState.fltSelectedBankQuestionIds.add(qId);
+    }
+    Admin.updateFLTBankSelectionBar();
+  },
+
+  toggleSelectAllFLTBank(selectAll) {
+    const checkboxes = document.querySelectorAll('.flt-bank-checkbox:not(:disabled)');
+    checkboxes.forEach((cb) => {
+      const qId = cb.dataset.qid;
+      if (selectAll) {
+        AdminState.fltSelectedBankQuestionIds.add(qId);
+        cb.checked = true;
+      } else {
+        AdminState.fltSelectedBankQuestionIds.delete(qId);
+        cb.checked = false;
+      }
+    });
+    Admin.updateFLTBankSelectionBar();
+  },
+
+  updateFLTBankSelectionBar() {
+    const bar = document.getElementById('flt-bank-selection-bar');
+    if (!bar) return;
+    const count = AdminState.fltSelectedBankQuestionIds.size;
+    if (count === 0) {
+      bar.innerHTML = `
+        <button class="btn btn-outline btn-sm" onclick="Admin.toggleSelectAllFLTBank(true)">Select All</button>
+      `;
+    } else {
+      bar.innerHTML = `
+        <span style="font-size:var(--text-xs);font-weight:700;color:var(--primary-600);">${count} selected</span>
+        <button class="btn btn-primary btn-sm" onclick="Admin.addSelectedQuestionsToFLT()">Add Selected (${count})</button>
+        <button class="btn btn-ghost btn-sm" onclick="Admin.toggleSelectAllFLTBank(false)">Clear</button>
+      `;
+    }
+  },
+
+  async addSingleQuestionToFLT(qId) {
+    const testId = AdminState.activeFLTId;
+    if (!testId) return;
+    try {
+      await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionId: qId });
+      App.showToast('Question added to test!');
+      await Admin.loadFLTQuestionsView(testId);
+    } catch (err) {
+      alert('Failed to add question: ' + err.message);
+    }
+  },
+
+  async addSelectedQuestionsToFLT() {
+    const testId = AdminState.activeFLTId;
+    if (!testId) return;
+    const qIds = Array.from(AdminState.fltSelectedBankQuestionIds);
+    if (qIds.length === 0) return;
+
+    try {
+      await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionIds: qIds });
+      App.showToast(`${qIds.length} question(s) added to test!`);
+      AdminState.fltSelectedBankQuestionIds.clear();
+      await Admin.loadFLTQuestionsView(testId);
+    } catch (err) {
+      alert('Failed to add questions: ' + err.message);
+    }
+  },
+
+  async removeQuestionFromFLT(qId, textPreview) {
+    const testId = AdminState.activeFLTId;
+    if (!testId) return;
+    const promptText = textPreview ? `Remove "${truncate(textPreview, 50)}" from this test?` : 'Remove question from this test?';
+    if (!confirm(promptText)) return;
+
+    try {
+      await ApiClient.del(`/admin/full-length-tests/${testId}/questions/${qId}`);
+      App.showToast('Question removed from test.');
+      await Admin.loadFLTQuestionsView(testId);
+    } catch (err) {
+      alert('Failed to remove question: ' + err.message);
+    }
+  },
+
+  async saveNewQuestionToFLT() {
+    const testId = AdminState.activeFLTId;
+    if (!testId) return;
+
+    const chapterId = document.getElementById('flt-newq-chapter').value;
+    const yearRaw = document.getElementById('flt-newq-year').value.trim();
+    const text = document.getElementById('flt-newq-text').value.trim();
+    const options = [1, 2, 3, 4].map((n) => document.getElementById(`flt-newq-option-${n}`).value.trim());
+    const correctRadio = document.querySelector('input[name="flt-newq-correct"]:checked');
+    const explanation = document.getElementById('flt-newq-explanation').value.trim();
+    const isFoundation = document.getElementById('flt-newq-foundation').checked;
+    const errorEl = document.getElementById('flt-newq-error');
+    errorEl.style.display = 'none';
+
+    if (!correctRadio) {
+      errorEl.textContent = 'Select which option is correct.';
+      errorEl.style.display = 'block';
+      return;
+    }
+
+    const payload = {
+      chapterId,
+      bloomLevel: 'remember',
+      weightage: 4,
+      year: yearRaw ? Number(yearRaw) : undefined,
+      text,
+      options,
+      correctOption: Number(correctRadio.value),
+      explanation,
+      isFoundation,
+    };
+
+    try {
+      await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, payload);
+      App.showToast('New question created and added to test!');
+      Admin.switchFLTTab('assigned');
+      await Admin.loadFLTQuestionsView(testId);
+    } catch (err) {
+      errorEl.textContent = err.message;
+      errorEl.style.display = 'block';
+    }
+  },
+
   /* ---------------- Audit logs ---------------- */
 
   async loadAuditLogs(page = 1) {
@@ -545,6 +929,50 @@ const Admin = {
       renderAdminPagination('admin-audit-pagination', res.pagination, (p) => Admin.loadAuditLogs(p));
     } catch (err) {
       listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  /* ---------------- Reported Questions ---------------- */
+
+  async loadReports(page = 1) {
+    const listEl = document.getElementById('admin-reports-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading reports…</p>';
+    try {
+      const status = AdminState.reportFilter || 'all';
+      const res = await ApiClient.get(`/admin/reports?status=${status}&page=${page}&limit=20`);
+      listEl.innerHTML = res.reports && res.reports.length
+        ? res.reports.map(adminReportRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No reported questions match this filter. Everything looks good!</p>';
+      renderAdminPagination('admin-reports-pagination', res.pagination, (p) => Admin.loadReports(p));
+    } catch (err) {
+      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  onReportFilterChange(status) {
+    AdminState.reportFilter = status;
+    Admin.loadReports(1);
+  },
+
+  async updateReportStatus(id, status) {
+    try {
+      await ApiClient.put(`/admin/reports/${id}`, { status });
+      App.showToast(`Report marked as ${status}.`);
+      Admin.loadReports();
+    } catch (err) {
+      alert('Failed to update status: ' + err.message);
+    }
+  },
+
+  async deleteReport(id) {
+    if (!confirm('Delete this report record?')) return;
+    try {
+      await ApiClient.del(`/admin/reports/${id}`);
+      App.showToast('Report deleted.');
+      Admin.loadReports();
+    } catch (err) {
+      alert('Failed to delete report: ' + err.message);
     }
   },
 };
@@ -576,7 +1004,7 @@ function adminSubSkillRow(s) {
       <div style="flex:1;">
         <div style="font-weight:700;">${escapeHtml(s.name)}</div>
         <div style="font-size:var(--text-xs);color:var(--neutral-500);">
-          ${chapter ? escapeHtml(chapter.name) : 'Unknown chapter'} &middot; <span class="badge badge-neutral">${s.bloomLevel}</span>
+          ${chapter ? escapeHtml(chapter.name) : 'Unknown chapter'}
         </div>
       </div>
       <button class="btn btn-outline btn-sm" onclick="Admin.startEditSubSkill('${s._id}')">Edit</button>
@@ -592,8 +1020,7 @@ function adminQuestionRow(q) {
         <div style="flex:1;">
           <div style="font-weight:600;">${escapeHtml(truncate(q.text, 100))}</div>
           <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:4px;">
-            <span class="badge badge-neutral">${q.bloomLevel}</span>
-            Weightage ${q.weightage}${q.year ? ` &middot; ${q.year}` : ''}${q.isFoundation ? ' &middot; <span class="badge badge-primary">Foundation</span>' : ''}
+            ${q.year ? `PYQ ${q.year}` : ''}${q.isFoundation ? `${q.year ? ' &middot; ' : ''}<span class="badge badge-primary">Foundation</span>` : ''}
           </div>
         </div>
         <div style="display:flex;gap:var(--sp-2);align-items:start;">
@@ -606,16 +1033,166 @@ function adminQuestionRow(q) {
 }
 
 function adminFLTRow(t) {
+  const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questionsCount || 0);
+  const target = t.numberOfQuestions || 90;
+  const isComplete = qCount >= target;
+
   return `
-    <div class="card" style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-2);">
-      <div style="flex:1;">
-        <div style="font-weight:700;">${escapeHtml(t.title)}</div>
+    <div class="card" style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);flex-wrap:wrap;">
+      <div style="flex:1;min-width:220px;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1);">
+          <span style="font-weight:700;font-size:var(--text-base);">${escapeHtml(t.title)}</span>
+          <span class="badge ${isComplete ? 'badge-success' : 'badge-primary'}" style="font-size:11px;">
+            ${qCount} / ${target} Questions
+          </span>
+        </div>
         <div style="font-size:var(--text-xs);color:var(--neutral-500);">
-          ${t.numberOfQuestions} questions &middot; ${t.durationMinutes} min
+          ${escapeHtml(t.description || 'Full syllabus mock test')} &middot; ⏱️ ${t.durationMinutes} min
         </div>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="Admin.startEditFLT('${t._id}')">Edit</button>
-      <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteFLT('${t._id}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')">Delete</button>
+      <div style="display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;">
+        <button class="btn btn-primary btn-sm" onclick="Admin.openFLTQuestions('${t._id}')">
+          📝 Manage Questions (${qCount})
+        </button>
+        <button class="btn btn-outline btn-sm" onclick="Admin.startEditFLT('${t._id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteFLT('${t._id}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function adminFLTAssignedQuestionCard(q, idx, testId) {
+  const chapterName = q.chapterId?.name || q.chapterName || (AdminState.cachedChapters.find((c) => c._id === (q.chapterId?._id || q.chapterId))?.name) || 'General';
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid var(--primary-500);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2);">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+          <span class="badge badge-primary" style="font-weight:800;">Q${idx + 1}</span>
+          <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(chapterName)}</span>
+          ${q.year ? `<span class="badge badge-neutral" style="font-size:10px;">PYQ ${q.year}</span>` : ''}
+        </div>
+        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);padding:var(--sp-1) var(--sp-2);font-size:var(--text-xs);" onclick="Admin.removeQuestionFromFLT('${q._id}', '${escapeHtml(q.text || '').replace(/'/g, "\\'")}')">
+          ✕ Remove
+        </button>
+      </div>
+
+      <div style="font-weight:600;font-size:var(--text-sm);margin-bottom:var(--sp-3);line-height:1.45;">
+        ${escapeHtml(q.text)}
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-2);margin-bottom:var(--sp-2);">
+        ${(q.options || []).map((opt, oi) => {
+          const isCorrect = oi === (q.correctOption ?? q.correct);
+          return `
+            <div style="padding:var(--sp-2);border-radius:var(--radius-sm);font-size:var(--text-xs);border:1px solid ${isCorrect ? 'var(--success-500)' : 'var(--neutral-200)'};background:${isCorrect ? 'var(--success-100)' : 'transparent'};font-weight:${isCorrect ? '700' : '400'};color:${isCorrect ? 'var(--success-600)' : 'inherit'};">
+              ${['A','B','C','D'][oi]}. ${escapeHtml(opt)} ${isCorrect ? '✓' : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${q.explanation ? `
+        <div style="font-size:var(--text-xs);color:var(--neutral-500);background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);margin-top:var(--sp-2);">
+          💡 <strong>Explanation:</strong> ${escapeHtml(q.explanation)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
+  const chapterName = q.chapterId?.name || (AdminState.cachedChapters.find((c) => c._id === (q.chapterId?._id || q.chapterId))?.name) || 'General';
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-2);padding:var(--sp-3);display:flex;align-items:flex-start;gap:var(--sp-3);${isAlreadyAdded ? 'opacity:0.75;background:var(--neutral-50);' : ''}">
+      <div style="padding-top:2px;">
+        <input
+          type="checkbox"
+          class="flt-bank-checkbox"
+          data-qid="${q._id}"
+          ${isAlreadyAdded ? 'disabled' : ''}
+          ${isSelected ? 'checked' : ''}
+          onchange="Admin.toggleFLTBankSelect('${q._id}')"
+        />
+      </div>
+
+      <div style="flex:1;min-width:0;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1);">
+          <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(chapterName)}</span>
+          ${q.year ? `<span class="badge badge-neutral" style="font-size:10px;">PYQ ${q.year}</span>` : ''}
+          ${q.isFoundation ? `<span class="badge badge-primary" style="font-size:10px;">Foundation</span>` : ''}
+        </div>
+
+        <div style="font-weight:600;font-size:var(--text-sm);line-height:1.4;margin-bottom:var(--sp-2);">
+          ${escapeHtml(q.text)}
+        </div>
+
+        <div style="font-size:var(--text-xs);color:var(--neutral-500);">
+          Correct Answer: <strong>Option ${String.fromCharCode(65 + (q.correctOption ?? q.correct ?? 0))}</strong> (${escapeHtml((q.options || [])[q.correctOption ?? q.correct ?? 0] || '')})
+        </div>
+      </div>
+
+      <div style="margin-left:auto;align-self:center;">
+        ${isAlreadyAdded ? `
+          <span class="badge badge-success" style="font-size:11px;padding:var(--sp-1) var(--sp-2);">✓ Added</span>
+        ` : `
+          <button class="btn btn-primary btn-sm" onclick="Admin.addSingleQuestionToFLT('${q._id}')">
+            + Add
+          </button>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+
+function adminReportRow(r) {
+  const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'Recently';
+  const isPending = (r.status || 'pending') === 'pending';
+  const isResolved = r.status === 'resolved';
+
+  let statusBadge = `<span class="badge badge-warning" style="font-size:11px;">Pending Review</span>`;
+  if (isResolved) {
+    statusBadge = `<span class="badge badge-success" style="font-size:11px;">Resolved</span>`;
+  } else if (r.status === 'dismissed') {
+    statusBadge = `<span class="badge badge-neutral" style="font-size:11px;">Dismissed</span>`;
+  }
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid ${isPending ? 'var(--warning-500)' : isResolved ? 'var(--success-500)' : 'var(--neutral-300)'};">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+          ${statusBadge}
+          <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(r.chapterName || 'General')}</span>
+          <span style="font-size:var(--text-xs);color:var(--neutral-500);">${dateStr}</span>
+        </div>
+        <div style="display:flex;gap:var(--sp-1);flex-wrap:wrap;">
+          ${r.questionId ? `<button class="btn btn-outline btn-sm" style="font-size:var(--text-xs);padding:var(--sp-1) var(--sp-2);" onclick="Admin.startEditQuestion('${r.questionId}')">✏️ Edit Question</button>` : ''}
+          ${isPending ? `
+            <button class="btn btn-primary btn-sm" style="font-size:var(--text-xs);padding:var(--sp-1) var(--sp-2);" onclick="Admin.updateReportStatus('${r._id}', 'resolved')">✅ Mark Resolved</button>
+            <button class="btn btn-ghost btn-sm" style="font-size:var(--text-xs);padding:var(--sp-1) var(--sp-2);" onclick="Admin.updateReportStatus('${r._id}', 'dismissed')">✕ Dismiss</button>
+          ` : `
+            <button class="btn btn-ghost btn-sm" style="font-size:var(--text-xs);padding:var(--sp-1) var(--sp-2);" onclick="Admin.updateReportStatus('${r._id}', 'pending')">Reopen</button>
+          `}
+          <button class="btn btn-ghost btn-sm" style="color:var(--error-600);font-size:var(--text-xs);padding:var(--sp-1) var(--sp-2);" onclick="Admin.deleteReport('${r._id}')">🗑️</button>
+        </div>
+      </div>
+
+      <div style="margin-bottom:var(--sp-2);">
+        <div style="font-size:var(--text-xs);font-weight:700;color:var(--error-600);margin-bottom:2px;">
+          🚩 Issue: ${escapeHtml(r.reason)}
+        </div>
+        ${r.comments ? `
+          <div style="font-size:var(--text-xs);color:var(--neutral-700);background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);margin-top:4px;">
+            💬 <em>"${escapeHtml(r.comments)}"</em>
+          </div>
+        ` : ''}
+      </div>
+
+      <div style="font-size:var(--text-xs);color:var(--neutral-500);border-top:1px dashed var(--neutral-200);padding-top:var(--sp-2);margin-top:var(--sp-2);">
+        <strong>Question:</strong> ${escapeHtml(truncate(r.questionText || 'Question ID: ' + r.questionId, 140))}
+      </div>
     </div>
   `;
 }
@@ -694,21 +1271,25 @@ function truncate(str, len) {
   return str.length > len ? str.slice(0, len) + '…' : str;
 }
 
-async function populateChapterDropdown(selectId, selectedId) {
+async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Select a chapter…') {
   const select = document.getElementById(selectId);
   if (!select) return;
   if (!AdminState.cachedChapters.length) {
     try {
       const res = await ApiClient.get('/admin/chapters');
-      AdminState.cachedChapters = res.chapters;
+      AdminState.cachedChapters = res.chapters || [];
     } catch (err) {
-      select.innerHTML = '<option value="">Failed to load chapters</option>';
-      return;
+      if (window.DB && window.DB.chapters) {
+        AdminState.cachedChapters = window.DB.chapters.map((c) => ({ _id: c.id, name: c.name }));
+      } else {
+        select.innerHTML = '<option value="">Failed to load chapters</option>';
+        return;
+      }
     }
   }
   select.innerHTML =
-    '<option value="">Select a chapter…</option>' +
-    AdminState.cachedChapters.map((c) => `<option value="${c._id}" ${c._id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+    `<option value="">${emptyLabel}</option>` +
+    (AdminState.cachedChapters || []).map((c) => `<option value="${c._id}" ${c._id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
 }
 
 async function populateSubSkillFilterDropdown(chapterId) {
@@ -743,6 +1324,25 @@ async function populateQuestionFormSubSkillDropdown(chapterId, selectedId) {
     const res = await ApiClient.get(`/admin/sub-skills?chapterId=${chapterId}`);
     select.innerHTML =
       '<option value="">Select a sub-skill…</option>' +
+      res.subSkills.map((s) => `<option value="${s._id}" ${s._id === selectedId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
+  } catch (err) {
+    select.innerHTML = '<option value="">Failed to load</option>';
+  }
+}
+
+async function populateSubSkillFilterDropdownForFLT(chapterId, selectedId) {
+  const select = document.getElementById('flt-bank-filter-subskill');
+  if (!select) return;
+  if (!chapterId) {
+    select.innerHTML = '<option value="">All sub-skills</option>';
+    select.disabled = true;
+    return;
+  }
+  select.disabled = false;
+  try {
+    const res = await ApiClient.get(`/admin/sub-skills?chapterId=${chapterId}`);
+    select.innerHTML =
+      '<option value="">All sub-skills</option>' +
       res.subSkills.map((s) => `<option value="${s._id}" ${s._id === selectedId ? 'selected' : ''}>${escapeHtml(s.name)}</option>`).join('');
   } catch (err) {
     select.innerHTML = '<option value="">Failed to load</option>';
@@ -803,12 +1403,6 @@ function renderAdminSubSkills(container) {
       <div class="section-title" id="admin-subskill-form-title" style="font-size:var(--text-base);">Add Sub-skill</div>
       <div class="form-group"><label class="form-label">Chapter</label><select class="form-select" id="admin-subskill-chapter" required></select></div>
       <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="admin-subskill-name" required /></div>
-      <div class="form-group">
-        <label class="form-label">Bloom Level</label>
-        <select class="form-select" id="admin-subskill-bloom" required>
-          ${BLOOM_LEVELS.map((b) => `<option value="${b}">${b}</option>`).join('')}
-        </select>
-      </div>
       <div style="display:flex;gap:var(--sp-3);">
         <button class="btn btn-primary" type="submit">Save</button>
         <button class="btn btn-outline" type="button" onclick="Admin.cancelSubSkillForm()">Cancel</button>
@@ -817,7 +1411,7 @@ function renderAdminSubSkills(container) {
 
     <div id="admin-subskills-list"></div>
   `);
-  populateChapterDropdown('admin-subskill-filter-chapter');
+  populateChapterDropdown('admin-subskill-filter-chapter', '', 'All chapters');
   Admin.loadSubSkills();
 }
 
@@ -835,20 +1429,13 @@ function renderAdminQuestions(container) {
       <select class="form-select" id="admin-q-filter-chapter" onchange="Admin.onQuestionChapterFilterChange(this.value)">
         <option value="">All chapters</option>
       </select>
-      <select class="form-select" id="admin-q-filter-subskill" disabled onchange="Admin.onQuestionSubSkillFilterChange(this.value)">
-        <option value="">All sub-skills</option>
-      </select>
-      <select class="form-select" id="admin-q-filter-bloom" onchange="Admin.onQuestionBloomFilterChange(this.value)">
-        <option value="">All bloom levels</option>
-        ${BLOOM_LEVELS.map((b) => `<option value="${b}">${b}</option>`).join('')}
-      </select>
     </div>
 
     <div id="admin-questions-list"></div>
     <div id="admin-questions-pagination"></div>
   `);
-  AdminState.questionFilters = { chapterId: '', subSkillId: '', bloomLevel: '', page: 1 };
-  populateChapterDropdown('admin-q-filter-chapter');
+  AdminState.questionFilters = { chapterId: '', page: 1 };
+  populateChapterDropdown('admin-q-filter-chapter', '', 'All chapters');
   Admin.loadQuestions();
 }
 
@@ -863,26 +1450,14 @@ async function renderAdminQuestionForm(container, data) {
   container.innerHTML = adminShell('questions', `
     <div class="section-title" style="margin-bottom:var(--sp-4);">${isEdit ? 'Edit Question' : 'Add Question'}</div>
     <form class="card card-lg" onsubmit="event.preventDefault(); Admin.saveQuestion();">
-      <div class="grid-2" style="gap:var(--sp-4);">
-        <div class="form-group">
-          <label class="form-label">Chapter</label>
-          <select class="form-select" id="admin-q-chapter" required onchange="populateQuestionFormSubSkillDropdown(this.value)"></select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Sub-skill</label>
-          <select class="form-select" id="admin-q-subskill" required disabled><option value="">Select a chapter first</option></select>
-        </div>
+      <div class="form-group">
+        <label class="form-label">Chapter</label>
+        <select class="form-select" id="admin-q-chapter" required></select>
       </div>
-      <div class="grid-2" style="gap:var(--sp-4);">
-        <div class="form-group">
-          <label class="form-label">Bloom Level</label>
-          <select class="form-select" id="admin-q-bloom" required>
-            ${BLOOM_LEVELS.map((b) => `<option value="${b}">${b}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Weightage (0-10)</label><input class="form-input" type="number" min="0" max="10" id="admin-q-weightage" required /></div>
+      <div class="form-group">
+        <label class="form-label">Year (optional, e.g. PYQ 2024)</label>
+        <input class="form-input" type="number" id="admin-q-year" placeholder="e.g. 2024" />
       </div>
-      <div class="form-group"><label class="form-label">Year (optional, e.g. PYQ year)</label><input class="form-input" type="number" id="admin-q-year" /></div>
       <div class="form-group"><label class="form-label">Question Text</label><textarea class="form-input" id="admin-q-text" rows="3" required></textarea></div>
 
       <div class="form-group">
@@ -918,9 +1493,6 @@ async function renderAdminQuestionForm(container, data) {
       const res = await ApiClient.get(`/admin/questions/${questionId}`);
       const q = res.question;
       document.getElementById('admin-q-chapter').value = q.chapterId;
-      await populateQuestionFormSubSkillDropdown(q.chapterId, q.subSkillId);
-      document.getElementById('admin-q-bloom').value = q.bloomLevel;
-      document.getElementById('admin-q-weightage').value = q.weightage;
       document.getElementById('admin-q-year').value = q.year ?? '';
       document.getElementById('admin-q-text').value = q.text;
       q.options.forEach((opt, i) => { document.getElementById(`admin-q-option-${i + 1}`).value = opt; });
@@ -991,6 +1563,77 @@ function renderAdminFullLengthTests(container) {
 }
 
 /* ============================================================
+   Screen: admin-flt-questions (Manage questions in Full-Length Test)
+   ============================================================ */
+function renderAdminFLTQuestions(container, data) {
+  const testId = (data && data.testId) || AdminState.activeFLTId;
+  AdminState.activeFLTId = testId;
+
+  container.innerHTML = adminShell('fulltests', `
+    <div style="margin-bottom:var(--sp-4);">
+      <button class="btn btn-ghost btn-sm" onclick="App.navigate('admin-fulltests')" style="padding-left:0;margin-bottom:var(--sp-2);">
+        ← Back to Full-Length Tests
+      </button>
+
+      <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-4);background:linear-gradient(135deg, var(--neutral-50) 0%, #fff 100%);">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);flex-wrap:wrap;">
+          <div>
+            <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1);">
+              <h2 class="page-title" id="admin-flt-qview-title" style="margin:0;font-size:var(--text-xl);">Full-Length Test</h2>
+              <span id="admin-flt-qview-badge" class="badge badge-primary">0 Questions</span>
+            </div>
+            <div id="admin-flt-qview-desc" style="font-size:var(--text-xs);color:var(--neutral-500);">Loading details…</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:var(--sp-2);margin-top:var(--sp-4);border-top:1px solid var(--neutral-100);padding-top:var(--sp-3);flex-wrap:wrap;">
+          <button class="btn btn-primary btn-sm flt-tab-btn" data-tab="assigned" onclick="Admin.switchFLTTab('assigned')">
+            📋 Assigned Questions
+          </button>
+          <button class="btn btn-ghost btn-sm flt-tab-btn" data-tab="add-bank" onclick="Admin.switchFLTTab('add-bank')">
+            🔍 Add from Question Bank
+          </button>
+          <button class="btn btn-ghost btn-sm flt-tab-btn" data-tab="add-new" onclick="Admin.switchFLTTab('add-new')">
+            ➕ Create New Question
+          </button>
+        </div>
+      </div>
+
+      <div id="admin-flt-tab-content">
+        <p style="color:var(--neutral-500);">Loading questions…</p>
+      </div>
+    </div>
+  `);
+
+  Admin.loadFLTQuestionsView(testId);
+}
+
+/* ============================================================
+   Screen: admin-reports (Reported Questions)
+   ============================================================ */
+function renderAdminReports(container) {
+  const currentFilter = AdminState.reportFilter || 'all';
+  container.innerHTML = adminShell('reports', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">🚩 Reported Questions</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Review and fix errors, incorrect answers, and typos reported by students during tests.</p>
+      </div>
+      <div style="display:flex;gap:var(--sp-1);flex-wrap:wrap;">
+        <button class="btn ${currentFilter === 'all' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="Admin.onReportFilterChange('all')">All</button>
+        <button class="btn ${currentFilter === 'pending' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="Admin.onReportFilterChange('pending')">Pending Review</button>
+        <button class="btn ${currentFilter === 'resolved' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="Admin.onReportFilterChange('resolved')">Resolved</button>
+        <button class="btn ${currentFilter === 'dismissed' ? 'btn-primary' : 'btn-outline'} btn-sm" onclick="Admin.onReportFilterChange('dismissed')">Dismissed</button>
+      </div>
+    </div>
+
+    <div id="admin-reports-list"></div>
+    <div id="admin-reports-pagination"></div>
+  `);
+  Admin.loadReports();
+}
+
+/* ============================================================
    Screen: admin-auditlogs
    ============================================================ */
 function renderAdminAuditLogs(container) {
@@ -1010,10 +1653,10 @@ function renderAdminAuditLogs(container) {
 function adminShell(activeTab, innerHtml) {
   const tabs = [
     ['chapters', 'admin-chapters', 'Chapters'],
-    ['subskills', 'admin-subskills', 'Sub-skills'],
     ['questions', 'admin-questions', 'Questions'],
     ['csv-import', 'admin-csv-import', 'CSV Import'],
     ['fulltests', 'admin-fulltests', 'Full-Length Tests'],
+    ['reports', 'admin-reports', '🚩 Reports'],
     ['auditlogs', 'admin-auditlogs', 'Audit Log'],
   ];
   return `
@@ -1031,3 +1674,19 @@ function adminShell(activeTab, innerHtml) {
     </div>
   `;
 }
+
+/* ---- Export to global window scope ---- */
+window.Admin = Admin;
+window.AdminState = AdminState;
+window.renderAdminGuard = renderAdminGuard;
+window.renderAdminLogin = renderAdminLogin;
+window.renderAdminChapters = renderAdminChapters;
+window.renderAdminSubSkills = renderAdminSubSkills;
+window.renderAdminQuestions = renderAdminQuestions;
+window.renderAdminQuestionForm = renderAdminQuestionForm;
+window.renderAdminCsvImport = renderAdminCsvImport;
+window.renderAdminFullLengthTests = renderAdminFullLengthTests;
+window.renderAdminFLTQuestions = renderAdminFLTQuestions;
+window.renderAdminReports = renderAdminReports;
+window.renderAdminAuditLogs = renderAdminAuditLogs;
+

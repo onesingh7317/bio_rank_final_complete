@@ -19,7 +19,7 @@ const App = (() => {
     // it is never the final screen a renderer targets directly.
     'admin', 'admin-login', 'admin-chapters', 'admin-subskills',
     'admin-questions', 'admin-question-form', 'admin-csv-import',
-    'admin-fulltests', 'admin-auditlogs',
+    'admin-fulltests', 'admin-flt-questions', 'admin-reports', 'admin-auditlogs',
   ];
 
   let current = { screen: null, data: null };
@@ -117,6 +117,8 @@ const App = (() => {
     'admin-question-form':  renderAdminQuestionForm,
     'admin-csv-import':     renderAdminCsvImport,
     'admin-fulltests':      renderAdminFullLengthTests,
+    'admin-flt-questions':  renderAdminFLTQuestions,
+    'admin-reports':        renderAdminReports,
     'admin-auditlogs':      renderAdminAuditLogs,
   };
 
