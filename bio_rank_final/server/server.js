@@ -22,7 +22,7 @@ const testRoutes = require('./routes/tests');
 const performanceRoutes = require('./routes/performance');
 const improvementRoutes = require('./routes/improvement');
 const studentRoutes = require('./routes/student');
-const publicRoutes = require('./routes/public');
+const publicRoutes = require('./routes/publicRoutes');
 
 const app = express();
 

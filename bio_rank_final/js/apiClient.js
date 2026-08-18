@@ -267,10 +267,10 @@ const ApiClient = (() => {
       };
     }
 
-    // Chapters
-    if (cleanPath === '/admin/chapters') {
+    // Chapters (Public & Admin)
+    if (cleanPath === '/chapters' || cleanPath === '/admin/chapters') {
       if (method === 'GET') {
-        return { chapters: data.chapters.filter((c) => c.active !== false) };
+        return { ok: true, chapters: data.chapters.filter((c) => c.active !== false) };
       }
       if (method === 'POST') {
         const newChapter = {
@@ -285,7 +285,7 @@ const ApiClient = (() => {
         data.chapters.push(newChapter);
         MockStore.save(data);
         MockStore.addAuditLog('CREATE_CHAPTER', 'Chapter', newChapter._id, `Created chapter "${newChapter.name}"`);
-        return { chapter: newChapter };
+        return { ok: true, chapter: newChapter };
       }
     }
 
@@ -296,7 +296,7 @@ const ApiClient = (() => {
         data.chapters[idx] = { ...data.chapters[idx], ...body };
         MockStore.save(data);
         MockStore.addAuditLog('UPDATE_CHAPTER', 'Chapter', id, `Updated chapter "${data.chapters[idx].name}"`);
-        return { chapter: data.chapters[idx] };
+        return { ok: true, chapter: data.chapters[idx] };
       }
       throw new ApiError('Chapter not found', 404);
     }
@@ -313,13 +313,13 @@ const ApiClient = (() => {
       throw new ApiError('Chapter not found', 404);
     }
 
-    // Sub-skills
-    if (cleanPath === '/admin/sub-skills') {
+    // Sub-skills (Public & Admin)
+    if (cleanPath === '/sub-skills' || cleanPath === '/admin/sub-skills') {
       if (method === 'GET') {
         const chapterId = urlParams.get('chapterId');
         let filtered = data.subSkills.filter((s) => s.active !== false);
         if (chapterId) filtered = filtered.filter((s) => s.chapterId === chapterId);
-        return { subSkills: filtered };
+        return { ok: true, subSkills: filtered };
       }
       if (method === 'POST') {
         const newSubSkill = {
@@ -333,7 +333,7 @@ const ApiClient = (() => {
         data.subSkills.push(newSubSkill);
         MockStore.save(data);
         MockStore.addAuditLog('CREATE_SUBSKILL', 'SubSkill', newSubSkill._id, `Created sub-skill "${newSubSkill.name}"`);
-        return { subSkill: newSubSkill };
+        return { ok: true, subSkill: newSubSkill };
       }
     }
 
@@ -361,8 +361,35 @@ const ApiClient = (() => {
       throw new ApiError('Sub-skill not found', 404);
     }
 
-    // Questions
-    if (cleanPath === '/admin/questions') {
+    // Secure Test Questions Generator (Public)
+    if (cleanPath === '/questions/test' && method === 'GET') {
+      const chapterId = urlParams.get('chapterId');
+      const subSkillId = urlParams.get('subSkillId');
+      const year = urlParams.get('year');
+      const mode = urlParams.get('mode');
+      const count = Number(urlParams.get('count')) || 10;
+
+      let filtered = [...data.questions];
+      if (chapterId) filtered = filtered.filter((q) => q.chapterId === chapterId || q.chapter === chapterId);
+      if (subSkillId) filtered = filtered.filter((q) => q.subSkillId === subSkillId || q.subSkill === subSkillId);
+      if (year) filtered = filtered.filter((q) => Number(q.year) === Number(year));
+      if (mode === 'foundation') filtered = filtered.filter((q) => !!q.isFoundation);
+
+      const stripped = filtered.slice(0, count).map((q) => {
+        const { correctOption, explanation, ...safe } = q;
+        return safe;
+      });
+
+      return {
+        ok: true,
+        mode: mode || 'chapter',
+        count: stripped.length,
+        questions: stripped,
+      };
+    }
+
+    // Questions (Public & Admin)
+    if (cleanPath === '/questions' || cleanPath === '/admin/questions') {
       if (method === 'GET') {
         const chapterId = urlParams.get('chapterId');
         const subSkillId = urlParams.get('subSkillId');
@@ -813,6 +840,29 @@ const ApiClient = (() => {
     put: (path, body) => request(path, { method: 'PUT', body }),
     del: (path) => request(path, { method: 'DELETE' }),
     upload: (path, formData) => request(path, { method: 'POST', body: formData, isFormData: true }),
+
+    /* ---- High-level Public Student Content APIs ---- */
+    getChapters: async () => {
+      const res = await request('/chapters');
+      return (res && res.chapters) || [];
+    },
+
+    getSubSkills: async (chapterId) => {
+      const q = chapterId ? `?chapterId=${encodeURIComponent(chapterId)}` : '';
+      const res = await request(`/sub-skills${q}`);
+      return (res && res.subSkills) || [];
+    },
+
+    getTestQuestions: async (params = {}) => {
+      const query = new URLSearchParams();
+      if (params.chapterId) query.set('chapterId', params.chapterId);
+      if (params.subSkillId) query.set('subSkillId', params.subSkillId);
+      if (params.year) query.set('year', params.year);
+      if (params.mode) query.set('mode', params.mode);
+      if (params.count) query.set('count', params.count);
+      const qStr = query.toString() ? `?${query.toString()}` : '';
+      return await request(`/questions/test${qStr}`);
+    },
   };
 })();
 
