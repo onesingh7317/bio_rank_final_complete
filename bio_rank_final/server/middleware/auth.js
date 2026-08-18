@@ -46,4 +46,22 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin, JWT_SECRET };
+/* ============================================================
+   optionalAuth — parses the JWT if present, but does not block if absent.
+   Attaches req.user if a valid token is provided.
+   ============================================================ */
+function optionalAuth(req, res, next) {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : null;
+  if (token) {
+    try {
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = { userId: decoded.userId, role: decoded.role };
+    } catch (err) {
+      // Invalid/expired token -> continue as unauthenticated guest
+    }
+  }
+  next();
+}
+
+module.exports = { requireAuth, requireAdmin, optionalAuth, JWT_SECRET };
