@@ -28,6 +28,13 @@ const userSchema = new mongoose.Schema(
 
     configured: { type: Boolean, default: false },
     foundationDone: { type: Boolean, default: false },
+
+    // Embedded student performance metrics (streaks, sync data)
+    performance: {
+      currentStreak: { type: Number, default: 0 },
+      bestStreak: { type: Number, default: 0 },
+      lastSync: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

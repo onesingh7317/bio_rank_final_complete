@@ -8,11 +8,11 @@ const mongoose = require('mongoose');
    ============================================================ */
 const auditLogSchema = new mongoose.Schema(
   {
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: false, default: null },
     action: { type: String, enum: ['create', 'update', 'delete'], required: true },
     entityType: {
       type: String,
-      enum: ['Chapter', 'SubSkill', 'Question', 'FullLengthTest'],
+      enum: ['Chapter', 'SubSkill', 'Question', 'FullLengthTest', 'QuestionReport', 'Feedback', 'NcertQuestion', 'User', 'TestAttempt'],
       required: true,
     },
     entityId: { type: mongoose.Schema.Types.ObjectId, required: true },
