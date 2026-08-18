@@ -15,6 +15,7 @@ const questionImportRoutes = require('./routes/questionImport');
 const fullLengthTestRoutes = require('./routes/fullLengthTests');
 const auditLogRoutes = require('./routes/auditLogs');
 const ncertRoutes = require('./routes/ncertRoutes');
+const { publicRouter: reportPublicRoutes, adminRouter: reportAdminRoutes } = require('./routes/reports');
 
 const app = express();
 
@@ -30,6 +31,8 @@ app.use('/api/admin/full-length-tests', fullLengthTestRoutes);
 app.use('/api/admin/audit-logs', auditLogRoutes);
 app.use('/api/ncert-bio-focus', ncertRoutes);
 app.use('/api/admin/ncert-bio-focus', ncertRoutes);
+app.use('/api/reports', reportPublicRoutes);
+app.use('/api/admin/reports', reportAdminRoutes);
 
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
