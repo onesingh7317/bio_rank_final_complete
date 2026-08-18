@@ -165,6 +165,19 @@ window.submitConfig = function(skipTest = false) {
   state.performance.studentName = name;
   state.configured = true;
 
+  // Sync with backend profile API if authenticated
+  if (window.ApiClient && ApiClient.getToken()) {
+    ApiClient.put('/user/profile', {
+      name,
+      classLevel: classLevel || '12th',
+      targetYear: year,
+      board,
+      studyHoursPerDay: hours,
+      configured: true,
+      foundationDone: classLevel === '11th' || skipTest,
+    }).catch(err => console.warn('Profile background sync:', err));
+  }
+
   // Class 11th OR user chosen to skip diagnostic test:
   if (classLevel === '11th' || skipTest) {
     state.foundationDone = true;
@@ -1524,6 +1537,17 @@ function applySpacedRetestResults(results, chosenPoolItems) {
 
   const nextPool = pool.filter(p => p.status !== 'mastered');
   State.update({ spacedReviewPool: nextPool, masteredPool: mastered });
+
+  // Sync to backend Improvement Book API if authenticated
+  if (window.ApiClient && ApiClient.getToken()) {
+    const syncEntries = pool.map(p => ({
+      questionId: p.questionId,
+      status: p.status === 'mastered' ? 'mastered' : 'reviewing',
+      reviewCount: p.successfulRetests || 0,
+      mistakeReason: p.mistakeReason || '',
+    }));
+    ApiClient.post('/user/improvement/sync', { entries: syncEntries }).catch(e => console.warn('ImpBook sync:', e));
+  }
 }
 
 /* ---- Wrong-question collection from Chapter Test / Create Your Own Test ---- */
@@ -1554,6 +1578,23 @@ function processTestResultForSpacedReview(results) {
   });
 
   State.update({ spacedReviewPool: pool });
+
+  // Sync to backend Improvement Book API if authenticated
+  if (window.ApiClient && ApiClient.getToken()) {
+    const wrongEntries = (results.questionResults || [])
+      .filter(r => r.status === 'incorrect')
+      .map(r => ({
+        questionId: r.questionId,
+        questionText: (r.question && r.question.text) || '',
+        chapterName: (r.question && r.question.chapterName) || (r.question && r.question.chapter) || '',
+        status: 'active',
+        wrongDate: new Date(),
+      }));
+
+    if (wrongEntries.length > 0) {
+      ApiClient.post('/user/improvement/sync', { entries: wrongEntries }).catch(e => console.warn('ImpBook wrong sync:', e));
+    }
+  }
 }
 
 /* ---- Mastered panel ---- */

@@ -197,12 +197,19 @@ window.submitFeedback = function(level) {
     feedback.data.comment = document.getElementById('p-fb-comment')?.value;
   }
 
-  // Save locally (replace with API call when backend is ready)
+  // Persist locally as fallback / offline cache
   try {
     const existing = JSON.parse(localStorage.getItem('bioready_feedback') || '[]');
     existing.push(feedback);
     localStorage.setItem('bioready_feedback', JSON.stringify(existing));
   } catch {}
+
+  // Submit to live backend API if available
+  if (window.ApiClient) {
+    ApiClient.post('/feedback', feedback).catch(err => {
+      console.warn('Could not post feedback to server:', err);
+    });
+  }
 
   App.navigate('platform-improvement', { level, feedback });
 };

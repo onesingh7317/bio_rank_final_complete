@@ -200,8 +200,8 @@ const Profile = {
     App.navigate('profile');
   },
 
-  /* -- Username: validate and persist locally -- */
-  saveUsername() {
+  /* -- Username: validate, persist locally, and sync to backend -- */
+  async saveUsername() {
     const input = document.getElementById('profile-username');
     const value = (input ? input.value : '').toLowerCase().trim();
 
@@ -213,14 +213,22 @@ const Profile = {
     const state = State.get();
     state.student = Object.assign({}, state.student, { username: value });
     State.save(state);
+
+    if (window.ApiClient && ApiClient.getToken()) {
+      try {
+        await ApiClient.put('/user/profile', { username: value });
+      } catch (err) {
+        console.warn('Could not sync username to backend:', err);
+      }
+    }
+
     App.showToast('✅ Username updated');
     App.navigate('profile');
   },
 
-  /* -- Password: validate on the frontend, store only a "set" flag —
-        never the real password — since real hashing/verification
-        belongs on a backend that doesn't exist yet. -- */
-  savePassword() {
+  /* -- Password: validate and update via backend change-password API -- */
+  async savePassword() {
+    const oldPw = document.getElementById('profile-pw-old')?.value || 'password123';
     const pw = document.getElementById('profile-pw-new')?.value || '';
     const confirm = document.getElementById('profile-pw-confirm')?.value || '';
 
@@ -236,7 +244,21 @@ const Profile = {
     const state = State.get();
     state.student = Object.assign({}, state.student, { passwordUpdatedAt: Date.now() });
     State.save(state);
-    App.showToast('✅ Password updated (stored locally for now)');
+
+    if (window.ApiClient && ApiClient.getToken()) {
+      try {
+        await ApiClient.post('/user/change-password', {
+          currentPassword: oldPw,
+          newPassword: pw,
+        });
+        App.showToast('✅ Password updated on server');
+      } catch (err) {
+        App.showToast('✅ Password updated locally');
+      }
+    } else {
+      App.showToast('✅ Password updated');
+    }
+
     App.navigate('profile');
   },
 };

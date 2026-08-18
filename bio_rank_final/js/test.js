@@ -288,10 +288,45 @@ const TestEngine = (() => {
     submit();
   }
 
-  function submit() {
+  async function submit() {
     stopTimer();
 
     const results = buildResults();
+
+    // Submit attempt to live backend API (guest or authenticated)
+    if (window.ApiClient) {
+      try {
+        const answersMap = {};
+        state.questions.forEach((q, i) => {
+          const qId = q._id || q.id;
+          if (qId) {
+            answersMap[qId] = state.answers[i] !== undefined ? state.answers[i] : null;
+          }
+        });
+
+        const testTitle = (state.meta && (state.meta.chapterName || state.meta.title)) || `${(state.mode || 'Practice').toUpperCase()} Biology Test`;
+
+        const submitPayload = {
+          mode: state.mode || 'chapter',
+          testTitle,
+          timeTakenSeconds: state.secondsElapsed || 0,
+          meta: state.meta || {},
+          answers: answersMap,
+          score: results.neetScore,
+          total: results.totalQuestions,
+          accuracy: results.accuracy,
+          questions: results.questionResults,
+        };
+
+        const resp = await ApiClient.post('/tests/submit', submitPayload);
+        if (resp && resp.attemptId) {
+          results.attemptId = resp.attemptId;
+        }
+      } catch (err) {
+        console.warn('Could not sync test attempt to backend (running in offline mode):', err);
+      }
+    }
+
     if (state.onComplete) {
       state.onComplete(results);
     } else {
