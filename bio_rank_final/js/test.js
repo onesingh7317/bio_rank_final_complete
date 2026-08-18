@@ -373,14 +373,23 @@ const TestEngine = (() => {
         if (!appState.ncertProgress) appState.ncertProgress = {};
         const chId = state.meta.chapterId;
         const prev = appState.ncertProgress[chId] || { attempts: 0, bestScore: 0, totalQuestions: qs.length };
-        appState.ncertProgress[chId] = {
+        const newProgress = {
           attempts: (prev.attempts || 0) + 1,
           bestScore: Math.max(prev.bestScore || 0, correct),
           totalQuestions: qs.length,
           lastAttemptDate: Date.now(),
           accuracy,
         };
+        appState.ncertProgress[chId] = newProgress;
         State.save(appState);
+
+        // Sync with live backend
+        if (window.ApiClient && ApiClient.getToken()) {
+          ApiClient.post('/user/ncert-progress', {
+            chapterId: chId,
+            ...newProgress,
+          }).catch(e => console.warn('NCERT progress background sync:', e));
+        }
       } catch (e) {
         console.warn('Could not record ncert progress:', e);
       }

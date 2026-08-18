@@ -152,9 +152,8 @@ function autoUsername(name) {
    places to swap in real API requests. */
 const Profile = {
 
-  /* -- Profile picture: read the chosen file as a base64 data URL and
-        preview + persist it locally (localStorage only). -- */
-  onPictureSelected(input) {
+  /* -- Profile picture: preview locally and upload to backend -- */
+  async onPictureSelected(input) {
     const file = input.files && input.files[0];
     if (!file) return;
 
@@ -168,7 +167,7 @@ const Profile = {
     }
 
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = async (e) => {
       const dataUrl = e.target.result;
       const state = State.get();
       state.student = Object.assign({}, state.student, { avatarDataUrl: dataUrl });
@@ -179,16 +178,38 @@ const Profile = {
         avatar.style.backgroundImage = `url('${dataUrl}')`;
         avatar.textContent = '';
       }
+
+      // Upload to live backend if authenticated
+      if (window.ApiClient && ApiClient.getToken()) {
+        try {
+          const formData = new FormData();
+          formData.append('avatar', file);
+          const res = await ApiClient.upload('/user/avatar', formData);
+          if (res && res.avatarUrl) {
+            state.student.avatarUrl = res.avatarUrl;
+            State.save(state);
+          }
+        } catch (err) {
+          console.warn('Could not upload avatar file to server:', err);
+        }
+      }
+
       App.showToast('✅ Profile picture updated');
     };
     reader.readAsDataURL(file);
   },
 
   /* -- Remove picture: revert to initial avatar -- */
-  removePicture() {
+  async removePicture() {
     const state = State.get();
-    state.student = Object.assign({}, state.student, { avatarDataUrl: null });
+    state.student = Object.assign({}, state.student, { avatarDataUrl: null, avatarUrl: null });
     State.save(state);
+
+    if (window.ApiClient && ApiClient.getToken()) {
+      try {
+        await ApiClient.put('/user/profile', { avatarUrl: null });
+      } catch (err) {}
+    }
 
     const avatar = document.getElementById('profile-pic-avatar');
     if (avatar) {

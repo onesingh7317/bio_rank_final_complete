@@ -24,12 +24,15 @@ const improvementRoutes = require('./routes/improvement');
 const studentRoutes = require('./routes/student');
 const publicRoutes = require('./routes/publicRoutes');
 
+const path = require('path');
+
 const app = express();
 
 app.use(securityHeaders);
 app.use(rateLimiter());
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Public Student Endpoints
 app.use('/api', publicRoutes);

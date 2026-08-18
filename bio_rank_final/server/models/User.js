@@ -35,6 +35,12 @@ const userSchema = new mongoose.Schema(
       bestStreak: { type: Number, default: 0 },
       lastSync: { type: Date, default: null },
     },
+
+    // NCERT Bio Focus progress by chapterId
+    ncertProgress: {
+      type: mongoose.Schema.Types.Mixed,
+      default: {},
+    },
   },
   { timestamps: true }
 );
