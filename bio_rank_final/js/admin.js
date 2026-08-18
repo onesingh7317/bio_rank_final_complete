@@ -164,7 +164,6 @@ const Admin = {
     document.getElementById('admin-chapter-form-title').textContent = 'Edit Chapter';
     document.getElementById('admin-chapter-name').value = chapter.name;
     document.getElementById('admin-chapter-class').value = chapter.class;
-    document.getElementById('admin-chapter-weightage').value = chapter.weightage;
     document.getElementById('admin-chapter-icon').value = chapter.icon || '';
     const form = document.getElementById('admin-chapter-form');
     form.style.display = 'block';
@@ -180,7 +179,6 @@ const Admin = {
     const payload = {
       name: document.getElementById('admin-chapter-name').value.trim(),
       class: document.getElementById('admin-chapter-class').value,
-      weightage: Number(document.getElementById('admin-chapter-weightage').value),
       icon: document.getElementById('admin-chapter-icon').value.trim() || undefined,
     };
     try {
@@ -1189,7 +1187,7 @@ function adminChapterRow(c) {
       <div style="flex:1;">
         <div style="font-weight:700;">${escapeHtml(c.name)}</div>
         <div style="font-size:var(--text-xs);color:var(--neutral-500);">
-          Class ${escapeHtml(c.class)} &middot; Weightage ${c.weightage} &middot; ${c.questionCount} question(s)
+          Class ${escapeHtml(c.class)} &middot; ${c.questionCount || 0} question(s)
         </div>
       </div>
       <button class="btn btn-outline btn-sm" onclick="Admin.startEditChapter('${c._id}')">Edit</button>
@@ -1625,15 +1623,12 @@ function renderAdminChapters(container) {
     <form id="admin-chapter-form" style="display:none;margin-bottom:var(--sp-5);" class="card card-lg" onsubmit="event.preventDefault(); Admin.saveChapter();">
       <div class="section-title" id="admin-chapter-form-title" style="font-size:var(--text-base);">Add Chapter</div>
       <div class="form-group"><label class="form-label">Name</label><input class="form-input" id="admin-chapter-name" required /></div>
-      <div class="grid-2" style="gap:var(--sp-4);">
-        <div class="form-group">
-          <label class="form-label">Class</label>
-          <select class="form-select" id="admin-chapter-class" required>
-            <option value="11">11</option>
-            <option value="12">12</option>
-          </select>
-        </div>
-        <div class="form-group"><label class="form-label">Weightage (0-10)</label><input class="form-input" type="number" min="0" max="10" id="admin-chapter-weightage" required /></div>
+      <div class="form-group">
+        <label class="form-label">Class</label>
+        <select class="form-select" id="admin-chapter-class" required>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
       </div>
       <div class="form-group"><label class="form-label">Icon (emoji, optional)</label><input class="form-input" id="admin-chapter-icon" placeholder="📘" /></div>
       <div style="display:flex;gap:var(--sp-3);">

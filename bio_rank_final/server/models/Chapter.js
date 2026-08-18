@@ -12,7 +12,7 @@ const chapterSchema = new mongoose.Schema(
     name: { type: String, required: true, trim: true, unique: true },
     icon: { type: String, default: '📘' }, // emoji, matches frontend's usage
     class: { type: String, enum: ['11', '12'], required: true },
-    weightage: { type: Number, required: true, min: 0, max: 10 },
+    weightage: { type: Number, required: false, default: 5, min: 0, max: 10 },
 
     // Cached count, not derived live (confirmed) — the Question CRUD
     // controller (Stage 4) and CSV import (Stage 5) must increment/

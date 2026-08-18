@@ -17,8 +17,9 @@ function validateChapterInput(body, { partial = false } = {}) {
       errors.push(`class must be one of: ${VALID_CLASSES.join(', ')}.`);
     }
   }
-  if (!partial || weightage !== undefined) {
-    if (typeof weightage !== 'number' || weightage < 0 || weightage > 10) {
+  if (weightage !== undefined && weightage !== null && weightage !== '') {
+    const num = Number(weightage);
+    if (isNaN(num) || num < 0 || num > 10) {
       errors.push('weightage must be a number between 0 and 10.');
     }
   }
@@ -71,7 +72,7 @@ async function createChapter(req, res) {
     const chapter = await Chapter.create({
       name: trimmedName,
       class: klass,
-      weightage,
+      weightage: (weightage !== undefined && weightage !== null && weightage !== '') ? Number(weightage) : 5,
       icon: icon || undefined, // let schema default apply if omitted
     });
 
