@@ -320,6 +320,8 @@ const App = (() => {
   function init() {
     bindNav();
 
+    const state = (window.State && typeof State.get === 'function') ? State.get() : { configured: false };
+
     // Check for direct URL hash routing (e.g. #about, #admin, #pyq-test, etc.)
     const hashScreen = getScreenFromHash();
     if (hashScreen === 'admin' || (hashScreen && hashScreen.startsWith('admin-'))) {
