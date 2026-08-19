@@ -162,6 +162,10 @@
         e.preventDefault();
         const screen = item.getAttribute('data-screen');
         closeMoreMenu();
+        if (screen === 'admin' || screen === 'admin-login') {
+          window.open('#admin', '_blank');
+          return;
+        }
         if (screen && window.App && typeof App.navigate === 'function') {
           App.navigate(screen);
         }
