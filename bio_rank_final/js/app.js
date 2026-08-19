@@ -412,4 +412,8 @@ const App = (() => {
 window.App = App;
 
 /* ---- Boot ---- */
-document.addEventListener('DOMContentLoaded', () => App.init());
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => App.init());
+} else {
+  App.init();
+}
