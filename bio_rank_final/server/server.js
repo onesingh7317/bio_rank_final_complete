@@ -69,6 +69,10 @@ app.use('/api/reports', reportPublicRoutes);
 app.use('/api/feedback', feedbackPublicRoutes);
 
 // Admin Endpoints
+const { listStudentsForAdmin } = require('./controllers/studentController');
+const { requireAuth, requireAdmin } = require('./middleware/auth');
+app.get('/api/admin/students', requireAuth, requireAdmin, listStudentsForAdmin);
+
 app.use('/api/admin/chapters', chapterRoutes);
 app.use('/api/admin/sub-skills', subSkillRoutes);
 app.use('/api/admin/questions/import', questionImportRoutes);

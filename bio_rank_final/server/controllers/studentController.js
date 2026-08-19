@@ -191,14 +191,61 @@ exports.syncNcertProgress = async (req, res) => {
 /* ============================================================
    GET /api/user/ncert-progress
    ============================================================ */
-exports.getNcertProgress = async (req, res) => {
+/* ============================================================
+   GET /api/admin/students
+   ============================================================ */
+exports.listStudentsForAdmin = async (req, res) => {
   try {
-    const userId = req.user.userId;
-    const user = await User.findById(userId).select('ncertProgress').lean();
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const skip = (page - 1) * limit;
+    const search = (req.query.search || '').trim();
 
-    return res.json({ ok: true, ncertProgress: (user && user.ncertProgress) || {} });
+    const query = { role: 'student' };
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+        { username: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    const [students, total] = await Promise.all([
+      User.find(query)
+        .select('name username email classLevel targetYear board studyHoursPerDay performance createdAt')
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+      User.countDocuments(query),
+    ]);
+
+    const formatted = students.map((s) => ({
+      _id: s._id,
+      name: s.name,
+      email: s.email,
+      username: s.username,
+      classLevel: s.classLevel || '12th',
+      targetYear: s.targetYear || '2025',
+      board: s.board || 'CBSE',
+      studyHours: s.studyHoursPerDay || '4',
+      streak: s.performance?.currentStreak || 1,
+      joinedAt: s.createdAt,
+    }));
+
+    return res.json({
+      ok: true,
+      students: formatted,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
-    console.error('[student.getNcertProgress]', error);
-    return res.status(500).json({ ok: false, error: 'Failed to fetch NCERT progress.' });
+    console.error('[admin.listStudents]', error);
+    return res.status(500).json({ ok: false, error: 'Failed to list students' });
   }
 };
+

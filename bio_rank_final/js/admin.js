@@ -917,6 +917,71 @@ const Admin = {
 
   /* ---------------- Audit logs ---------------- */
 
+  /* ---------------- Students Directory ---------------- */
+
+  async loadStudents(page = 1) {
+    const listEl = document.getElementById('admin-students-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading registered students…</p>';
+    const search = (document.getElementById('admin-student-search')?.value || '').trim();
+    try {
+      const res = await ApiClient.get(`/admin/students?page=${page}&limit=20&search=${encodeURIComponent(search)}`);
+      const students = res.students || [];
+      const totalEl = document.getElementById('admin-student-total-badge');
+      if (totalEl) totalEl.textContent = `${res.pagination?.total || students.length} Total Students`;
+
+      if (!students.length) {
+        listEl.innerHTML = '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No registered students found.</p>';
+        return;
+      }
+
+      listEl.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:var(--text-sm);">
+            <thead>
+              <tr style="border-bottom:2px solid var(--neutral-200);text-align:left;color:var(--neutral-600);font-size:var(--text-xs);text-transform:uppercase;">
+                <th style="padding:var(--sp-3);">Student</th>
+                <th style="padding:var(--sp-3);">Email / User</th>
+                <th style="padding:var(--sp-3);">Class &amp; Target</th>
+                <th style="padding:var(--sp-3);">Board &amp; Hours</th>
+                <th style="padding:var(--sp-3);">Streak</th>
+                <th style="padding:var(--sp-3);">Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${students.map(s => `
+                <tr style="border-bottom:1px solid var(--neutral-100);">
+                  <td style="padding:var(--sp-3);font-weight:700;color:var(--neutral-900);">
+                    ${escapeHtml(s.name || 'Anonymous Student')}
+                  </td>
+                  <td style="padding:var(--sp-3);color:var(--neutral-600);font-family:monospace;font-size:var(--text-xs);">
+                    ${escapeHtml(s.email || s.username || '—')}
+                  </td>
+                  <td style="padding:var(--sp-3);">
+                    <span class="badge badge-primary" style="font-size:10px;">${escapeHtml(s.classLevel)}</span>
+                    <span class="badge badge-neutral" style="font-size:10px;">NEET ${escapeHtml(s.targetYear)}</span>
+                  </td>
+                  <td style="padding:var(--sp-3);font-size:var(--text-xs);color:var(--neutral-600);">
+                    ${escapeHtml(s.board)} &middot; ${escapeHtml(s.studyHours)} hrs/day
+                  </td>
+                  <td style="padding:var(--sp-3);font-weight:700;color:var(--warning-600);">
+                    🔥 ${s.streak || 1}
+                  </td>
+                  <td style="padding:var(--sp-3);font-size:var(--text-xs);color:var(--neutral-500);">
+                    ${s.joinedAt ? new Date(s.joinedAt).toLocaleDateString() : 'Recent'}
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+      renderAdminPagination('admin-students-pagination', res.pagination, (p) => Admin.loadStudents(p));
+    } catch (err) {
+      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
   async loadAuditLogs(page = 1) {
     const listEl = document.getElementById('admin-audit-list');
     if (!listEl) return;
@@ -2191,6 +2256,30 @@ function renderAdminReports(container) {
 }
 
 /* ============================================================
+   Screen: admin-students (Registered Students Directory)
+   ============================================================ */
+function renderAdminStudents(container) {
+  container.innerHTML = adminShell('students', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">👨‍🎓 Registered Students</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Live directory of all NEET Biology students registered on Bio Rank.</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--sp-2);">
+        <span class="badge badge-primary" id="admin-student-total-badge" style="font-size:12px;">Loading…</span>
+        <input class="form-input form-input-sm" id="admin-student-search" type="text" placeholder="Search name / email…" oninput="Admin.loadStudents(1)" style="width:200px;" />
+      </div>
+    </div>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+      <div id="admin-students-list" style="padding:var(--sp-3);"></div>
+    </div>
+    <div id="admin-students-pagination"></div>
+  `);
+  Admin.loadStudents();
+}
+
+/* ============================================================
    Screen: admin-auditlogs
    ============================================================ */
 function renderAdminAuditLogs(container) {
@@ -2209,6 +2298,7 @@ function renderAdminAuditLogs(container) {
    ============================================================ */
 function adminShell(activeTab, innerHtml) {
   const tabs = [
+    ['students', 'admin-students', '👨‍🎓 Students'],
     ['chapters', 'admin-chapters', 'Chapters'],
     ['questions', 'admin-questions', 'Questions'],
     ['ncertfocus', 'admin-ncert-focus', '🌿 NCERT Focus'],
@@ -2238,6 +2328,7 @@ window.Admin = Admin;
 window.AdminState = AdminState;
 window.renderAdminGuard = renderAdminGuard;
 window.renderAdminLogin = renderAdminLogin;
+window.renderAdminStudents = renderAdminStudents;
 window.renderAdminChapters = renderAdminChapters;
 window.renderAdminSubSkills = renderAdminSubSkills;
 window.renderAdminQuestions = renderAdminQuestions;
@@ -2249,4 +2340,5 @@ window.renderAdminFullLengthTests = renderAdminFullLengthTests;
 window.renderAdminFLTQuestions = renderAdminFLTQuestions;
 window.renderAdminReports = renderAdminReports;
 window.renderAdminAuditLogs = renderAdminAuditLogs;
+
 

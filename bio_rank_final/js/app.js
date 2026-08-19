@@ -18,7 +18,7 @@ const App = (() => {
     // Admin panel screens — added in Stage 8. 'admin' is the route-guard
     // entry point (checks role against the backend, then redirects);
     // it is never the final screen a renderer targets directly.
-    'admin', 'admin-login', 'admin-chapters', 'admin-subskills',
+    'admin', 'admin-login', 'admin-students', 'admin-chapters', 'admin-subskills',
     'admin-questions', 'admin-question-form', 'admin-ncert-focus', 'admin-ncert-form', 'admin-csv-import',
     'admin-fulltests', 'admin-flt-questions', 'admin-reports', 'admin-auditlogs',
     'ncert-bio-focus',
@@ -145,6 +145,7 @@ const App = (() => {
     // Admin panel
     'admin':                typeof renderAdminGuard === 'function' ? renderAdminGuard : null,
     'admin-login':          typeof renderAdminLogin === 'function' ? renderAdminLogin : null,
+    'admin-students':       typeof renderAdminStudents === 'function' ? renderAdminStudents : null,
     'admin-chapters':       typeof renderAdminChapters === 'function' ? renderAdminChapters : null,
     'admin-subskills':      typeof renderAdminSubSkills === 'function' ? renderAdminSubSkills : null,
     'admin-questions':      typeof renderAdminQuestions === 'function' ? renderAdminQuestions : null,
