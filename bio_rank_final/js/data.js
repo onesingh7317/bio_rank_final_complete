@@ -321,6 +321,451 @@ const DB = {
       correct: 2,
       explanation: 'Tidal volume (TV) is the volume of air inhaled or exhaled in a normal breath at rest, approximately 500 mL.'
     },
+    {
+      id: 'q031', chapter: 'ch01', subSkill: 'ss01', bloomLevel: 'understand', weightage: 8, year: 2024,
+      text: 'Which of the following cellular structures is not surrounded by any membrane?',
+      options: ['Lysosome', 'Ribosome', 'Peroxisome', 'Vacuole'],
+      correct: 1,
+      explanation: 'Ribosomes and centrosomes are non-membrane bound organelles found in cells.'
+    },
+    {
+      id: 'q032', chapter: 'ch02', subSkill: 'ss02', bloomLevel: 'remember', weightage: 7, year: 2023,
+      text: 'Synaptonemal complex dissolves during which sub-stage of Prophase I?',
+      options: ['Zygotene', 'Pachytene', 'Diplotene', 'Diakinesis'],
+      correct: 2,
+      explanation: 'Dissolution of the synaptonemal complex occurs in Diplotene, making chiasmata visible.'
+    },
+    {
+      id: 'q033', chapter: 'ch03', subSkill: 'ss04', bloomLevel: 'understand', weightage: 7, year: 2024,
+      text: 'Which of the following is a competitive inhibitor of the enzyme succinate dehydrogenase?',
+      options: ['Malonate', 'Oxaloacetate', 'Citrate', 'Fumarate'],
+      correct: 0,
+      explanation: 'Malonate closely resembles succinate in structure and competitively inhibits succinate dehydrogenase.'
+    },
+    {
+      id: 'q034', chapter: 'ch03', subSkill: 'ss04', bloomLevel: 'remember', weightage: 7, year: 2022,
+      text: 'A nucleotide consists of which of the following components?',
+      options: [
+        'Nitrogenous base + Phosphate group only',
+        'Nitrogenous base + Pentose sugar + Phosphate group',
+        'Pentose sugar + Phosphate group only',
+        'Nitrogenous base + Hexose sugar + Sulfate group'
+      ],
+      correct: 1,
+      explanation: 'A nucleotide is formed of a nitrogenous base attached to a pentose sugar and a phosphate group esterified to the sugar.'
+    },
+    {
+      id: 'q035', chapter: 'ch04', subSkill: 'ss05', bloomLevel: 'analyze', weightage: 8, year: 2023,
+      text: 'Kranz anatomy is a characteristic feature of leaves of which type of plants?',
+      options: ['C3 plants', 'C4 plants', 'CAM plants', 'Hydrophytes'],
+      correct: 1,
+      explanation: 'Kranz anatomy with prominent bundle sheath cells containing large chloroplasts is characteristic of C4 plants like maize and sugarcane.'
+    },
+    {
+      id: 'q036', chapter: 'ch05', subSkill: 'ss07', bloomLevel: 'remember', weightage: 6, year: 2024,
+      text: 'What is the net gain of ATP molecules synthesized during glycolysis of one glucose molecule?',
+      options: ['2 ATP', '4 ATP', '36 ATP', '38 ATP'],
+      correct: 0,
+      explanation: 'Glycolysis uses 2 ATP molecules and generates 4 ATP molecules by substrate level phosphorylation, netting 2 ATP.'
+    },
+    {
+      id: 'q037', chapter: 'ch06', subSkill: 'ss22', bloomLevel: 'understand', weightage: 5, year: 2023,
+      text: 'Which phytohormone is commonly known as the stress hormone in plants?',
+      options: ['Auxin', 'Gibberellic acid', 'Abscisic acid (ABA)', 'Cytokinin'],
+      correct: 2,
+      explanation: 'Abscisic acid (ABA) stimulates stomatal closure during water stress and promotes seed dormancy.'
+    },
+    {
+      id: 'q038', chapter: 'ch06', subSkill: 'ss22', bloomLevel: 'remember', weightage: 5, year: 2022,
+      text: 'Which gaseous plant growth regulator promotes fruit ripening and enhances respiration rate (respiratory climacteric)?',
+      options: ['Ethylene', 'IAA', 'GA3', 'Zeatin'],
+      correct: 0,
+      explanation: 'Ethylene is a gaseous hormone that triggers fruit ripening and climacteric respiration.'
+    },
+    {
+      id: 'q039', chapter: 'ch07', subSkill: 'ss25', bloomLevel: 'remember', weightage: 7, year: 2023,
+      text: 'Which cells in the gastric glands of stomach mucosa secrete intrinsic factor for absorption of vitamin B12?',
+      options: ['Peptic / Chief cells', 'Parietal / Oxyntic cells', 'Goblet cells', 'Enteroendocrine cells'],
+      correct: 1,
+      explanation: 'Parietal (oxyntic) cells secrete HCl and Castle’s intrinsic factor, which is essential for vitamin B12 absorption in the ileum.'
+    },
+    {
+      id: 'q040', chapter: 'ch07', subSkill: 'ss25', bloomLevel: 'understand', weightage: 7, year: 2022,
+      text: 'Enterokinase enzyme is secreted by intestinal mucosa to activate which proenzyme?',
+      options: ['Pepsinogen into pepsin', 'Trypsinogen into trypsin', 'Procarboxypeptidase into carboxypeptidase', 'Chymotrypsinogen into chymotrypsin'],
+      correct: 1,
+      explanation: 'Enterokinase converts pancreatic trypsinogen into active trypsin, which then activates other pancreatic enzymes.'
+    },
+    {
+      id: 'q041', chapter: 'ch07', subSkill: 'ss25', bloomLevel: 'remember', weightage: 7, year: 2024,
+      text: 'Brunner’s glands are characteristically located in which layer of the duodenum?',
+      options: ['Mucosa', 'Submucosa', 'Muscularis', 'Serosa'],
+      correct: 1,
+      explanation: 'Brunner’s glands are located in the submucosa of the duodenum and secrete an alkaline mucus.'
+    },
+    {
+      id: 'q042', chapter: 'ch08', subSkill: 'ss24', bloomLevel: 'understand', weightage: 6, year: 2023,
+      text: 'The majority of carbon dioxide (about 70%) is transported in human blood as:',
+      options: ['Dissolved CO2 in plasma', 'Carbamino-hemoglobin', 'Bicarbonate ions (HCO3⁻)', 'Carbonic acid'],
+      correct: 2,
+      explanation: 'Around 70% of CO2 is transported as bicarbonate ions in plasma, catalyzed by carbonic anhydrase in RBCs.'
+    },
+    {
+      id: 'q043', chapter: 'ch08', subSkill: 'ss24', bloomLevel: 'remember', weightage: 6, year: 2024,
+      text: 'Pneumotaxic center which can moderate the functions of the respiratory rhythm center is located in:',
+      options: ['Medulla oblongata', 'Pons varolii of brain', 'Cerebellum', 'Thalamus'],
+      correct: 1,
+      explanation: 'Pneumotaxic center is located in the pons region of the brainstem and limits inspiratory duration.'
+    },
+    {
+      id: 'q044', chapter: 'ch09', subSkill: 'ss14', bloomLevel: 'understand', weightage: 7, year: 2023,
+      text: 'In the cardiac cycle, the "lub" first heart sound is caused by the closure of:',
+      options: ['Semilunar valves', 'Bicuspid and tricuspid (AV) valves', 'Aortic valve only', 'Eustachian valve'],
+      correct: 1,
+      explanation: 'The first heart sound (lub) is produced by the closure of atrioventricular (tricuspid and bicuspid) valves during ventricular systole.'
+    },
+    {
+      id: 'q045', chapter: 'ch09', subSkill: 'ss14', bloomLevel: 'remember', weightage: 7, year: 2024,
+      text: 'The pacemaker of the human heart that generates action potentials at the highest rate is:',
+      options: ['AV node', 'SA node', 'Bundle of His', 'Purkinje fibers'],
+      correct: 1,
+      explanation: 'The Sino-Atrial Node (SAN) in the right atrium initiates 70–75 action potentials per minute, acting as the primary pacemaker.'
+    },
+    {
+      id: 'q046', chapter: 'ch10', subSkill: 'ss15', bloomLevel: 'understand', weightage: 6, year: 2022,
+      text: 'Podocytes are specialized epithelial cells present in which part of the nephron?',
+      options: ['Visceral layer of Bowman’s capsule', 'Proximal convoluted tubule', 'Ascending loop of Henle', 'Collecting duct'],
+      correct: 0,
+      explanation: 'Podocytes line the inner visceral wall of Bowman’s capsule and form filtration slits for ultrafiltration.'
+    },
+    {
+      id: 'q047', chapter: 'ch10', subSkill: 'ss15', bloomLevel: 'remember', weightage: 6, year: 2024,
+      text: 'Which hormone causes reabsorption of Na⁺ and water from the distal parts of the renal tubule?',
+      options: ['Aldosterone', 'ANF (Atrial Natriuretic Factor)', 'Thyroxine', 'Oxytocin'],
+      correct: 0,
+      explanation: 'Aldosterone released from the adrenal cortex acts on distal tubules to stimulate active Na⁺ and water reabsorption.'
+    },
+    {
+      id: 'q048', chapter: 'ch11', subSkill: 'ss26', bloomLevel: 'understand', weightage: 5, year: 2023,
+      text: 'According to the sliding filament theory of muscle contraction, which zone shortens and disappears during contraction?',
+      options: ['A band', 'H zone and I band', 'Z line only', 'M line only'],
+      correct: 1,
+      explanation: 'During contraction, actin filaments slide over myosin, causing the I-band and central H-zone to shorten/disappear while A-band length remains constant.'
+    },
+    {
+      id: 'q049', chapter: 'ch11', subSkill: 'ss26', bloomLevel: 'remember', weightage: 5, year: 2022,
+      text: 'Which protein masks the active binding sites for myosin on the actin filaments in a resting muscle fiber?',
+      options: ['Troponin', 'Tropomyosin', 'Meromyosin', 'Myoglobin'],
+      correct: 1,
+      explanation: 'Tropomyosin runs along the grooves of actin and covers the myosin binding sites, held in place by troponin.'
+    },
+    {
+      id: 'q050', chapter: 'ch11', subSkill: 'ss26', bloomLevel: 'remember', weightage: 5, year: 2024,
+      text: 'The pivot joint between the atlas and axis vertebrae is a type of:',
+      options: ['Fibrous joint', 'Cartilaginous joint', 'Synovial joint', 'Suture'],
+      correct: 2,
+      explanation: 'The joint between atlas and axis is a synovial pivot joint allowing rotational head movement.'
+    },
+    {
+      id: 'q051', chapter: 'ch12', subSkill: 'ss08', bloomLevel: 'understand', weightage: 8, year: 2023,
+      text: 'Corpus callosum is a tract of nerve fibers connecting the:',
+      options: ['Left and right cerebral hemispheres', 'Cerebrum with cerebellum', 'Pons with medulla', 'Two lobes of thalamus'],
+      correct: 0,
+      explanation: 'The corpus callosum is a large C-shaped nerve fiber bundle connecting the left and right cerebral hemispheres.'
+    },
+    {
+      id: 'q052', chapter: 'ch12', subSkill: 'ss08', bloomLevel: 'remember', weightage: 8, year: 2024,
+      text: 'The sensory receptor organ of hearing in the human ear containing hair cells on the basilar membrane is:',
+      options: ['Organ of Corti', 'Macula lutea', 'Crista ampullaris', 'Tympanic membrane'],
+      correct: 0,
+      explanation: 'The Organ of Corti rests on the basilar membrane of the cochlea and converts sound wave vibrations into nerve impulses.'
+    },
+    {
+      id: 'q053', chapter: 'ch13', subSkill: 'ss09', bloomLevel: 'understand', weightage: 7, year: 2023,
+      text: 'Which hormone is secreted by the intermediate lobe (pars intermedia) of the pituitary gland?',
+      options: ['Melanocyte Stimulating Hormone (MSH)', 'Oxytocin', 'Vasopressin', 'Prolactin'],
+      correct: 0,
+      explanation: 'Pars intermedia secretes MSH, which regulates skin pigmentation.'
+    },
+    {
+      id: 'q054', chapter: 'ch13', subSkill: 'ss09', bloomLevel: 'remember', weightage: 7, year: 2024,
+      text: 'Tetany caused by rapid muscle spasms and hypocalcemia is linked to hyposecretion of:',
+      options: ['Parathyroid hormone (PTH)', 'Thyrocalcitonin', 'Glucagon', 'Epinephrine'],
+      correct: 0,
+      explanation: 'Deficiency of PTH lowers blood Ca²⁺ levels (hypocalcemia), leading to increased neuromuscular excitability and tetany.'
+    },
+    {
+      id: 'q055', chapter: 'ch14', subSkill: 'ss27', bloomLevel: 'remember', weightage: 6, year: 2022,
+      text: 'Which of the following organisms reproduces asexually by internal buds called gemmules?',
+      options: ['Spongilla (freshwater sponge)', 'Hydra', 'Planaria', 'Yeast'],
+      correct: 0,
+      explanation: 'Spongilla forms internal asexual reproductive buds called gemmules.'
+    },
+    {
+      id: 'q056', chapter: 'ch14', subSkill: 'ss27', bloomLevel: 'understand', weightage: 6, year: 2023,
+      text: 'Vegetative propagation in water hyacinth (Eichhornia) occurs rapidly through:',
+      options: ['Offsets', 'Rhizomes', 'Bulbils', 'Runners'],
+      correct: 0,
+      explanation: 'Water hyacinth propagates vegetatively by lateral branches called offsets, spreading rapidly over water bodies.'
+    },
+    {
+      id: 'q057', chapter: 'ch14', subSkill: 'ss27', bloomLevel: 'remember', weightage: 6, year: 2024,
+      text: 'Juvenile phase in animals is equivalent to which phase in flowering plants?',
+      options: ['Vegetative phase', 'Senescent phase', 'Reproductive phase', 'Maturation phase'],
+      correct: 0,
+      explanation: 'The period of vegetative growth before flowering in plants is equivalent to the juvenile phase in animals.'
+    },
+    {
+      id: 'q058', chapter: 'ch15', subSkill: 'ss20', bloomLevel: 'understand', weightage: 7, year: 2023,
+      text: 'Double fertilization in angiosperms involves the fusion of male gametes with:',
+      options: [
+        'Egg cell and polar nuclei / central cell',
+        'Two synergids',
+        'Antipodal cells and central cell',
+        'Egg cell and synergid'
+      ],
+      correct: 0,
+      explanation: 'One male gamete fuses with the egg cell (syngamy) and the second fuses with 2 polar nuclei in central cell (triple fusion = 3n endosperm).'
+    },
+    {
+      id: 'q059', chapter: 'ch15', subSkill: 'ss20', bloomLevel: 'remember', weightage: 7, year: 2024,
+      text: 'The persistent residual nucellus found in black pepper and beet seeds is called:',
+      options: ['Perisperm', 'Endosperm', 'Pericarp', 'Scutellum'],
+      correct: 0,
+      explanation: 'In some seeds like black pepper and beet, remnants of the nucellus persist as a nutritive layer called perisperm.'
+    },
+    {
+      id: 'q060', chapter: 'ch16', subSkill: 'ss17', bloomLevel: 'understand', weightage: 8, year: 2023,
+      text: 'The LH surge in human females triggers which critical reproductive event around day 14 of menstrual cycle?',
+      options: ['Ovulation and rupture of Graafian follicle', 'Menstruation', 'Implantation', 'Degeneration of corpus luteum'],
+      correct: 0,
+      explanation: 'Rapid LH surge at mid-cycle induces rupture of the mature Graafian follicle and release of the secondary oocyte (ovulation).'
+    },
+    {
+      id: 'q061', chapter: 'ch16', subSkill: 'ss17', bloomLevel: 'remember', weightage: 8, year: 2024,
+      text: 'Sertoli cells (nurse cells) in the seminiferous tubules provide nutrition to:',
+      options: ['Developing spermatozoa', 'Leydig cells', 'Follicular cells', 'Corpus albicans'],
+      correct: 0,
+      explanation: 'Sertoli cells line the seminiferous tubules and provide structural support and nourishment to developing sperm cells.'
+    },
+    {
+      id: 'q062', chapter: 'ch17', subSkill: 'ss28', bloomLevel: 'remember', weightage: 5, year: 2023,
+      text: 'Copper-releasing IUDs like CuT and Multiload-375 prevent conception primarily by:',
+      options: [
+        'Suppressing sperm motility and fertilizing capacity',
+        'Inhibiting ovulation directly in all cycles',
+        'Blocking fallopian tubes surgically',
+        'Preventing milk ejection'
+      ],
+      correct: 0,
+      explanation: 'Cu ions released by copper IUDs suppress sperm motility and reducing their viability and fertilizing capacity.'
+    },
+    {
+      id: 'q063', chapter: 'ch17', subSkill: 'ss28', bloomLevel: 'remember', weightage: 5, year: 2022,
+      text: 'Saheli, a non-steroidal oral contraceptive pill taken once a week, was developed by scientists at:',
+      options: ['CDRI, Lucknow', 'AIIMS, New Delhi', 'IISc, Bangalore', 'NII, New Delhi'],
+      correct: 0,
+      explanation: 'Saheli contains centchroman (ormeloxifene) and was developed by the Central Drug Research Institute (CDRI) in Lucknow.'
+    },
+    {
+      id: 'q064', chapter: 'ch17', subSkill: 'ss28', bloomLevel: 'understand', weightage: 5, year: 2024,
+      text: 'In ZIFT (Zygote Intra-Fallopian Transfer) assisted reproductive technique, embryos are transferred at what stage?',
+      options: ['Zygote or early embryo up to 8 blastomeres', 'Blastocyst of 32 blastomeres into uterus', 'Morula directly into ovary', 'Unfertilized ovum into uterus'],
+      correct: 0,
+      explanation: 'In ZIFT, zygote or early embryos up to 8 blastomeres are transferred into the fallopian tube (whereas >8 blastomeres is IUT into uterus).'
+    },
+    {
+      id: 'q065', chapter: 'ch18', subSkill: 'ss10', bloomLevel: 'understand', weightage: 9, year: 2023,
+      text: 'In a monohybrid cross with incomplete dominance (e.g., Mirabilis jalapa / Snapdragon), the F2 phenotypic ratio is:',
+      options: ['1 : 2 : 1', '3 : 1', '9 : 3 : 3 : 1', '1 : 1'],
+      correct: 0,
+      explanation: 'In incomplete dominance, RR (red), Rr (pink), and rr (white) yield both 1:2:1 genotypic and 1:2:1 phenotypic ratios in F2.'
+    },
+    {
+      id: 'q066', chapter: 'ch18', subSkill: 'ss13', bloomLevel: 'remember', weightage: 9, year: 2024,
+      text: 'Down syndrome in humans is caused by which chromosomal aberration?',
+      options: ['Trisomy of chromosome 21 (47, +21)', 'Monosomy of X chromosome (45, X0)', 'XXY genotype (47, XXY)', 'Trisomy of chromosome 18'],
+      correct: 0,
+      explanation: 'Down syndrome is caused by the presence of an extra copy of autosomal chromosome 21 (trisomy 21).'
+    },
+    {
+      id: 'q067', chapter: 'ch19', subSkill: 'ss12', bloomLevel: 'understand', weightage: 9, year: 2023,
+      text: 'In the lac operon of E. coli, the inducer molecule that binds to the repressor protein is:',
+      options: ['Allolactose / Lactose', 'Glucose', 'Galactose', 'cAMP'],
+      correct: 0,
+      explanation: 'Lactose (converted to allolactose) binds to the lac repressor, causing a conformational change that prevents it from binding the operator.'
+    },
+    {
+      id: 'q068', chapter: 'ch19', subSkill: 'ss11', bloomLevel: 'remember', weightage: 9, year: 2024,
+      text: 'Which codon acts as both the initiation codon for protein translation and codes for methionine?',
+      options: ['AUG', 'UAA', 'UAG', 'UGA'],
+      correct: 0,
+      explanation: 'AUG functions as the start codon and codes for methionine in eukaryotes and N-formylmethionine in prokaryotes.'
+    },
+    {
+      id: 'q069', chapter: 'ch20', subSkill: 'ss21', bloomLevel: 'understand', weightage: 5, year: 2023,
+      text: 'Homologous organs like the forelimbs of humans, cheetahs, whales, and bats indicate:',
+      options: ['Divergent evolution and common ancestry', 'Convergent evolution only', 'Parallel mutation', 'No evolutionary relationship'],
+      correct: 0,
+      explanation: 'Homologous structures share identical anatomical origin and structural design but perform different functions (divergent evolution).'
+    },
+    {
+      id: 'q070', chapter: 'ch20', subSkill: 'ss21', bloomLevel: 'remember', weightage: 5, year: 2024,
+      text: 'The first cellular forms of life on Earth appeared approximately how many billion years ago?',
+      options: ['2000 million (2 billion) years ago', '4.5 billion years ago', '500 million years ago', '100 million years ago'],
+      correct: 0,
+      explanation: 'The first cellular life forms originated about 2000 million (2 billion) years ago in primordial oceans.'
+    },
+    {
+      id: 'q071', chapter: 'ch21', subSkill: 'ss16', bloomLevel: 'remember', weightage: 7, year: 2023,
+      text: 'Which antibody isotype is present abundantly in colostrum (first mother’s milk) to provide passive immunity to newborns?',
+      options: ['IgA', 'IgG', 'IgM', 'IgE'],
+      correct: 0,
+      explanation: 'Secretory IgA antibodies are rich in colostrum and protect the infant mucosal membranes.'
+    },
+    {
+      id: 'q072', chapter: 'ch21', subSkill: 'ss16', bloomLevel: 'understand', weightage: 7, year: 2024,
+      text: 'In malignant tumors, cells detach and migrate to distant sites via blood to form secondary tumors. This property is called:',
+      options: ['Metastasis', 'Contact inhibition', 'Transformation', 'Angiogenesis'],
+      correct: 0,
+      explanation: 'Metastasis is the spread of cancerous cells from the primary site to distant organs through blood or lymph.'
+    },
+    {
+      id: 'q073', chapter: 'ch22', subSkill: 'ss23', bloomLevel: 'remember', weightage: 5, year: 2022,
+      text: 'The ability of a single plant cell/explant to regenerate into a whole complete plant is termed:',
+      options: ['Totipotency', 'Micropropagation', 'Somaclonal variation', 'Biofortification'],
+      correct: 0,
+      explanation: 'Totipotency is the inherent cellular capacity of an explant to develop into a full plant when provided with appropriate nutrients and hormones.'
+    },
+    {
+      id: 'q074', chapter: 'ch22', subSkill: 'ss23', bloomLevel: 'remember', weightage: 5, year: 2024,
+      text: 'Breeding crops with higher levels of vitamins, minerals, and healthier proteins to improve public health is called:',
+      options: ['Biofortification', 'Biomagnification', 'Bioremediation', 'Micropropagation'],
+      correct: 0,
+      explanation: 'Biofortification is the agronomic and genetic enhancement of crop nutritional quality (e.g., Atlas 66 wheat with high protein).'
+    },
+    {
+      id: 'q075', chapter: 'ch23', subSkill: 'ss29', bloomLevel: 'remember', weightage: 4, year: 2023,
+      text: 'Which fungus is used for the commercial production of cyclosporin A, an immunosuppressive agent used in organ transplant patients?',
+      options: ['Trichoderma polysporum', 'Monascus purpureus', 'Aspergillus niger', 'Penicillium notatum'],
+      correct: 0,
+      explanation: 'Trichoderma polysporum produces cyclosporin A, which suppresses T-cell mediated graft rejection in organ transplant recipients.'
+    },
+    {
+      id: 'q076', chapter: 'ch23', subSkill: 'ss29', bloomLevel: 'remember', weightage: 4, year: 2022,
+      text: 'Statins used as blood cholesterol lowering agents are commercially derived from which yeast?',
+      options: ['Monascus purpureus', 'Saccharomyces cerevisiae', 'Trichoderma', 'Streptococcus'],
+      correct: 0,
+      explanation: 'Monascus purpureus produces statins, which competitively inhibit HMG-CoA reductase involved in cholesterol synthesis.'
+    },
+    {
+      id: 'q077', chapter: 'ch23', subSkill: 'ss29', bloomLevel: 'understand', weightage: 4, year: 2024,
+      text: 'During secondary sewage treatment, high BOD (Biochemical Oxygen Demand) indicates:',
+      options: ['High polluting potential of water', 'Very clean water with high dissolved oxygen', 'Complete mineralisation', 'Absence of organic matter'],
+      correct: 0,
+      explanation: 'BOD measures oxygen required by microbes to decompose organic matter; higher BOD means higher organic pollution.'
+    },
+    {
+      id: 'q078', chapter: 'ch24', subSkill: 'ss19', bloomLevel: 'remember', weightage: 7, year: 2023,
+      text: 'The DNA fragments separated on an agarose gel electrophoresis are visualized after staining with:',
+      options: ['Ethidium bromide under UV radiation', 'Methylene blue under white light', 'Acetocarmine', 'Safranin'],
+      correct: 0,
+      explanation: 'Ethidium bromide intercalates between DNA base pairs and fluoresces bright orange under ultraviolet (UV) illumination.'
+    },
+    {
+      id: 'q079', chapter: 'ch24', subSkill: 'ss19', bloomLevel: 'understand', weightage: 7, year: 2024,
+      text: 'In PCR (Polymerase Chain Reaction), the three successive steps in each cycle are:',
+      options: [
+        'Denaturation → Annealing → Extension',
+        'Annealing → Denaturation → Ligation',
+        'Extension → Denaturation → Annealing',
+        'Denaturation → Extension → Ligation'
+      ],
+      correct: 0,
+      explanation: 'PCR cycles proceed by: 1. Denaturation (94°C) → 2. Primer Annealing (50–60°C) → 3. Taq Polymerase Extension (72°C).'
+    },
+    {
+      id: 'q080', chapter: 'ch25', subSkill: 'ss30', bloomLevel: 'remember', weightage: 6, year: 2023,
+      text: 'The first clinical gene therapy was performed in 1990 on a 4-year-old girl suffering from deficiency of:',
+      options: ['Adenosine deaminase (ADA)', 'Insulin', 'Alpha-1-antitrypsin', 'Phenylalanine hydroxylase'],
+      correct: 0,
+      explanation: 'Gene therapy was first administered in 1990 to treat severe combined immunodeficiency (SCID) caused by ADA enzyme deficiency.'
+    },
+    {
+      id: 'q081', chapter: 'ch25', subSkill: 'ss30', bloomLevel: 'understand', weightage: 6, year: 2024,
+      text: 'Bt toxin protein produced by Bacillus thuringiensis does not kill the bacterium itself because it exists as:',
+      options: ['Inactive protoxin', 'An encapsulated crystal in spore wall', 'Degraded peptide', 'RNA transcript only'],
+      correct: 0,
+      explanation: 'Bt toxin exists as an inactive protoxin crystal and is converted into active toxin only in the alkaline gut pH of target insects.'
+    },
+    {
+      id: 'q082', chapter: 'ch25', subSkill: 'ss30', bloomLevel: 'remember', weightage: 6, year: 2022,
+      text: 'In RNA interference (RNAi), gene silencing is triggered by which double-stranded molecule?',
+      options: ['dsRNA (double-stranded RNA)', 'ssDNA', 'tRNA', 'snRNA'],
+      correct: 0,
+      explanation: 'RNAi utilizes double-stranded RNA (dsRNA) which binds and cleaves specific mRNA to prevent its translation.'
+    },
+    {
+      id: 'q083', chapter: 'ch26', subSkill: 'ss31', bloomLevel: 'understand', weightage: 5, year: 2023,
+      text: 'Gause’s Competitive Exclusion Principle states that:',
+      options: [
+        'Two closely related species competing for the same limiting resources cannot coexist indefinitely',
+        'Predators always drive prey to extinction',
+        'Species always evolve mutualistic relationships',
+        'Larger animals outcompete smaller ones in all habitats'
+      ],
+      correct: 0,
+      explanation: 'Gause’s principle states that two species competing for identical limiting resources cannot coexist if other ecological factors remain constant.'
+    },
+    {
+      id: 'q084', chapter: 'ch26', subSkill: 'ss31', bloomLevel: 'remember', weightage: 5, year: 2024,
+      text: 'An interaction where one species is benefited and the other is neither harmed nor benefited (+/0) is called:',
+      options: ['Commensalism', 'Amensalism', 'Mutualism', 'Parasitism'],
+      correct: 0,
+      explanation: 'Commensalism is a (+/0) interaction, e.g., an orchid growing as an epiphyte on a mango branch.'
+    },
+    {
+      id: 'q085', chapter: 'ch26', subSkill: 'ss31', bloomLevel: 'understand', weightage: 5, year: 2022,
+      text: 'Allen’s Rule states that mammals from colder climates generally possess:',
+      options: ['Shorter ears and shorter limbs to minimize heat loss', 'Larger surface area to volume ratio', 'Absence of blubber/fat layer', 'Longer extremities'],
+      correct: 0,
+      explanation: 'Allen’s rule explains that homeothermic animals in colder climates have shorter extremities to reduce heat radiation.'
+    },
+    {
+      id: 'q086', chapter: 'ch27', subSkill: 'ss18', bloomLevel: 'remember', weightage: 6, year: 2023,
+      text: 'In an aquatic ecosystem (like a deep lake), the pyramid of biomass is generally:',
+      options: ['Inverted', 'Upright', 'Spindle-shaped', 'Variable'],
+      correct: 0,
+      explanation: 'In aquatic ecosystems, phytoplankton have rapid turnover and low standing crop biomass compared to zooplankton/fishes, producing an inverted biomass pyramid.'
+    },
+    {
+      id: 'q087', chapter: 'ch27', subSkill: 'ss18', bloomLevel: 'understand', weightage: 6, year: 2024,
+      text: 'The rate of production of organic matter during photosynthesis by producers minus respiration loss (GPP − R) is termed:',
+      options: ['Net Primary Productivity (NPP)', 'Gross Primary Productivity (GPP)', 'Secondary Productivity', 'Net Community Production'],
+      correct: 0,
+      explanation: 'Net Primary Productivity (NPP = GPP − R) is the biomass available for consumption by heterotrophs.'
+    },
+    {
+      id: 'q088', chapter: 'ch28', subSkill: 'ss32', bloomLevel: 'remember', weightage: 5, year: 2023,
+      text: 'Which of the following is an ex-situ conservation strategy for endangered species?',
+      options: ['Zoological parks and seed banks', 'National Parks', 'Biosphere Reserves', 'Sacred Groves'],
+      correct: 0,
+      explanation: 'Ex-situ conservation involves protecting organisms outside their natural habitats in zoological parks, botanical gardens, and cryogenic seed banks.'
+    },
+    {
+      id: 'q089', chapter: 'ch28', subSkill: 'ss32', bloomLevel: 'remember', weightage: 5, year: 2022,
+      text: 'According to Alexander von Humboldt, species richness within a region increases with increasing explored area, up to a limit, represented by a rectangular hyperbola. The logarithmic equation is:',
+      options: ['log S = log C + Z log A', 'S = C A^Z', 'log S = log Z + C log A', 'S = Z A^C'],
+      correct: 0,
+      explanation: 'The Species-Area relationship on a log scale is linear: log S = log C + Z log A (where S=Species richness, A=Area, Z=slope, C=Y-intercept).'
+    },
+    {
+      id: 'q090', chapter: 'ch28', subSkill: 'ss32', bloomLevel: 'remember', weightage: 5, year: 2024,
+      text: 'The Earth Summit on Biodiversity and Sustainable Development (1992) was held in:',
+      options: ['Rio de Janeiro, Brazil', 'Johannesburg, South Africa', 'Kyoto, Japan', 'Montreal, Canada'],
+      correct: 0,
+      explanation: 'The historic Earth Summit (UNCED) was held in Rio de Janeiro in 1992 to promote biodiversity conservation.'
+    }
   ],
 
   /* ---- Foundation Assessment Questions (subset) ---- */

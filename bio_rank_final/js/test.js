@@ -342,11 +342,12 @@ const TestEngine = (() => {
 
     qs.forEach((q, i) => {
       const selected = state.answers[i];
+      const correctOpt = q.correct !== undefined ? q.correct : (q.correctOption !== undefined ? q.correctOption : 0);
       let status;
       if (selected === undefined || selected === null) {
         status = 'skipped';
         unattempted++;
-      } else if (selected === q.correct) {
+      } else if (Number(selected) === Number(correctOpt)) {
         status = 'correct';
         correct++;
         neetScore += 4;
@@ -356,7 +357,7 @@ const TestEngine = (() => {
         neetScore -= 1;
       }
       questionResults.push({
-        questionId: q.id,
+        questionId: q.id || q._id,
         question: q,
         selected,
         status,
@@ -402,7 +403,7 @@ const TestEngine = (() => {
       correct,
       incorrect,
       unattempted,
-      neetScore: Math.max(0, neetScore),
+      neetScore,
       accuracy,
       timeSpent: state.secondsElapsed,
       questionResults,

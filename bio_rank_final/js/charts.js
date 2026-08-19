@@ -94,15 +94,22 @@ const Charts = {
     });
 
     let linePath = '';
-    coords.forEach((c, i) => {
-      if (i === 0) { linePath += `M ${c.x.toFixed(1)} ${c.y.toFixed(1)}`; return; }
-      const prev = coords[i - 1];
-      const midX = ((prev.x + c.x) / 2).toFixed(1);
-      linePath += ` C ${midX} ${prev.y.toFixed(1)}, ${midX} ${c.y.toFixed(1)}, ${c.x.toFixed(1)} ${c.y.toFixed(1)}`;
-    });
-    const lastC = coords[coords.length - 1];
-    const firstC = coords[0];
-    const areaPath = `${linePath} L ${lastC.x.toFixed(1)} ${(padT + chartH).toFixed(1)} L ${firstC.x.toFixed(1)} ${(padT + chartH).toFixed(1)} Z`;
+    let areaPath = '';
+    if (n === 1) {
+      const c = coords[0];
+      linePath = `M ${(padL).toFixed(1)} ${c.y.toFixed(1)} L ${(width - padR).toFixed(1)} ${c.y.toFixed(1)}`;
+      areaPath = `M ${(padL).toFixed(1)} ${c.y.toFixed(1)} L ${(width - padR).toFixed(1)} ${c.y.toFixed(1)} L ${(width - padR).toFixed(1)} ${(padT + chartH).toFixed(1)} L ${(padL).toFixed(1)} ${(padT + chartH).toFixed(1)} Z`;
+    } else {
+      coords.forEach((c, i) => {
+        if (i === 0) { linePath += `M ${c.x.toFixed(1)} ${c.y.toFixed(1)}`; return; }
+        const prev = coords[i - 1];
+        const midX = ((prev.x + c.x) / 2).toFixed(1);
+        linePath += ` C ${midX} ${prev.y.toFixed(1)}, ${midX} ${c.y.toFixed(1)}, ${c.x.toFixed(1)} ${c.y.toFixed(1)}`;
+      });
+      const lastC = coords[coords.length - 1];
+      const firstC = coords[0];
+      areaPath = `${linePath} L ${lastC.x.toFixed(1)} ${(padT + chartH).toFixed(1)} L ${firstC.x.toFixed(1)} ${(padT + chartH).toFixed(1)} Z`;
+    }
 
     const gridSteps = [0, 0.25, 0.5, 0.75, 1];
     const gridLines = gridSteps.map(g => {

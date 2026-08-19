@@ -1521,16 +1521,28 @@ function applySpacedRetestResults(results, chosenPoolItems) {
       if (poolItem.successfulRetests >= 2) {
         // Mastered — remove from active pool, move to mastered history
         poolItem.status = 'mastered';
-        mastered.push({ ...poolItem, masteredDate: Date.now() });
+        poolItem.masteredDate = Date.now();
+        mastered.push({ ...poolItem });
       } else {
-        // advance stage: day1 -> day4 -> day10 (stays at day10 if already there)
-        poolItem.reviewStage = poolItem.reviewStage === 'day1' ? 'day4'
-          : poolItem.reviewStage === 'day4' ? 'day10' : 'day10';
+        // advance stage: day1 -> day4 -> day10
+        if (poolItem.reviewStage === 'day1') {
+          poolItem.reviewStage = 'day4';
+          poolItem.dueDate = Date.now() + 4 * 86400000;
+        } else if (poolItem.reviewStage === 'day4') {
+          poolItem.reviewStage = 'day10';
+          poolItem.dueDate = Date.now() + 10 * 86400000;
+        } else {
+          poolItem.reviewStage = 'day10';
+          poolItem.dueDate = Date.now() + 10 * 86400000;
+        }
+        poolItem.lastReviewDate = Date.now();
       }
     } else if (r.status === 'incorrect') {
       // wrong again — reset progress, keep active, back to Day 1
       poolItem.successfulRetests = 0;
       poolItem.reviewStage = 'day1';
+      poolItem.dueDate = Date.now();
+      poolItem.lastReviewDate = Date.now();
     }
     // skipped questions: leave state untouched, still due
   });
@@ -1545,6 +1557,7 @@ function applySpacedRetestResults(results, chosenPoolItems) {
       status: p.status === 'mastered' ? 'mastered' : 'reviewing',
       reviewCount: p.successfulRetests || 0,
       mistakeReason: p.mistakeReason || '',
+      nextReviewDate: p.dueDate ? new Date(p.dueDate).toISOString() : null,
     }));
     ApiClient.post('/user/improvement/sync', { entries: syncEntries }).catch(e => console.warn('ImpBook sync:', e));
   }
@@ -1565,14 +1578,16 @@ function processTestResultForSpacedReview(results) {
       existing.successfulRetests = 0;
       existing.reviewStage = 'day1';
       existing.wrongDate = Date.now();
+      existing.dueDate = Date.now();
     } else {
       pool.push({
         questionId: r.questionId,
-        chapter: r.question.chapter,
+        chapter: (r.question && r.question.chapter) || '',
         reviewStage: 'day1',
         successfulRetests: 0,
         status: 'active',
         wrongDate: Date.now(),
+        dueDate: Date.now(),
       });
     }
   });

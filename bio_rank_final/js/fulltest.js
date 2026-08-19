@@ -136,46 +136,50 @@ function renderFLTResult(container, results) {
   const testId = results.meta.testId;
   const test = (DB.fullLengthTests || []).find(t => t.id === testId);
   const progress = getFLTProgress(testId);
-  const percent = results.totalQuestions > 0 ? Math.round((results.correct / results.totalQuestions) * 1000) / 10 : 0;
+  const totalQ = results.totalQuestions || 90;
+  const maxMarks = totalQ * 4;
+  const neetScore = results.neetScore !== undefined ? results.neetScore : (results.correct * 4 - results.incorrect * 1);
+  const percent = results.accuracy !== undefined ? results.accuracy : (totalQ > 0 ? Math.round((results.correct / totalQ) * 100) : 0);
 
   container.innerHTML = `
-    <div style="max-width:760px;">
+    <div style="max-width:760px;margin:0 auto;">
       <div style="margin-bottom:var(--sp-5);">
         <div class="page-title">${(test && test.title) || results.meta.title || 'Full Length Test'}</div>
-        <div class="page-subtitle">Your Score</div>
+        <div class="page-subtitle">Your NEET Mock Test Score</div>
       </div>
 
-      <div class="result-hero">
-        <div class="result-score flt-score">${results.correct} / ${results.totalQuestions}</div>
-        <div class="result-score-label">${percent}% accuracy</div>
+      <div class="result-hero" style="background:linear-gradient(135deg,var(--primary-700) 0%,var(--primary-600) 100%);color:#fff;border-radius:var(--radius-lg);padding:var(--sp-6);text-align:center;box-shadow:var(--shadow-md);">
+        <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;opacity:0.9;font-weight:800;margin-bottom:6px;">Total NEET Biology Score</div>
+        <div class="result-score flt-score" style="font-size:3.2rem;font-weight:800;line-height:1.1;margin-bottom:4px;">${neetScore} <span style="font-size:var(--text-lg);font-weight:600;opacity:0.85;">/ ${maxMarks} Marks</span></div>
+        <div class="result-score-label" style="font-size:var(--text-sm);opacity:0.95;">${results.correct} of ${totalQ} Correct &middot; ${percent}% Accuracy</div>
       </div>
 
-      <div class="result-stats" style="margin-bottom:var(--sp-5);">
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--success-500);">${results.correct}</span>
-          <span class="result-stat-label">Correct</span>
+      <div class="result-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin:var(--sp-5) 0;">
+        <div class="result-stat card" style="text-align:center;padding:var(--sp-4);">
+          <span class="result-stat-num" style="font-size:var(--text-2xl);font-weight:800;color:var(--success-600);">${results.correct}</span>
+          <span class="result-stat-label" style="font-size:var(--text-xs);color:var(--neutral-500);display:block;margin-top:2px;">Correct (+${results.correct * 4})</span>
         </div>
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--error-500);">${results.incorrect}</span>
-          <span class="result-stat-label">Incorrect</span>
+        <div class="result-stat card" style="text-align:center;padding:var(--sp-4);">
+          <span class="result-stat-num" style="font-size:var(--text-2xl);font-weight:800;color:var(--error-600);">${results.incorrect}</span>
+          <span class="result-stat-label" style="font-size:var(--text-xs);color:var(--neutral-500);display:block;margin-top:2px;">Incorrect (−${results.incorrect})</span>
         </div>
-        <div class="result-stat">
-          <span class="result-stat-num" style="color:var(--neutral-500);">${results.unattempted}</span>
-          <span class="result-stat-label">Unattempted</span>
+        <div class="result-stat card" style="text-align:center;padding:var(--sp-4);">
+          <span class="result-stat-num" style="font-size:var(--text-2xl);font-weight:800;color:var(--neutral-500);">${results.unattempted}</span>
+          <span class="result-stat-label" style="font-size:var(--text-xs);color:var(--neutral-500);display:block;margin-top:2px;">Unattempted (0)</span>
         </div>
       </div>
 
-      <div class="card" style="margin-bottom:var(--sp-5);display:flex;align-items:center;justify-content:space-between;">
+      <div class="card" style="margin-bottom:var(--sp-5);display:flex;align-items:center;justify-content:space-between;padding:var(--sp-4) var(--sp-5);">
         <div>
-          <div class="section-title" style="font-size:var(--text-base);">Best Score</div>
-          <div style="font-size:var(--text-xs);color:var(--neutral-500);">Across ${progress.attempts} attempt${progress.attempts === 1 ? '' : 's'}</div>
+          <div class="section-title" style="font-size:var(--text-base);">Best Score Achieved</div>
+          <div style="font-size:var(--text-xs);color:var(--neutral-500);">Across ${progress.attempts} attempt${progress.attempts === 1 ? '' : 's'} on this test</div>
         </div>
-        <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">${progress.bestScore}/${progress.bestTotal}</div>
+        <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">${progress.bestScore * 4}/${progress.bestTotal * 4} <span style="font-size:var(--text-xs);font-weight:600;color:var(--neutral-500);">(${progress.bestScore}/${progress.bestTotal} Qs)</span></div>
       </div>
 
-      <div class="flt-result-actions">
-        <button class="btn btn-primary" onclick="App.navigate('flt-review', window._fltLastResults)">Review Answers</button>
-        <button class="btn btn-secondary" onclick="startFullLengthTest('${testId}')">Attempt Again</button>
+      <div class="flt-result-actions" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="App.navigate('flt-review', window._fltLastResults)">Review Answers &amp; Solutions →</button>
+        <button class="btn btn-secondary" onclick="startFullLengthTest('${testId}')">Attempt Test Again</button>
         <button class="btn btn-ghost" onclick="App.navigate('full-length-test')">Back to Full Length Tests</button>
       </div>
     </div>
