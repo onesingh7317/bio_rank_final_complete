@@ -35,9 +35,10 @@ async function connectDB() {
   try {
     // Try connecting to configured MongoDB (e.g. Atlas or local service)
     await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 2000,
+      serverSelectionTimeoutMS: 10000,
     });
-    console.log(`✅ MongoDB connected to: ${uri}`);
+    const safeLogUri = uri.replace(/\/\/([^:]+):([^@]+)@/, '//***:***@');
+    console.log(`✅ MongoDB Atlas connected successfully to: ${safeLogUri}`);
   } catch (err) {
     console.warn(`⚠️  Could not connect to external MongoDB (${err.message}). Starting In-Memory MongoDB Server...`);
     try {
