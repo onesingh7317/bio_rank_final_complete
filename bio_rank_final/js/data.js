@@ -12,36 +12,40 @@ window.escapeHtml = escapeHtml;
 
 const DB = {
 
-  /* ---- Biology Chapters ---- */
+  /* ---- Biology Chapters (Revised 32 Chapters in Exact Sequence) ---- */
   chapters: [
-    { id: 'ch01', name: 'Cell: The Unit of Life',        icon: '🔬', questions: 42, class: '11', weightage: 8  },
-    { id: 'ch02', name: 'Cell Division',                  icon: '⚙️', questions: 38, class: '11', weightage: 7  },
-    { id: 'ch03', name: 'Biomolecules',                   icon: '🧬', questions: 35, class: '11', weightage: 7  },
-    { id: 'ch04', name: 'Photosynthesis',                 icon: '🌿', questions: 40, class: '11', weightage: 8  },
-    { id: 'ch05', name: 'Respiration in Plants',          icon: '💨', questions: 30, class: '11', weightage: 6  },
-    { id: 'ch06', name: 'Plant Growth & Development',     icon: '🌱', questions: 28, class: '11', weightage: 5  },
-    { id: 'ch07', name: 'Digestion & Absorption',         icon: '🫁', questions: 36, class: '11', weightage: 7  },
-    { id: 'ch08', name: 'Breathing & Gas Exchange',       icon: '🫀', questions: 32, class: '11', weightage: 6  },
-    { id: 'ch09', name: 'Body Fluids & Circulation',      icon: '🩸', questions: 38, class: '11', weightage: 7  },
-    { id: 'ch10', name: 'Excretory Products & Processes', icon: '🧪', questions: 34, class: '11', weightage: 6  },
-    { id: 'ch11', name: 'Locomotion & Movement',          icon: '🦴', questions: 28, class: '11', weightage: 5  },
-    { id: 'ch12', name: 'Neural Control & Coordination',  icon: '🧠', questions: 40, class: '11', weightage: 8  },
-    { id: 'ch13', name: 'Chemical Coordination',          icon: '⚗️', questions: 35, class: '11', weightage: 7  },
-    { id: 'ch14', name: 'Reproduction in Organisms',      icon: '🌸', questions: 30, class: '12', weightage: 6  },
-    { id: 'ch15', name: 'Sexual Reproduction in Plants',  icon: '🌺', questions: 38, class: '12', weightage: 7  },
-    { id: 'ch16', name: 'Human Reproduction',             icon: '👶', questions: 42, class: '12', weightage: 8  },
-    { id: 'ch17', name: 'Reproductive Health',            icon: '🏥', questions: 28, class: '12', weightage: 5  },
-    { id: 'ch18', name: 'Principles of Inheritance',      icon: '🧩', questions: 44, class: '12', weightage: 9  },
-    { id: 'ch19', name: 'Molecular Basis of Inheritance', icon: '🔗', questions: 46, class: '12', weightage: 9  },
-    { id: 'ch20', name: 'Evolution',                      icon: '🦎', questions: 30, class: '12', weightage: 5  },
-    { id: 'ch21', name: 'Human Health & Disease',         icon: '💊', questions: 38, class: '12', weightage: 7  },
-    { id: 'ch22', name: 'Strategies for Enhancement',     icon: '🌾', questions: 28, class: '12', weightage: 5  },
-    { id: 'ch23', name: 'Microbes in Human Welfare',      icon: '🦠', questions: 26, class: '12', weightage: 4  },
-    { id: 'ch24', name: 'Biotechnology: Principles',      icon: '💡', questions: 36, class: '12', weightage: 7  },
-    { id: 'ch25', name: 'Biotechnology & Applications',   icon: '🔬', questions: 34, class: '12', weightage: 6  },
-    { id: 'ch26', name: 'Organisms & Populations',        icon: '🌏', questions: 30, class: '12', weightage: 5  },
-    { id: 'ch27', name: 'Ecosystem',                      icon: '🌳', questions: 32, class: '12', weightage: 6  },
-    { id: 'ch28', name: 'Biodiversity & Conservation',    icon: '🐾', questions: 28, class: '12', weightage: 5  },
+    { id: 'ch01', name: 'The Living World',                            icon: '🌍', questions: 35, class: '11', weightage: 5 },
+    { id: 'ch02', name: 'Biological Classification',                   icon: '🦠', questions: 40, class: '11', weightage: 7 },
+    { id: 'ch03', name: 'Plant Kingdom',                               icon: '🌿', questions: 42, class: '11', weightage: 7 },
+    { id: 'ch04', name: 'Animal Kingdom',                              icon: '🦁', questions: 45, class: '11', weightage: 8 },
+    { id: 'ch05', name: 'Morphology of Flowering Plants',              icon: '🌸', questions: 38, class: '11', weightage: 7 },
+    { id: 'ch06', name: 'Anatomy of Flowering Plants',                 icon: '🪵', questions: 36, class: '11', weightage: 6 },
+    { id: 'ch07', name: 'Structural Organisation in Animals',          icon: '🐸', questions: 32, class: '11', weightage: 6 },
+    { id: 'ch08', name: 'Cell: The Unit of Life',                     icon: '🔬', questions: 45, class: '11', weightage: 8 },
+    { id: 'ch09', name: 'Biomolecules',                                icon: '🧬', questions: 40, class: '11', weightage: 7 },
+    { id: 'ch10', name: 'Cell Cycle and Cell Division',                icon: '⚙️', questions: 38, class: '11', weightage: 7 },
+    { id: 'ch11', name: 'Photosynthesis in Plants',                    icon: '☀️', questions: 42, class: '11', weightage: 8 },
+    { id: 'ch12', name: 'Respiration in Plants',                       icon: '💨', questions: 35, class: '11', weightage: 6 },
+    { id: 'ch13', name: 'Plant Growth and Development',                icon: '🌱', questions: 32, class: '11', weightage: 5 },
+    { id: 'ch14', name: 'Breathing and Exchange of Gases',             icon: '🫁', questions: 36, class: '11', weightage: 6 },
+    { id: 'ch15', name: 'Body Fluids and Circulation',                 icon: '🩸', questions: 40, class: '11', weightage: 7 },
+    { id: 'ch16', name: 'Excretory Products and Their Elimination',     icon: '🧪', questions: 35, class: '11', weightage: 6 },
+    { id: 'ch17', name: 'Locomotion and Movement',                       icon: '🦴', questions: 34, class: '11', weightage: 6 },
+    { id: 'ch18', name: 'Neural Control and Coordination',               icon: '🧠', questions: 42, class: '11', weightage: 8 },
+    { id: 'ch19', name: 'Chemical Coordination and Integration',       icon: '⚗️', questions: 38, class: '11', weightage: 7 },
+    { id: 'ch20', name: 'Sexual Reproduction in Flowering Plants',       icon: '🌺', questions: 42, class: '12', weightage: 8 },
+    { id: 'ch21', name: 'Human Reproduction',                          icon: '👶', questions: 45, class: '12', weightage: 8 },
+    { id: 'ch22', name: 'Reproductive Health',                         icon: '🏥', questions: 32, class: '12', weightage: 6 },
+    { id: 'ch23', name: 'Principles of Inheritance and Variation',      icon: '🧩', questions: 48, class: '12', weightage: 9 },
+    { id: 'ch24', name: 'Molecular Basis of Inheritance',              icon: '🔗', questions: 50, class: '12', weightage: 9 },
+    { id: 'ch25', name: 'Evolution',                                   icon: '🦎', questions: 35, class: '12', weightage: 6 },
+    { id: 'ch26', name: 'Human Health and Disease',                      icon: '💊', questions: 42, class: '12', weightage: 8 },
+    { id: 'ch27', name: 'Microbes in Human Welfare',                   icon: '🦠', questions: 30, class: '12', weightage: 5 },
+    { id: 'ch28', name: 'Biotechnology: Principles and Processes',     icon: '💡', questions: 40, class: '12', weightage: 8 },
+    { id: 'ch29', name: 'Biotechnology and its Applications',          icon: '🔬', questions: 38, class: '12', weightage: 7 },
+    { id: 'ch30', name: 'Organisms and Population',                    icon: '🌏', questions: 35, class: '12', weightage: 6 },
+    { id: 'ch31', name: 'Ecosystem',                                   icon: '🌳', questions: 36, class: '12', weightage: 6 },
+    { id: 'ch32', name: 'Biodiversity and Conservation',               icon: '🐾', questions: 34, class: '12', weightage: 6 },
   ],
 
   /* ---- Full Length Tests (complete NEET Biology mock tests).
@@ -72,90 +76,99 @@ const DB = {
 
   /* ---- Sub-skills ---- */
   subSkills: [
-    { id: 'ss01', name: 'Cell organelle functions',       chapter: 'ch01', bloomLevel: 'understand' },
-    { id: 'ss02', name: 'Mitosis stages & significance',  chapter: 'ch02', bloomLevel: 'understand' },
-    { id: 'ss03', name: 'Meiosis & genetic variation',    chapter: 'ch02', bloomLevel: 'analyze'    },
-    { id: 'ss04', name: 'Enzyme kinetics',                chapter: 'ch03', bloomLevel: 'apply'      },
-    { id: 'ss05', name: 'Light reaction steps (Z-scheme)',chapter: 'ch04', bloomLevel: 'analyze'    },
-    { id: 'ss06', name: 'Calvin cycle intermediates',     chapter: 'ch04', bloomLevel: 'remember'   },
-    { id: 'ss07', name: 'Krebs cycle yield calculation',  chapter: 'ch05', bloomLevel: 'apply'      },
-    { id: 'ss08', name: 'Neurotransmitter mechanisms',    chapter: 'ch12', bloomLevel: 'understand' },
-    { id: 'ss09', name: 'Hormonal feedback loops',        chapter: 'ch13', bloomLevel: 'analyze'    },
-    { id: 'ss10', name: 'Mendelian genetics problems',    chapter: 'ch18', bloomLevel: 'apply'      },
-    { id: 'ss11', name: 'DNA replication enzymes',        chapter: 'ch19', bloomLevel: 'remember'   },
-    { id: 'ss12', name: 'Transcription & translation',    chapter: 'ch19', bloomLevel: 'understand' },
-    { id: 'ss13', name: 'Pedigree analysis',              chapter: 'ch18', bloomLevel: 'analyze'    },
-    { id: 'ss14', name: 'Blood clotting cascade',         chapter: 'ch09', bloomLevel: 'remember'   },
-    { id: 'ss15', name: 'Nephron filtration dynamics',    chapter: 'ch10', bloomLevel: 'understand' },
+    { id: 'ss01', name: 'Cell organelle functions',       chapter: 'ch08', bloomLevel: 'understand' },
+    { id: 'ss02', name: 'Mitosis stages & significance',  chapter: 'ch10', bloomLevel: 'understand' },
+    { id: 'ss03', name: 'Meiosis & genetic variation',    chapter: 'ch10', bloomLevel: 'analyze'    },
+    { id: 'ss04', name: 'Enzyme kinetics',                chapter: 'ch09', bloomLevel: 'apply'      },
+    { id: 'ss05', name: 'Light reaction steps (Z-scheme)',chapter: 'ch11', bloomLevel: 'analyze'    },
+    { id: 'ss06', name: 'Calvin cycle intermediates',     chapter: 'ch11', bloomLevel: 'remember'   },
+    { id: 'ss07', name: 'Krebs cycle yield calculation',  chapter: 'ch12', bloomLevel: 'apply'      },
+    { id: 'ss08', name: 'Neurotransmitter mechanisms',    chapter: 'ch18', bloomLevel: 'understand' },
+    { id: 'ss09', name: 'Hormonal feedback loops',        chapter: 'ch19', bloomLevel: 'analyze'    },
+    { id: 'ss10', name: 'Mendelian genetics problems',    chapter: 'ch23', bloomLevel: 'apply'      },
+    { id: 'ss11', name: 'DNA replication enzymes',        chapter: 'ch24', bloomLevel: 'remember'   },
+    { id: 'ss12', name: 'Transcription & translation',    chapter: 'ch24', bloomLevel: 'understand' },
+    { id: 'ss13', name: 'Pedigree analysis',              chapter: 'ch23', bloomLevel: 'analyze'    },
+    { id: 'ss14', name: 'Blood clotting cascade',         chapter: 'ch15', bloomLevel: 'remember'   },
+    { id: 'ss15', name: 'Nephron filtration dynamics',    chapter: 'ch16', bloomLevel: 'understand' },
+    { id: 'ss16', name: 'Immunity & Disease mechanisms',   chapter: 'ch26', bloomLevel: 'remember'   },
+    { id: 'ss17', name: 'Embryonic development & stages',  chapter: 'ch21', bloomLevel: 'understand' },
+    { id: 'ss18', name: 'Ecological efficiency & pyramids', chapter: 'ch31', bloomLevel: 'understand' },
+    { id: 'ss19', name: 'Restriction enzymes & cloning',  chapter: 'ch28', bloomLevel: 'remember'   },
+    { id: 'ss20', name: 'Pollen tube & fertilization',     chapter: 'ch20', bloomLevel: 'understand' },
+    { id: 'ss21', name: 'Hardy-Weinberg equilibrium',      chapter: 'ch25', bloomLevel: 'understand' },
+    { id: 'ss22', name: 'Plant hormones & dominance',      chapter: 'ch13', bloomLevel: 'understand' },
+    { id: 'ss23', name: 'Biocontrol & microbes in sewage', chapter: 'ch27', bloomLevel: 'remember'   },
+    { id: 'ss24', name: 'Respiratory volumes & capacities', chapter: 'ch14', bloomLevel: 'remember'   },
   ],
 
   /* ---- Biology Questions Bank ---- */
   questions: [
     {
-      id: 'q001', chapter: 'ch19', subSkill: 'ss11', bloomLevel: 'remember', weightage: 9, year: 2023,
+      id: 'q001', chapter: 'ch24', subSkill: 'ss11', bloomLevel: 'remember', weightage: 9, year: 2023,
       text: 'Which enzyme catalyzes the unwinding of DNA double helix during replication?',
       options: ['DNA Polymerase I', 'Helicase', 'Ligase', 'Primase'],
       correct: 1,
       explanation: 'Helicase breaks the hydrogen bonds between complementary base pairs and unwinds the DNA double helix at the replication fork.'
     },
     {
-      id: 'q002', chapter: 'ch04', subSkill: 'ss05', bloomLevel: 'analyze', weightage: 8, year: 2022,
+      id: 'q002', chapter: 'ch11', subSkill: 'ss05', bloomLevel: 'analyze', weightage: 8, year: 2022,
       text: 'In the Z-scheme of photosynthesis, which molecule serves as the primary electron donor to Photosystem II?',
       options: ['NADPH', 'Ferredoxin', 'Water (H₂O)', 'Plastoquinone'],
       correct: 2,
       explanation: 'Water is the primary electron donor to PS II. Its oxidation (photolysis) releases O₂, H⁺, and electrons.'
     },
     {
-      id: 'q003', chapter: 'ch18', subSkill: 'ss10', bloomLevel: 'apply', weightage: 9, year: 2024,
+      id: 'q003', chapter: 'ch23', subSkill: 'ss10', bloomLevel: 'apply', weightage: 9, year: 2024,
       text: 'In a dihybrid cross between AaBb × aabb (Mendel\'s second law applies), what fraction of offspring will show both dominant traits?',
       options: ['1/16', '9/16', '1/4', '3/16'],
       correct: 2,
       explanation: 'AaBb × aabb gives 1 AaBb : 1 Aabb : 1 aaBb : 1 aabb. AaBb shows both dominant traits = 1/4.'
     },
     {
-      id: 'q004', chapter: 'ch12', subSkill: 'ss08', bloomLevel: 'understand', weightage: 8, year: 2023,
+      id: 'q004', chapter: 'ch18', subSkill: 'ss08', bloomLevel: 'understand', weightage: 8, year: 2023,
       text: 'Which neurotransmitter is primarily released at the neuromuscular junction to initiate skeletal muscle contraction?',
       options: ['Dopamine', 'Serotonin', 'Acetylcholine', 'Norepinephrine'],
       correct: 2,
       explanation: 'Acetylcholine (ACh) is released by motor neurons at the neuromuscular junction, binding to nicotinic receptors on the motor end plate.'
     },
     {
-      id: 'q005', chapter: 'ch02', subSkill: 'ss02', bloomLevel: 'understand', weightage: 7, year: 2022,
+      id: 'q005', chapter: 'ch10', subSkill: 'ss02', bloomLevel: 'understand', weightage: 7, year: 2022,
       text: 'During which phase of mitosis do centromeres split and chromatids move to opposite poles?',
       options: ['Prophase', 'Metaphase', 'Anaphase', 'Telophase'],
       correct: 2,
       explanation: 'During Anaphase, centromeres split and sister chromatids are pulled to opposite poles by spindle fibers.'
     },
     {
-      id: 'q006', chapter: 'ch05', subSkill: 'ss07', bloomLevel: 'apply', weightage: 6, year: 2021,
+      id: 'q006', chapter: 'ch12', subSkill: 'ss07', bloomLevel: 'apply', weightage: 6, year: 2021,
       text: 'How many ATP molecules are produced during one complete turn of the Krebs cycle (per acetyl-CoA)?',
       options: ['2', '12', '8', '10'],
       correct: 3,
       explanation: 'One turn of Krebs cycle produces: 3 NADH (×2.5 ATP = 7.5), 1 FADH₂ (×1.5 ATP = 1.5), 1 GTP = 1 ATP. Total ≈ 10 ATP.'
     },
     {
-      id: 'q007', chapter: 'ch10', subSkill: 'ss15', bloomLevel: 'understand', weightage: 6, year: 2023,
+      id: 'q007', chapter: 'ch16', subSkill: 'ss15', bloomLevel: 'understand', weightage: 6, year: 2023,
       text: 'The juxtaglomerular apparatus (JGA) secretes renin in response to:',
       options: ['High blood pressure', 'High sodium in filtrate', 'Low blood pressure / low filtrate flow', 'High ADH levels'],
       correct: 2,
       explanation: 'JGA cells detect low blood pressure and low GFR, triggering renin secretion which initiates the RAAS to increase blood pressure.'
     },
     {
-      id: 'q008', chapter: 'ch09', subSkill: 'ss14', bloomLevel: 'remember', weightage: 7, year: 2022,
+      id: 'q008', chapter: 'ch15', subSkill: 'ss14', bloomLevel: 'remember', weightage: 7, year: 2022,
       text: 'Which clotting factor is absent in haemophilia A?',
       options: ['Factor IX', 'Factor VIII', 'Factor XI', 'von Willebrand factor'],
       correct: 1,
       explanation: 'Haemophilia A is caused by deficiency of Factor VIII (anti-haemophilic factor), an essential clotting factor.'
     },
     {
-      id: 'q009', chapter: 'ch19', subSkill: 'ss12', bloomLevel: 'understand', weightage: 9, year: 2024,
+      id: 'q009', chapter: 'ch24', subSkill: 'ss12', bloomLevel: 'understand', weightage: 9, year: 2024,
       text: 'Which RNA polymerase transcribes structural genes (mRNA) in eukaryotes?',
       options: ['RNA Polymerase I', 'RNA Polymerase II', 'RNA Polymerase III', 'Primase'],
       correct: 1,
       explanation: 'RNA Polymerase II transcribes mRNA (protein-coding genes) in eukaryotes. Pol I makes rRNA; Pol III makes tRNA and 5S rRNA.'
     },
     {
-      id: 'q010', chapter: 'ch13', subSkill: 'ss09', bloomLevel: 'analyze', weightage: 7, year: 2023,
+      id: 'q010', chapter: 'ch19', subSkill: 'ss09', bloomLevel: 'analyze', weightage: 7, year: 2023,
       text: 'In a negative feedback loop, rising blood glucose causes the pancreas to secrete insulin. Which of the following correctly describes the role of insulin?',
       options: [
         'Stimulates glucagon release to increase glycogenesis',
@@ -167,84 +180,84 @@ const DB = {
       explanation: 'Insulin promotes glucose uptake by peripheral cells (via GLUT4), glycogenesis, and inhibits gluconeogenesis — all of which lower blood glucose.'
     },
     {
-      id: 'q011', chapter: 'ch01', subSkill: 'ss01', bloomLevel: 'understand', weightage: 8, year: 2022,
+      id: 'q011', chapter: 'ch08', subSkill: 'ss01', bloomLevel: 'understand', weightage: 8, year: 2022,
       text: 'Which organelle is responsible for the synthesis of proteins destined for secretion?',
       options: ['Free ribosomes', 'Rough endoplasmic reticulum', 'Smooth endoplasmic reticulum', 'Peroxisomes'],
       correct: 1,
       explanation: 'Rough ER (studded with ribosomes) synthesizes secretory proteins. These are then transported to the Golgi apparatus for modification and packaging.'
     },
     {
-      id: 'q012', chapter: 'ch04', subSkill: 'ss06', bloomLevel: 'remember', weightage: 8, year: 2021,
+      id: 'q012', chapter: 'ch11', subSkill: 'ss06', bloomLevel: 'remember', weightage: 8, year: 2021,
       text: 'Which 3-carbon compound is the first stable product of the Calvin cycle (C3 photosynthesis)?',
       options: ['Oxaloacetate (OAA)', '3-Phosphoglycerate (3-PGA)', 'Ribulose-1,5-bisphosphate (RuBP)', 'Glyceraldehyde-3-phosphate (G3P)'],
       correct: 1,
       explanation: 'CO₂ is fixed by RuBisCO onto RuBP to form an unstable 6C compound which immediately splits into two molecules of 3-PGA (3-phosphoglycerate).'
     },
     {
-      id: 'q013', chapter: 'ch18', subSkill: 'ss13', bloomLevel: 'analyze', weightage: 9, year: 2024,
+      id: 'q013', chapter: 'ch23', subSkill: 'ss13', bloomLevel: 'analyze', weightage: 9, year: 2024,
       text: 'A pedigree shows a trait appearing in every generation with both males and females affected and unaffected parents having affected children. The most likely inheritance pattern is:',
       options: ['Autosomal recessive', 'X-linked recessive', 'Autosomal dominant', 'Mitochondrial inheritance'],
       correct: 2,
       explanation: 'Autosomal dominant traits appear in every generation, affect both sexes equally, and an affected individual has at least one affected parent.'
     },
     {
-      id: 'q014', chapter: 'ch02', subSkill: 'ss03', bloomLevel: 'analyze', weightage: 7, year: 2022,
+      id: 'q014', chapter: 'ch10', subSkill: 'ss03', bloomLevel: 'analyze', weightage: 7, year: 2022,
       text: 'Crossing over during meiosis occurs between non-sister chromatids of homologous chromosomes during:',
       options: ['Leptotene', 'Zygotene', 'Pachytene', 'Diplotene'],
       correct: 2,
       explanation: 'Crossing over (chiasmata formation) occurs during Pachytene of meiosis I prophase, when tetrads are fully formed and chromatids can exchange segments.'
     },
     {
-      id: 'q015', chapter: 'ch03', subSkill: 'ss04', bloomLevel: 'apply', weightage: 7, year: 2023,
+      id: 'q015', chapter: 'ch09', subSkill: 'ss04', bloomLevel: 'apply', weightage: 7, year: 2023,
       text: 'At very high substrate concentrations, which factor most significantly limits enzyme-catalyzed reaction rate?',
       options: ['Substrate concentration', 'Product inhibition', 'Available enzyme (active sites)', 'Temperature below optimum'],
       correct: 2,
       explanation: 'At saturating substrate concentrations, all active sites are occupied — the reaction rate is at Vmax and is limited only by enzyme concentration.'
     },
     {
-      id: 'q016', chapter: 'ch21', subSkill: 'ss16', bloomLevel: 'remember', weightage: 7, year: 2022,
+      id: 'q016', chapter: 'ch26', subSkill: 'ss16', bloomLevel: 'remember', weightage: 7, year: 2022,
       text: 'Which of the following is NOT an antigen presenting cell (APC) in the immune system?',
       options: ['Dendritic cell', 'Macrophage', 'B lymphocyte', 'Cytotoxic T cell'],
       correct: 3,
       explanation: 'Cytotoxic T cells (CD8⁺) kill infected cells; they are effector cells, not antigen presenting cells. APCs include dendritic cells, macrophages, and B cells.'
     },
     {
-      id: 'q017', chapter: 'ch16', subSkill: 'ss17', bloomLevel: 'understand', weightage: 8, year: 2023,
+      id: 'q017', chapter: 'ch21', subSkill: 'ss17', bloomLevel: 'understand', weightage: 8, year: 2023,
       text: 'During which week of human embryonic development does implantation typically occur?',
       options: ['Week 1', 'End of week 1 / beginning of week 2', 'Week 3', 'Week 4'],
       correct: 1,
       explanation: 'The blastocyst implants in the uterine endometrium around day 6–10 (end of first week / start of second week) after fertilization.'
     },
     {
-      id: 'q018', chapter: 'ch27', subSkill: 'ss18', bloomLevel: 'understand', weightage: 6, year: 2021,
+      id: 'q018', chapter: 'ch31', subSkill: 'ss18', bloomLevel: 'understand', weightage: 6, year: 2021,
       text: 'In a food chain, ecological efficiency is the percentage of energy transferred from one trophic level to the next. The typical value is:',
       options: ['1–2%', '10%', '50%', '90%'],
       correct: 1,
       explanation: 'Ecological or Lindeman\'s efficiency is approximately 10% — meaning only 10% of energy at one trophic level is available to the next.'
     },
     {
-      id: 'q019', chapter: 'ch24', subSkill: 'ss19', bloomLevel: 'remember', weightage: 7, year: 2024,
+      id: 'q019', chapter: 'ch28', subSkill: 'ss19', bloomLevel: 'remember', weightage: 7, year: 2024,
       text: 'The enzyme used to cut DNA at specific sequences in recombinant DNA technology is called:',
       options: ['DNA ligase', 'Restriction endonuclease', 'Reverse transcriptase', 'Taq polymerase'],
       correct: 1,
       explanation: 'Restriction endonucleases (restriction enzymes) recognize specific palindromic sequences and cleave DNA. They are the "molecular scissors" of rDNA technology.'
     },
     {
-      id: 'q020', chapter: 'ch19', subSkill: 'ss11', bloomLevel: 'understand', weightage: 9, year: 2023,
+      id: 'q020', chapter: 'ch24', subSkill: 'ss11', bloomLevel: 'understand', weightage: 9, year: 2023,
       text: 'Okazaki fragments are synthesized in which direction on the lagging strand during DNA replication?',
       options: ["3' to 5'", "5' to 3'", "Both directions", "Neither — they are joined without synthesis"],
       correct: 1,
       explanation: "DNA polymerase can only synthesize in the 5'→3' direction. On the lagging strand, short Okazaki fragments are synthesized 5'→3' in the direction away from the replication fork."
     },
     {
-      id: 'q021', chapter: 'ch12', subSkill: 'ss08', bloomLevel: 'apply', weightage: 8, year: 2022,
+      id: 'q021', chapter: 'ch18', subSkill: 'ss08', bloomLevel: 'apply', weightage: 8, year: 2022,
       text: 'An action potential is triggered when the membrane potential reaches:',
       options: ['Resting potential (–70 mV)', 'Threshold potential (~–55 mV)', '+30 mV', '0 mV'],
       correct: 1,
       explanation: 'Once the membrane is depolarized to the threshold potential (~–55 mV), voltage-gated Na⁺ channels open rapidly and an action potential is generated.'
     },
     {
-      id: 'q022', chapter: 'ch13', subSkill: 'ss09', bloomLevel: 'remember', weightage: 7, year: 2021,
+      id: 'q022', chapter: 'ch19', subSkill: 'ss09', bloomLevel: 'remember', weightage: 7, year: 2021,
       text: 'Which gland secretes melatonin, and what is its primary function?',
       options: [
         'Adrenal cortex — regulates stress',
@@ -256,7 +269,7 @@ const DB = {
       explanation: 'The pineal gland secretes melatonin in response to darkness, which regulates circadian rhythms and seasonal reproductive cycles.'
     },
     {
-      id: 'q023', chapter: 'ch09', subSkill: 'ss14', bloomLevel: 'understand', weightage: 7, year: 2023,
+      id: 'q023', chapter: 'ch15', subSkill: 'ss14', bloomLevel: 'understand', weightage: 7, year: 2023,
       text: 'Which of the following correctly describes the ABO blood group system?',
       options: [
         'Blood group A has B antigens on RBCs and anti-A antibodies in plasma',
@@ -268,28 +281,28 @@ const DB = {
       explanation: 'Blood group O: no A or B antigens on RBCs, but both anti-A and anti-B antibodies in plasma — making O donors universal but O recipients restricted.'
     },
     {
-      id: 'q024', chapter: 'ch05', subSkill: 'ss07', bloomLevel: 'remember', weightage: 6, year: 2022,
+      id: 'q024', chapter: 'ch12', subSkill: 'ss07', bloomLevel: 'remember', weightage: 6, year: 2022,
       text: 'The final electron acceptor in aerobic cellular respiration in the electron transport chain is:',
       options: ['NAD⁺', 'FAD', 'Oxygen (O₂)', 'Carbon dioxide (CO₂)'],
       correct: 2,
       explanation: 'O₂ is the terminal electron acceptor in aerobic respiration, accepting electrons at Complex IV (cytochrome c oxidase) to form water.'
     },
     {
-      id: 'q025', chapter: 'ch01', subSkill: 'ss01', bloomLevel: 'analyze', weightage: 8, year: 2024,
+      id: 'q025', chapter: 'ch08', subSkill: 'ss01', bloomLevel: 'analyze', weightage: 8, year: 2024,
       text: 'Which cell component is absent in plant cells but present in animal cells?',
       options: ['Cell wall', 'Mitochondria', 'Centrioles', 'Chloroplasts'],
       correct: 2,
       explanation: 'Centrioles are present in animal cells (and lower plant cells) but absent in most higher plant cells. They are involved in forming the spindle apparatus during cell division.'
     },
     {
-      id: 'q026', chapter: 'ch15', subSkill: 'ss20', bloomLevel: 'understand', weightage: 7, year: 2022,
+      id: 'q026', chapter: 'ch20', subSkill: 'ss20', bloomLevel: 'understand', weightage: 7, year: 2022,
       text: 'The pollen tube grows through which part of the pistil to deliver the male gametes?',
       options: ['Stigma', 'Style', 'Ovary wall', 'Funicle'],
       correct: 1,
       explanation: 'After landing on the stigma, pollen germinates and the pollen tube grows through the style (transmitting tissue) to reach the ovule.'
     },
     {
-      id: 'q027', chapter: 'ch20', subSkill: 'ss21', bloomLevel: 'understand', weightage: 5, year: 2021,
+      id: 'q027', chapter: 'ch25', subSkill: 'ss21', bloomLevel: 'understand', weightage: 5, year: 2021,
       text: 'According to the Hardy-Weinberg principle, allele frequencies in a population remain constant if:',
       options: [
         'Natural selection is acting strongly on the population',
@@ -301,21 +314,21 @@ const DB = {
       explanation: 'Hardy-Weinberg equilibrium requires: random mating, large population (no genetic drift), no mutations, no gene flow, and no natural selection.'
     },
     {
-      id: 'q028', chapter: 'ch06', subSkill: 'ss22', bloomLevel: 'understand', weightage: 5, year: 2022,
+      id: 'q028', chapter: 'ch13', subSkill: 'ss22', bloomLevel: 'understand', weightage: 5, year: 2022,
       text: 'Which plant hormone is primarily responsible for apical dominance?',
       options: ['Gibberellin', 'Cytokinin', 'Auxin (IAA)', 'Abscisic acid'],
       correct: 2,
       explanation: 'Auxin produced at the apical bud suppresses lateral bud growth (apical dominance). Removal of the apical bud allows lateral buds to grow.'
     },
     {
-      id: 'q029', chapter: 'ch22', subSkill: 'ss23', bloomLevel: 'remember', weightage: 5, year: 2023,
-      text: 'Which of the following is a product of plant breeding developed through induced mutagenesis?',
-      options: ['Bt cotton', 'Sharbati Sonora wheat', 'Golden Rice', 'Flavr Savr tomato'],
-      correct: 1,
-      explanation: 'Sharbati Sonora is a variety of wheat developed through radiation-induced mutagenesis. Bt cotton and Golden Rice involve genetic engineering.'
+      id: 'q029', chapter: 'ch27', subSkill: 'ss23', bloomLevel: 'remember', weightage: 5, year: 2023,
+      text: 'Which of the following biocontrol agents is a fungus used against several plant pathogens?',
+      options: ['Trichoderma', 'Bacillus thuringiensis', 'Baculoviruses', 'Ladybird'],
+      correct: 0,
+      explanation: 'Trichoderma species are free-living fungi that are very common in root ecosystems and effective biocontrol agents against several plant pathogens.'
     },
     {
-      id: 'q030', chapter: 'ch08', subSkill: 'ss24', bloomLevel: 'remember', weightage: 6, year: 2022,
+      id: 'q030', chapter: 'ch14', subSkill: 'ss24', bloomLevel: 'remember', weightage: 6, year: 2022,
       text: 'Normal tidal volume in an adult human at rest is approximately:',
       options: ['1200 mL', '2300 mL', '500 mL', '3500 mL'],
       correct: 2,
@@ -775,39 +788,36 @@ const DB = {
   /* ---- Error Types ---- */
   errorTypes: [
     { id: 'conceptual_gap', label: 'Concept not clear', icon: '🧠', description: 'Did not know or understand the core concept' },
-    { id: 'time',           label: 'Time pressure', icon: '⏱️', description: 'Ran out of time to think properly' },
-    { id: 'confused',       label: 'Confused between 2 options', icon: '🤔', description: 'Narrowed down to 2 choices but picked wrong one' },
-    { id: 'misread',        label: 'Question misunderstood', icon: '😵', description: 'Misread the question or option text' },
-    { id: 'silly_mistake',  label: 'Silly mistake', icon: '⚠️', description: 'Knew it but made a careless mistake' },
-    { id: 'guessed',        label: 'Guessed the answer', icon: '🎯', description: 'Had no idea, guessed blindly' },
-    { id: 'memory_lapse',   label: 'Did not remember the fact', icon: '📚', description: 'Direct NCERT factual recall gap' },
-    { id: 'other',          label: 'Other reason', icon: '📝', description: 'Other reason' },
+    { id: 'misread_question', label: 'Misread question', icon: '👀', description: 'Missed NOT, EXCEPT, or a key detail in the question stem' },
+    { id: 'calculation_error', label: 'Calculation error', icon: '🔢', description: 'Arithmetic or formula application mistake' },
+    { id: 'memory_lapse', label: 'Forgot fact/name', icon: '❓', description: 'Knew the topic but forgot the specific term or value' },
+    { id: 'time_pressure', label: 'Rushed answer', icon: '⏱️', description: 'Answered too quickly under time pressure' },
   ],
 
   /* ---- Mock Weakness Map (Chapter-wise) ---- */
   weaknessMap: [
     {
-      chapterId: 'ch04', chapterName: 'Photosynthesis', icon: '🌿', classLevel: '11',
+      chapterId: 'ch11', chapterName: 'Photosynthesis in Plants', icon: '☀️', classLevel: '11',
       severity: 0.85, weightage: 8, priority: 0, performance: 25, daysToExam: 120, questionsWrong: 6
     },
     {
-      chapterId: 'ch19', chapterName: 'Molecular Basis of Inheritance', icon: '🔗', classLevel: '12',
+      chapterId: 'ch24', chapterName: 'Molecular Basis of Inheritance', icon: '🔗', classLevel: '12',
       severity: 0.80, weightage: 9, priority: 0, performance: 30, daysToExam: 120, questionsWrong: 5
     },
     {
-      chapterId: 'ch18', chapterName: 'Principles of Inheritance', icon: '🧩', classLevel: '12',
+      chapterId: 'ch23', chapterName: 'Principles of Inheritance and Variation', icon: '🧩', classLevel: '12',
       severity: 0.75, weightage: 9, priority: 0, performance: 38, daysToExam: 120, questionsWrong: 5
     },
     {
-      chapterId: 'ch12', chapterName: 'Neural Control & Coordination', icon: '🧠', classLevel: '11',
+      chapterId: 'ch18', chapterName: 'Neural Control and Coordination', icon: '🧠', classLevel: '11',
       severity: 0.70, weightage: 8, priority: 0, performance: 40, daysToExam: 120, questionsWrong: 4
     },
     {
-      chapterId: 'ch13', chapterName: 'Chemical Coordination', icon: '⚗️', classLevel: '11',
+      chapterId: 'ch19', chapterName: 'Chemical Coordination and Integration', icon: '⚗️', classLevel: '11',
       severity: 0.65, weightage: 7, priority: 0, performance: 45, daysToExam: 120, questionsWrong: 4
     },
     {
-      chapterId: 'ch05', chapterName: 'Respiration in Plants', icon: '💨', classLevel: '11',
+      chapterId: 'ch12', chapterName: 'Respiration in Plants', icon: '💨', classLevel: '11',
       severity: 0.60, weightage: 6, priority: 0, performance: 50, daysToExam: 120, questionsWrong: 3
     },
   ],
@@ -816,7 +826,7 @@ const DB = {
   spacedRetestSchedule: [
     {
       subSkillId: 'ss05', subSkillName: 'Light reaction steps (Z-scheme)',
-      chapterName: 'Photosynthesis',
+      chapterName: 'Photosynthesis in Plants',
       checkpoints: [
         { day: 1,  status: 'completed', date: null, score: 70 },
         { day: 4,  status: 'due',       date: null, score: null },
@@ -824,8 +834,17 @@ const DB = {
       ]
     },
     {
+      subSkillId: 'ss11', subSkillName: 'DNA replication enzymes',
+      chapterName: 'Molecular Basis of Inheritance',
+      checkpoints: [
+        { day: 1,  status: 'completed', date: null, score: 65 },
+        { day: 4,  status: 'due',       date: null, score: null },
+        { day: 10, status: 'upcoming',  date: null, score: null },
+      ]
+    },
+    {
       subSkillId: 'ss10', subSkillName: 'Mendelian genetics problems',
-      chapterName: 'Principles of Inheritance',
+      chapterName: 'Principles of Inheritance and Variation',
       checkpoints: [
         { day: 1,  status: 'completed', date: null, score: 60 },
         { day: 4,  status: 'completed', date: null, score: 80 },
@@ -858,8 +877,8 @@ const DB = {
       { id: 'b06', name: 'Consistent',     icon: '📈', earned: true  },
     ],
     chapterProgress: {
-      'ch19': 72, 'ch18': 65, 'ch04': 48, 'ch12': 55, 'ch13': 61,
-      'ch09': 70, 'ch10': 58, 'ch02': 75, 'ch03': 63, 'ch05': 52,
+      'ch24': 72, 'ch23': 65, 'ch11': 48, 'ch18': 55, 'ch19': 61,
+      'ch09': 70, 'ch10': 58, 'ch02': 75, 'ch03': 63, 'ch12': 52,
     },
     /* ---- Demo seed for the Chapter-wise Test performance graph on the
        Rank/Performance page. Only used as a fallback when the student
@@ -868,12 +887,12 @@ const DB = {
        spacedReviewSeed above. ---- */
     chapterTestHistorySeed: [
       { label: 'Test 1', chapterName: 'Cell: The Unit of Life',        score: 21, total: 35, accuracy: 60 },
-      { label: 'Test 2', chapterName: 'Photosynthesis',                score: 26, total: 40, accuracy: 65 },
+      { label: 'Test 2', chapterName: 'Photosynthesis in Plants',      score: 26, total: 40, accuracy: 65 },
       { label: 'Test 3', chapterName: 'Respiration in Plants',         score: 20, total: 30, accuracy: 67 },
-      { label: 'Test 4', chapterName: 'Neural Control & Coordination', score: 24, total: 40, accuracy: 60 },
-      { label: 'Test 5', chapterName: 'Principles of Inheritance',     score: 30, total: 44, accuracy: 68 },
+      { label: 'Test 4', chapterName: 'Neural Control and Coordination', score: 24, total: 40, accuracy: 60 },
+      { label: 'Test 5', chapterName: 'Principles of Inheritance and Variation', score: 30, total: 44, accuracy: 68 },
       { label: 'Test 6', chapterName: 'Molecular Basis of Inheritance',score: 33, total: 46, accuracy: 72 },
-      { label: 'Test 7', chapterName: 'Human Health & Disease',        score: 27, total: 38, accuracy: 71 },
+      { label: 'Test 7', chapterName: 'Human Health and Disease',      score: 27, total: 38, accuracy: 71 },
       { label: 'Test 8', chapterName: 'Ecosystem',                     score: 24, total: 32, accuracy: 75 },
     ],
     /* ---- Demo seed for the Full-Length Test performance graph. Same
@@ -1393,5 +1412,168 @@ const State = {
   }
 };
 
+/* ---- Save pristine base copies for non-destructive syncing ---- */
+DB.rawBaseChapters = JSON.parse(JSON.stringify(DB.chapters));
+DB.rawBaseSubSkills = JSON.parse(JSON.stringify(DB.subSkills));
+DB.rawBaseQuestions = JSON.parse(JSON.stringify(DB.questions));
+DB.rawBaseFullLengthTests = JSON.parse(JSON.stringify(DB.fullLengthTests));
+DB.rawBaseNcertQuestions = Array.isArray(DB.ncertQuestions) ? JSON.parse(JSON.stringify(DB.ncertQuestions)) : [];
+
+/* ---- Sync DB with in-browser Admin Mock Store if available ---- */
+DB.syncFromAdminStore = function() {
+  try {
+    localStorage.removeItem('biorank_admin_mock_v1');
+    const raw = localStorage.getItem('biorank_admin_mock_v2');
+    if (!raw) return;
+    const mockData = JSON.parse(raw);
+    if (!mockData) return;
+
+    // 1. CHAPTERS
+    if (Array.isArray(mockData.chapters)) {
+      const chapterMap = new Map();
+      (DB.rawBaseChapters || []).forEach(c => {
+        chapterMap.set(c.id, { ...c });
+      });
+      mockData.chapters.forEach(c => {
+        const id = c._id || c.id;
+        if (c.active === false || c.isDeleted === true) {
+          chapterMap.delete(id);
+        } else {
+          chapterMap.set(id, {
+            id,
+            name: c.name,
+            icon: c.icon || '📘',
+            questions: c.questionCount ?? c.questions ?? 0,
+            class: String(c.class || '11'),
+            weightage: Number(c.weightage) || 5,
+          });
+        }
+      });
+      DB.chapters = Array.from(chapterMap.values());
+    }
+
+    // 2. SUB-SKILLS
+    if (Array.isArray(mockData.subSkills)) {
+      const subSkillMap = new Map();
+      (DB.rawBaseSubSkills || []).forEach(s => {
+        subSkillMap.set(s.id, { ...s });
+      });
+      mockData.subSkills.forEach(s => {
+        const id = s._id || s.id;
+        if (s.active === false || s.isDeleted === true) {
+          subSkillMap.delete(id);
+        } else {
+          subSkillMap.set(id, {
+            id,
+            name: s.name,
+            chapter: s.chapterId || s.chapter,
+            bloomLevel: s.bloomLevel || 'understand',
+          });
+        }
+      });
+      DB.subSkills = Array.from(subSkillMap.values());
+    }
+
+    // 3. QUESTIONS
+    if (Array.isArray(mockData.questions)) {
+      const qMap = new Map();
+      (DB.rawBaseQuestions || []).forEach(q => {
+        qMap.set(q.id, { ...q });
+      });
+      mockData.questions.forEach(q => {
+        const id = q._id || q.id;
+        if (q.active === false || q.isDeleted === true) {
+          qMap.delete(id);
+        } else {
+          qMap.set(id, {
+            id,
+            chapter: q.chapterId || q.chapter,
+            subSkill: q.subSkillId || q.subSkill,
+            bloomLevel: q.bloomLevel || 'remember',
+            weightage: Number(q.weightage) || 4,
+            year: q.year || 2024,
+            text: q.text || '',
+            options: Array.isArray(q.options) ? q.options : ['Option A', 'Option B', 'Option C', 'Option D'],
+            correct: Number(q.correctOption ?? q.correct ?? 0),
+            correctOption: Number(q.correctOption ?? q.correct ?? 0),
+            explanation: q.explanation || '',
+            isFoundation: !!q.isFoundation,
+          });
+        }
+      });
+      DB.questions = Array.from(qMap.values());
+    }
+
+    // 4. FULL LENGTH TESTS
+    if (Array.isArray(mockData.fullLengthTests)) {
+      const fltMap = new Map();
+      (DB.rawBaseFullLengthTests || []).forEach(t => {
+        fltMap.set(t.id, { ...t });
+      });
+      mockData.fullLengthTests.forEach(t => {
+        const id = t._id || t.id;
+        if (t.active === false || t.isDeleted === true) {
+          fltMap.delete(id);
+        } else {
+          fltMap.set(id, {
+            id,
+            title: t.title,
+            description: t.description || 'Complete Biology Mock Test',
+            numberOfQuestions: t.numberOfQuestions || 90,
+            durationMinutes: t.durationMinutes || 90,
+            questions: Array.isArray(t.questions) ? t.questions : [],
+          });
+        }
+      });
+      DB.fullLengthTests = Array.from(fltMap.values());
+    }
+
+    // 5. NCERT QUESTIONS
+    if (Array.isArray(mockData.ncertQuestions)) {
+      const ncertMap = new Map();
+      (DB.rawBaseNcertQuestions || []).forEach(q => {
+        ncertMap.set(q.id, { ...q });
+      });
+      mockData.ncertQuestions.forEach(q => {
+        const id = q._id || q.id;
+        if (q.active === false || q.isDeleted === true) {
+          ncertMap.delete(id);
+        } else {
+          ncertMap.set(id, {
+            id,
+            chapterId: q.chapterId || q.chapter,
+            subSkillId: q.subSkillId || q.subSkill,
+            type: q.type || 'mcq',
+            difficulty: q.difficulty || 'medium',
+            text: q.text || '',
+            assertion: q.assertion || '',
+            reason: q.reason || '',
+            columnA: q.columnA || [],
+            columnB: q.columnB || [],
+            diagramUrl: q.diagramUrl || '',
+            options: Array.isArray(q.options) ? q.options : ['A', 'B', 'C', 'D'],
+            correct: Number(q.correctOption ?? q.correct ?? 0),
+            correctOption: Number(q.correctOption ?? q.correct ?? 0),
+            explanation: q.explanation || '',
+            ncertReference: q.ncertReference || '',
+            isNcertFocus: true,
+          });
+        }
+      });
+      DB.ncertQuestions = Array.from(ncertMap.values());
+    }
+  } catch (e) {
+    console.warn('Could not sync DB from storage', e);
+  }
+};
+
 window.State = State;
 window.DB = DB;
+
+// Initial sync on load
+DB.syncFromAdminStore();
+window.addEventListener('storage', (e) => {
+  if (e.key === 'biorank_admin_mock_v2') {
+    DB.syncFromAdminStore();
+  }
+});

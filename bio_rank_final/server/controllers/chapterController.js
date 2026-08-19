@@ -35,7 +35,7 @@ async function listChapters(req, res) {
   try {
     const includeDeleted = req.query.includeDeleted === 'true';
     const filter = includeDeleted ? {} : { isDeleted: false };
-    const chapters = await Chapter.find(filter).sort({ name: 1 });
+    const chapters = await Chapter.find(filter).sort({ createdAt: 1 });
     return res.json({ chapters });
   } catch (err) {
     console.error('[chapter.list]', err);

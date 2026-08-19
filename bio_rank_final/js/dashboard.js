@@ -441,7 +441,7 @@ function renderHome(container) {
               </div>
               <div>
                 <div class="quick-nav-label">Chapter Test</div>
-                <div class="quick-nav-sub">28 Biology chapters</div>
+                <div class="quick-nav-sub">${(DB.chapters || []).length} Biology chapters</div>
               </div>
             </div>
             <div class="quick-nav-card" onclick="App.navigate('ncert-bio-focus')" role="button" tabindex="0" style="position:relative;">
@@ -727,7 +727,7 @@ function renderChapterTest(container) {
       <div class="chtest-main-col">
         <div style="margin-bottom:var(--sp-5);">
           <div class="page-title">Chapter-wise Test</div>
-          <div class="page-subtitle">All 28 chapters — pick your fighter</div>
+          <div class="page-subtitle">All ${(DB.chapters || []).length} chapters — pick your fighter</div>
         </div>
 
         <div class="chapter-grid">

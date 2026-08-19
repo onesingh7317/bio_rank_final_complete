@@ -42,8 +42,9 @@ async function signup(req, res) {
     if (!EMAIL_RE.test(email)) {
       return res.status(400).json({ error: 'Invalid email format.' });
     }
-    if (password.length < 6) {
-      return res.status(400).json({ error: 'Password must be at least 6 characters.' });
+    const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!PASSWORD_RE.test(password)) {
+      return res.status(400).json({ error: 'Password must be at least 8 characters long and contain both letters and numbers.' });
     }
 
     const normalizedEmail = email.trim().toLowerCase();

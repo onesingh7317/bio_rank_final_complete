@@ -5,6 +5,8 @@
 
 const TestEngine = (() => {
 
+  const SESSION_KEY = 'biorank_active_test_session';
+
   let state = {
     questions: [],
     current: 0,
@@ -13,10 +15,72 @@ const TestEngine = (() => {
     startTime: null,
     timerInterval: null,
     secondsElapsed: 0,
-    mode: 'chapter',   // 'pyq' | 'chapter' | 'micro' | 'spaced' | 'foundation'
+    mode: 'chapter',   // 'pyq' | 'chapter' | 'micro' | 'spaced' | 'foundation' | 'fulllength' | 'custom' | 'ncert-focus'
     meta: {},          // { year, shift, chapterId, subSkillId, ... }
     onComplete: null,
   };
+
+  /* ---- Session Storage Persistence ---- */
+  function saveSession() {
+    try {
+      if (!state.questions || state.questions.length === 0) return;
+      const snapshot = {
+        questions: state.questions,
+        current: state.current,
+        answers: state.answers,
+        flagged: Array.from(state.flagged || []),
+        startTime: state.startTime,
+        secondsElapsed: state.secondsElapsed,
+        mode: state.mode,
+        meta: state.meta,
+        lastSaved: Date.now(),
+      };
+      sessionStorage.setItem(SESSION_KEY, JSON.stringify(snapshot));
+    } catch (e) {
+      console.warn('Could not save test session to sessionStorage:', e);
+    }
+  }
+
+  function clearSession() {
+    try {
+      sessionStorage.removeItem(SESSION_KEY);
+    } catch (e) {}
+  }
+
+  function hasActiveSession() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      if (!raw) return false;
+      const parsed = JSON.parse(raw);
+      return !!(parsed && Array.isArray(parsed.questions) && parsed.questions.length > 0);
+    } catch {
+      return false;
+    }
+  }
+
+  function getActiveSession() {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function getDefaultOnComplete(mode, meta) {
+    return (results) => {
+      if (mode === 'fulllength') {
+        if (meta && meta.testId && typeof recordFLTAttempt === 'function') {
+          recordFLTAttempt(meta.testId, results);
+        }
+        App.navigate('flt-result', results);
+      } else if (mode === 'foundation') {
+        App.navigate('analyzing', results);
+      } else {
+        App.navigate('result', results);
+      }
+    };
+  }
 
   /* ---- Start a test ---- */
   function start({ questions, mode = 'chapter', meta = {}, onComplete }) {
@@ -33,8 +97,44 @@ const TestEngine = (() => {
       meta,
       onComplete,
     };
+    saveSession();
     render();
     startTimer();
+  }
+
+  /* ---- Resume an active test after reload ---- */
+  function resume(sessionData, customOnComplete = null) {
+    const session = sessionData || getActiveSession();
+    if (!session || !Array.isArray(session.questions) || session.questions.length === 0) {
+      return false;
+    }
+    clearInterval(state.timerInterval);
+
+    let elapsed = Number(session.secondsElapsed) || 0;
+    if (session.startTime) {
+      const wallClockElapsed = Math.floor((Date.now() - session.startTime) / 1000);
+      if (wallClockElapsed >= elapsed && wallClockElapsed - elapsed < 86400) {
+        elapsed = wallClockElapsed;
+      }
+    }
+
+    state = {
+      questions: session.questions,
+      current: Math.min(Math.max(0, session.current || 0), session.questions.length - 1),
+      answers: session.answers || {},
+      flagged: new Set(session.flagged || []),
+      startTime: session.startTime || (Date.now() - elapsed * 1000),
+      timerInterval: null,
+      secondsElapsed: elapsed,
+      mode: session.mode || 'chapter',
+      meta: session.meta || {},
+      onComplete: customOnComplete || getDefaultOnComplete(session.mode, session.meta),
+    };
+
+    saveSession();
+    render();
+    startTimer();
+    return true;
   }
 
   /* ---- Timer ---- */
@@ -42,6 +142,10 @@ const TestEngine = (() => {
     state.timerInterval = setInterval(() => {
       state.secondsElapsed++;
       updateTimer();
+      // Periodically sync elapsed time to sessionStorage
+      if (state.secondsElapsed % 5 === 0) {
+        saveSession();
+      }
     }, 1000);
   }
 
@@ -255,6 +359,7 @@ const TestEngine = (() => {
   function goTo(index) {
     if (index >= 0 && index < state.questions.length) {
       state.current = index;
+      saveSession();
       render();
     }
   }
@@ -264,6 +369,7 @@ const TestEngine = (() => {
 
   function selectAnswer(optionIndex) {
     state.answers[state.current] = optionIndex;
+    saveSession();
     render();
   }
 
@@ -273,6 +379,7 @@ const TestEngine = (() => {
     } else {
       state.flagged.add(state.current);
     }
+    saveSession();
     render();
   }
 
@@ -290,6 +397,7 @@ const TestEngine = (() => {
 
   async function submit() {
     stopTimer();
+    clearSession();
 
     const results = buildResults();
 
@@ -506,6 +614,21 @@ const TestEngine = (() => {
   }
 
   /* ---- Public API ---- */
-  return { start, goTo, nextQ, prevQ, selectAnswer, toggleFlag, confirmSubmit, openReportModal, closeReportModal, submitReport };
+  return { 
+    start, 
+    resume, 
+    hasActiveSession, 
+    getActiveSession, 
+    clearSession, 
+    goTo, 
+    nextQ, 
+    prevQ, 
+    selectAnswer, 
+    toggleFlag, 
+    confirmSubmit, 
+    openReportModal, 
+    closeReportModal, 
+    submitReport 
+  };
 
 })();

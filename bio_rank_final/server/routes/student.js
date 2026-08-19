@@ -19,12 +19,16 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
+const ALLOWED_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.webp'];
+const ALLOWED_MIMETYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname) || '.jpg';
+    const rawExt = (path.extname(file.originalname) || '').toLowerCase();
+    const ext = ALLOWED_EXTENSIONS.includes(rawExt) ? rawExt : '.jpg';
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, `avatar-${uniqueSuffix}${ext}`);
   },
@@ -34,10 +38,13 @@ const upload = multer({
   storage,
   limits: { fileSize: 2 * 1024 * 1024 }, // 2MB max
   fileFilter: (req, file, cb) => {
-    if (file.mimetype.startsWith('image/')) {
+    const ext = (path.extname(file.originalname) || '').toLowerCase();
+    const mime = (file.mimetype || '').toLowerCase();
+
+    if (ALLOWED_EXTENSIONS.includes(ext) && ALLOWED_MIMETYPES.includes(mime)) {
       cb(null, true);
     } else {
-      cb(new Error('Only image files are allowed.'));
+      cb(new Error('Invalid image format. Only JPG, PNG, and WEBP images are allowed.'));
     }
   },
 });

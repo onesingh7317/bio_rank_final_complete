@@ -80,7 +80,16 @@ exports.uploadAvatar = async (req, res) => {
     if (req.file) {
       avatarUrl = `/uploads/avatars/${req.file.filename}`;
     } else if (req.body.avatarDataUrl || req.body.avatarUrl) {
-      avatarUrl = req.body.avatarDataUrl || req.body.avatarUrl;
+      const candidate = (req.body.avatarDataUrl || req.body.avatarUrl || '').trim();
+      const isValidDataUri = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(candidate);
+      const isValidHttpUrl = /^https?:\/\/[^\s/$.?#].[^\s]*$/i.test(candidate);
+      const isValidUploadPath = candidate.startsWith('/uploads/avatars/');
+
+      if (isValidDataUri || isValidHttpUrl || isValidUploadPath) {
+        avatarUrl = candidate;
+      } else {
+        return res.status(400).json({ ok: false, error: 'Invalid avatar image URL or format.' });
+      }
     } else {
       return res.status(400).json({ ok: false, error: 'No image file or URL provided.' });
     }
@@ -114,8 +123,9 @@ exports.changePassword = async (req, res) => {
       return res.status(400).json({ ok: false, error: 'Current and new password are required' });
     }
 
-    if (newPassword.length < 6) {
-      return res.status(400).json({ ok: false, error: 'New password must be at least 6 characters long' });
+    const PASSWORD_RE = /^(?=.*[A-Za-z])(?=.*\d).{8,}$/;
+    if (!PASSWORD_RE.test(newPassword)) {
+      return res.status(400).json({ ok: false, error: 'New password must be at least 8 characters long and contain both letters and numbers.' });
     }
 
     const user = await User.findById(userId);

@@ -1,13 +1,18 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || (() => {
-  if (process.env.NODE_ENV === 'production') {
-    throw new Error('FATAL: JWT_SECRET environment variable must be configured in production.');
+const JWT_SECRET = (() => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      console.error('[FATAL] JWT_SECRET is NOT set in production! Server refused to start for security.');
+      throw new Error('FATAL: JWT_SECRET environment variable must be configured in production.');
+    }
+    console.warn(
+      '[auth] WARNING: JWT_SECRET is not set in development environment. Set JWT_SECRET before deploying to production.'
+    );
+    return 'biorank_jwt_secret_dev_key_2024_secure';
   }
-  console.warn(
-    '[auth] WARNING: JWT_SECRET is not set in the environment. Using development fallback. Set JWT_SECRET before deploying to production.'
-  );
-  return 'biorank_jwt_secret_dev_key_2024_secure';
+  return secret;
 })();
 
 /* ============================================================

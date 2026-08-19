@@ -6,7 +6,12 @@
 const ApiClient = (() => {
   const BASE_URL = window.BIO_RANK_API_BASE_URL || 'http://localhost:5000/api';
   const TOKEN_KEY = 'bioready_admin_token';
-  const MOCK_STORAGE_KEY = 'biorank_admin_mock_v1';
+  const MOCK_STORAGE_KEY = 'biorank_admin_mock_v2';
+
+  // Clean up outdated legacy mock storage keys
+  try {
+    localStorage.removeItem('biorank_admin_mock_v1');
+  } catch (e) {}
 
   class ApiError extends Error {
     constructor(message, status, data) {
@@ -34,8 +39,46 @@ const ApiClient = (() => {
       if (raw) {
         try { data = JSON.parse(raw); } catch (e) {}
       }
-      if (!data) {
+      if (!data || !Array.isArray(data.chapters) || data.chapters.length < 30) {
         data = initDefaults();
+        save(data);
+      }
+
+      // Ensure all 32 standard base chapters exist in mock store in exact sequence
+      if (window.DB && Array.isArray(window.DB.rawBaseChapters)) {
+        const existingMap = new Map();
+        (data.chapters || []).forEach((c) => {
+          const id = c._id || c.id;
+          existingMap.set(id, c);
+        });
+
+        const newChapters = [];
+        // 1. Add all 32 base chapters in exact sequence
+        window.DB.rawBaseChapters.forEach((baseCh) => {
+          const existing = existingMap.get(baseCh.id);
+          if (existing && (existing.active === false || existing.isDeleted === true)) {
+            return;
+          }
+          newChapters.push({
+            _id: baseCh.id,
+            name: (existing && existing.name) || baseCh.name,
+            class: (existing && existing.class) || baseCh.class || '11',
+            weightage: (existing && existing.weightage) || baseCh.weightage || 5,
+            icon: (existing && existing.icon) || baseCh.icon || '📘',
+            questionCount: (existing && (existing.questionCount ?? existing.questions)) || baseCh.questions || 0,
+            active: true,
+          });
+          existingMap.delete(baseCh.id);
+        });
+
+        // 2. Add custom admin-created chapters
+        existingMap.forEach((custCh, id) => {
+          if (id.startsWith('ch_') && custCh.active !== false && !custCh.isDeleted) {
+            newChapters.push(custCh);
+          }
+        });
+
+        data.chapters = newChapters;
       }
 
       // Ensure fullLengthTests always exist and questions array is defined
@@ -43,7 +86,7 @@ const ApiClient = (() => {
         data.fullLengthTests = initDefaults().fullLengthTests;
       }
 
-      const dbTests = (window.DB && window.DB.fullLengthTests) || [];
+      const dbTests = (window.DB && (window.DB.rawBaseFullLengthTests || window.DB.fullLengthTests)) || [];
       dbTests.forEach((dt, idx) => {
         const found = data.fullLengthTests.find((t) => t._id === dt.id || t.id === dt.id || t._id === `flt_${idx + 1}`);
         if (!found) {
@@ -71,16 +114,13 @@ const ApiClient = (() => {
 
     function save(data) {
       localStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(data));
+      if (window.DB && typeof window.DB.syncFromAdminStore === 'function') {
+        window.DB.syncFromAdminStore();
+      }
     }
 
     function initDefaults() {
-      const chaptersSource = (window.DB && window.DB.chapters) || [
-        { id: 'ch01', name: 'Cell: The Unit of Life', icon: '🔬', class: '11', weightage: 8 },
-        { id: 'ch02', name: 'Cell Division', icon: '⚙️', class: '11', weightage: 7 },
-        { id: 'ch03', name: 'Biomolecules', icon: '🧬', class: '11', weightage: 7 },
-        { id: 'ch18', name: 'Principles of Inheritance', icon: '🧩', class: '12', weightage: 9 },
-        { id: 'ch19', name: 'Molecular Basis of Inheritance', icon: '🔗', class: '12', weightage: 9 },
-      ];
+      const chaptersSource = (window.DB && (window.DB.rawBaseChapters || window.DB.chapters)) || [];
 
       const chapters = chaptersSource.map((c, idx) => ({
         _id: c.id || `ch_${idx + 1}`,

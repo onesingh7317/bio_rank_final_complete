@@ -52,21 +52,33 @@ const App = (() => {
     // Scroll to top on screen change
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
+    // Sync latest admin store changes into DB before rendering screen
+    if (window.DB && typeof DB.syncFromAdminStore === 'function') {
+      DB.syncFromAdminStore();
+    }
+
     const container = document.getElementById('screen-container');
     if (!container) return;
 
-    // Test screen is handled by TestEngine.start, not a render function
+    // Test screen is handled by TestEngine.start or TestEngine.resume
     if (screen === 'test') {
-      if (data && data.questions) {
+      if (data && data.isResume) {
+        TestEngine.resume(null, data.onComplete);
+      } else if (data && data.questions) {
         TestEngine.start({
           questions: data.questions,
           mode: data.mode || 'chapter',
           meta: data.meta || {},
           onComplete: data.onComplete || ((results) => navigate('result', results)),
         });
+      } else if (window.TestEngine && typeof TestEngine.hasActiveSession === 'function' && TestEngine.hasActiveSession()) {
+        TestEngine.resume();
       } else {
         navigate('home');
+        return;
       }
+      updateNav(screen);
+      updateShellVisibility(screen);
       return;
     }
 
@@ -315,7 +327,13 @@ const App = (() => {
       return;
     }
 
-    const state = (window.State && typeof State.get === 'function') ? State.get() : {};
+    // Check if there is an active test session in progress (e.g. user refreshed the page during a test)
+    if (window.TestEngine && typeof TestEngine.hasActiveSession === 'function' && TestEngine.hasActiveSession()) {
+      isNavigatingFromHash = true;
+      navigate('test', { isResume: true });
+      isNavigatingFromHash = false;
+      return;
+    }
 
     // Allow direct access to public informational routes even before onboarding
     const publicScreens = ['about', 'privacy-policy', 'terms', 'disclaimer', 'help', 'contact'];

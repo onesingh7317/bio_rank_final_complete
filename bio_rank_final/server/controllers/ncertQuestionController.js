@@ -2,6 +2,10 @@ const NcertQuestion = require('../models/NcertQuestion');
 const Chapter = require('../models/Chapter');
 const AuditLog = require('../models/AuditLog');
 
+function escapeRegex(str) {
+  return (str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 async function getNcertQuestions(req, res) {
   try {
     const { chapterId, class: classNum, questionType, difficulty, search, page = 1, limit = 20 } = req.query;
@@ -12,10 +16,11 @@ async function getNcertQuestions(req, res) {
     if (questionType) filter.questionType = questionType;
     if (difficulty) filter.difficulty = difficulty;
     if (search) {
+      const safeSearch = escapeRegex(search.trim());
       filter.$or = [
-        { text: { $regex: search, $options: 'i' } },
-        { topic: { $regex: search, $options: 'i' } },
-        { ncertReference: { $regex: search, $options: 'i' } },
+        { text: { $regex: safeSearch, $options: 'i' } },
+        { topic: { $regex: safeSearch, $options: 'i' } },
+        { ncertReference: { $regex: safeSearch, $options: 'i' } },
       ];
     }
 
@@ -23,13 +28,19 @@ async function getNcertQuestions(req, res) {
     const limitNum = Math.max(1, Math.min(100, parseInt(limit, 10) || 20));
     const skip = (pageNum - 1) * limitNum;
 
+    const isAdmin = req.user && req.user.role === 'admin';
+    let query = NcertQuestion.find(filter)
+      .populate('chapterId', 'name class')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    if (!isAdmin) {
+      query = query.select('-correctOption -explanation');
+    }
+
     const [questions, total] = await Promise.all([
-      NcertQuestion.find(filter)
-        .populate('chapterId', 'name class')
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limitNum)
-        .lean(),
+      query.lean(),
       NcertQuestion.countDocuments(filter),
     ]);
 
@@ -54,7 +65,12 @@ async function getNcertQuestions(req, res) {
 
 async function getNcertQuestionById(req, res) {
   try {
-    const question = await NcertQuestion.findById(req.params.id).populate('chapterId', 'name class');
+    const isAdmin = req.user && req.user.role === 'admin';
+    let query = NcertQuestion.findById(req.params.id).populate('chapterId', 'name class');
+    if (!isAdmin) {
+      query = query.select('-correctOption -explanation');
+    }
+    const question = await query.lean();
     if (!question) {
       return res.status(404).json({ error: 'NCERT question not found.' });
     }

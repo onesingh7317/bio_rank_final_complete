@@ -156,11 +156,6 @@ async function submitTest(req, res) {
       });
     }
 
-    // Handle client pre-calculated override if questions list was empty
-    if (totalQuestions === 0 && clientTotal) {
-      neetScore = clientScore || 0;
-    }
-
     const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const finalTitle = testTitle || meta.testTitle || `${mode.toUpperCase()} Biology Test`;
 
@@ -283,9 +278,17 @@ async function getAttemptById(req, res) {
       return res.status(404).json({ ok: false, error: 'Test attempt not found.' });
     }
 
-    // If user is authenticated, ensure they own the attempt (or allow guest review)
-    if (req.user && attempt.userId && attempt.userId.toString() !== req.user.userId) {
-      return res.status(403).json({ ok: false, error: 'Unauthorized to view this test attempt.' });
+    // If attempt belongs to a registered student, strictly enforce matching authenticated user
+    if (attempt.userId) {
+      if (!req.user || req.user.userId !== attempt.userId.toString()) {
+        return res.status(403).json({ ok: false, error: 'Unauthorized to view this test attempt.' });
+      }
+    } else if (attempt.sessionId) {
+      // If guest attempt, require matching session ID
+      const reqSessionId = req.query.sessionId || req.headers['x-session-id'];
+      if (!reqSessionId || reqSessionId !== attempt.sessionId) {
+        return res.status(403).json({ ok: false, error: 'Unauthorized to view this test attempt.' });
+      }
     }
 
     return res.json({ ok: true, attempt });

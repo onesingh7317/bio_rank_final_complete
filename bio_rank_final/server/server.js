@@ -28,9 +28,33 @@ const path = require('path');
 
 const app = express();
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL,
+  'https://biorank.app',
+  'https://www.biorank.app',
+  'http://localhost:5173',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:5500',
+].filter(Boolean);
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser tools, same-origin, or whitelisted domains
+    if (!origin || allowedOrigins.includes(origin) || process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    return callback(new Error('Cross-Origin Request Blocked by Bio Rank Security Policy.'));
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-session-id'],
+};
+
 app.use(securityHeaders);
 app.use(rateLimiter());
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
