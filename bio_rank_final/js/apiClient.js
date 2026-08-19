@@ -4,7 +4,8 @@
    Mock/Offline fallback when the backend server is not running.
    ============================================================ */
 const ApiClient = (() => {
-  const BASE_URL = window.BIO_RANK_API_BASE_URL || 'http://localhost:5000/api';
+  const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+  const BASE_URL = window.BIO_RANK_API_BASE_URL || (isLocal ? 'http://localhost:5000/api' : 'https://biorank-backend.onrender.com/api');
   const TOKEN_KEY = 'bioready_admin_token';
   const MOCK_STORAGE_KEY = 'biorank_admin_mock_v2';
 

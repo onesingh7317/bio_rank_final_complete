@@ -80,6 +80,20 @@ app.use('/api/admin/feedback', feedbackAdminRoutes);
 app.use('/api/ncert-bio-focus', ncertRoutes);
 app.use('/api/admin/ncert-bio-focus', ncertRoutes);
 
+app.get('/', (req, res) => {
+  res.json({
+    name: 'Bio Rank API Backend',
+    status: 'online',
+    message: 'Bio Rank backend server is live and connected to MongoDB Atlas!',
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      health: '/api/health',
+      chapters: '/api/chapters',
+      questions: '/api/questions'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 5000;
