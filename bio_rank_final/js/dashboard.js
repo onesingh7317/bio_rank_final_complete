@@ -1804,7 +1804,7 @@ function renderPerformance(container) {
           <div class="stat-card">
             <div class="stat-label">Correct Answers</div>
             <div class="stat-value" style="color:var(--success-500);">${perf.correctAnswers}</div>
-            <div class="stat-sub">${Math.round(perf.correctAnswers / perf.questionsAttempted * 100)}% hit rate</div>
+            <div class="stat-sub">${perf.questionsAttempted > 0 ? Math.round(perf.correctAnswers / perf.questionsAttempted * 100) : 0}% hit rate</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Incorrect</div>

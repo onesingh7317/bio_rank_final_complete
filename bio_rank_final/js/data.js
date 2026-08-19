@@ -1286,47 +1286,75 @@ function recordFLTAttempt(testId, results) {
   return prog;
 }
 
-/* ---- Helper: record a completed Chapter Test / Custom Test attempt
-   into the chapter-wise performance trend history (used by the
-   Rank/Performance page graph). Mirrors recordFLTAttempt's role for
-   Full Length Tests. ---- */
+/* ---- Helper: record a completed test attempt into student's real-time performance ---- */
 function recordChapterTestAttempt(results) {
-  if (results.mode !== 'chapter' && results.mode !== 'custom') return;
+  if (!results) return;
   const state = State.get();
-  if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
-  const hist = state.performance.chapterTestHistory;
-  const chapterName = (results.meta && (results.meta.chapterName || results.meta.title)) || 'Custom Test';
+  if (!state.performance) state.performance = {};
+  const perf = state.performance;
+
+  const qCount = results.totalQuestions || (results.questionResults ? results.questionResults.length : 0);
+  const correctCount = results.correct || 0;
+  const wrongCount = results.incorrect || 0;
+  const unattemptedCount = results.unattempted || 0;
+  const acc = results.accuracy !== undefined ? results.accuracy : (qCount > 0 ? Math.round((correctCount / qCount) * 100) : 0);
+
+  // Increment real-time counters
+  perf.testsAttempted = (perf.testsAttempted || 0) + 1;
+  perf.questionsAttempted = (perf.questionsAttempted || 0) + qCount;
+  perf.correctAnswers = (perf.correctAnswers || 0) + correctCount;
+  perf.incorrectAnswers = (perf.incorrectAnswers || 0) + wrongCount;
+  perf.unattempted = (perf.unattempted || 0) + unattemptedCount;
+  perf.overallAccuracy = perf.questionsAttempted > 0 ? Math.round((perf.correctAnswers / perf.questionsAttempted) * 100) : 0;
+
+  // Real-time badge unlocking
+  if (Array.isArray(perf.badges)) {
+    const firstTestBadge = perf.badges.find(b => b.id === 'b02');
+    if (firstTestBadge) firstTestBadge.earned = true;
+
+    if (acc === 100 && qCount >= 5) {
+      const perfectBadge = perf.badges.find(b => b.id === 'b03');
+      if (perfectBadge) perfectBadge.earned = true;
+    }
+  }
+
+  // Chapter Test History
+  if (!perf.chapterTestHistory) perf.chapterTestHistory = [];
+  const hist = perf.chapterTestHistory;
+  const chapterName = (results.meta && (results.meta.chapterName || results.meta.title)) || (results.mode === 'ncert-focus' ? 'NCERT Bio Focus' : 'Practice Test');
 
   hist.push({
     label: `Test ${hist.length + 1}`,
     chapterName,
-    score: results.correct,
-    total: results.totalQuestions,
-    accuracy: results.accuracy,
+    score: correctCount,
+    total: qCount,
+    accuracy: acc,
   });
-  // Cap history length so the chart/graph stays readable and state doesn't grow unbounded
+
   if (hist.length > 30) hist.shift();
 
-  state.performance.chapterTestHistory = hist;
+  // Weekly Trend Update
+  if (!Array.isArray(perf.weeklyProgress) || perf.weeklyProgress.length === 0) {
+    perf.weeklyProgress = [acc];
+  } else {
+    perf.weeklyProgress.push(acc);
+    if (perf.weeklyProgress.length > 7) perf.weeklyProgress.shift();
+  }
+
   State.save(state);
   return hist;
 }
 
 /* ---- Helper: chronological Chapter-wise Test performance trend for
-   the Performance page graph. Uses real recorded attempts once the
-   student has taken chapter tests; falls back to demo seed data so the
-   graph isn't empty on first visit. ---- */
+   the Performance page graph. Returns real recorded attempts. ---- */
 function getChapterTestTrend(limit = 12) {
   const state = State.get();
   const real = (state.performance && state.performance.chapterTestHistory) || [];
-  const source = real.length > 0 ? real : DB.performance.chapterTestHistorySeed;
-  return source.slice(-limit);
+  return real.slice(-limit);
 }
 
 /* ---- Helper: chronological Full-Length Test performance trend for
-   the Performance page graph. Flattens each Full Length Test's latest
-   attempt (recorded via recordFLTAttempt) in test order; falls back to
-   demo seed data when nothing has been attempted yet. ---- */
+   the Performance page graph. ---- */
 function getFullLengthTestTrend() {
   const state = State.get();
   const real = [];
@@ -1343,7 +1371,7 @@ function getFullLengthTestTrend() {
       });
     }
   });
-  return real.length > 0 ? real : DB.performance.fullLengthHistorySeed;
+  return real;
 }
 
 /* ---- LocalStorage State ---- */
@@ -1354,14 +1382,12 @@ const State = {
     try {
       const raw = localStorage.getItem(this.KEY);
       const state = raw ? JSON.parse(raw) : this.defaultState();
-      // Migration: older saved sessions won't have these fields yet.
-      if (!state.spacedReviewPool) {
-        state.spacedReviewPool = DB.spacedReviewSeed.map(s => ({ ...s, status: 'active', wrongDate: Date.now() }));
-      }
+      if (!state.spacedReviewPool) state.spacedReviewPool = [];
       if (!state.masteredPool) state.masteredPool = [];
       if (!state.fullLengthTests) state.fullLengthTests = {};
       if (!state.mistakeReasons) state.mistakeReasons = {};
-      if (state.performance && !state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
+      if (!state.performance) state.performance = this.defaultState().performance;
+      if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
       return state;
     } catch {
       return this.defaultState();
@@ -1387,15 +1413,41 @@ const State = {
     return {
       configured: false,
       foundationDone: false,
-      student: { ...DB.defaultStudent },
-      performance: { ...DB.performance },
-      weaknessMap: JSON.parse(JSON.stringify(DB.weaknessMap)),
-      spacedRetests: JSON.parse(JSON.stringify(DB.spacedRetestSchedule)),
-      spacedReviewPool: DB.spacedReviewSeed.map(s => ({
-        ...s,
-        status: 'active',
-        wrongDate: Date.now(),
-      })),
+      student: {
+        name: '',
+        classLevel: '12th',
+        targetYear: '2025',
+        board: 'CBSE',
+        studyHoursPerDay: '4',
+        confidence: 'Intermediate',
+      },
+      performance: {
+        overallAccuracy: 0,
+        testsAttempted: 0,
+        questionsAttempted: 0,
+        correctAnswers: 0,
+        incorrectAnswers: 0,
+        unattempted: 0,
+        currentStreak: 1,
+        longestStreak: 1,
+        rank: 1,
+        totalStudents: 1,
+        percentile: 100,
+        weeklyProgress: [0],
+        badges: [
+          { id: 'b01', name: '7-Day Streak',   icon: '🔥', earned: false },
+          { id: 'b02', name: 'First Test',     icon: '⭐', earned: false },
+          { id: 'b03', name: 'Perfect Score',  icon: '💯', earned: false },
+          { id: 'b04', name: 'Top 1%',         icon: '🏆', earned: false },
+          { id: 'b05', name: 'Speed Demon',    icon: '⚡', earned: false },
+          { id: 'b06', name: 'Consistent',     icon: '📈', earned: false },
+        ],
+        chapterProgress: {},
+        chapterTestHistory: [],
+      },
+      weaknessMap: [],
+      spacedRetests: [],
+      spacedReviewPool: [],
       masteredPool: [],
       fullLengthTests: {},
       ncertProgress: {},
