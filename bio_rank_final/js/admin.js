@@ -1459,12 +1459,43 @@ function adminReportRow(r) {
 }
 
 function adminAuditRow(a) {
-  const actor = a.userId ? (a.userId.name || a.userId.username) : 'Unknown';
-  const when = new Date(a.createdAt).toLocaleString();
+  const actor = (a.userId && typeof a.userId === 'object' ? (a.userId.name || a.userId.username) : a.actorName) || (a.user ? a.user.username : 'Admin');
+  const when = a.createdAt ? new Date(a.createdAt).toLocaleString() : 'Just now';
+  const action = String(a.action || '').toLowerCase();
+  const entityType = a.entityType || 'item';
+  const entityName = a.entityName || (a.details && (a.details.name || a.details.title)) || '';
+
+  let actionBadge = `<span class="badge badge-neutral" style="font-size:11px;">${action.toUpperCase()}</span>`;
+  let description = '';
+
+  if (action === 'login' || action === 'logind') {
+    actionBadge = `<span class="badge badge-primary" style="font-size:11px;">🔑 LOGIN</span>`;
+    description = `logged into Admin Panel`;
+  } else if (action === 'create') {
+    actionBadge = `<span class="badge badge-success" style="font-size:11px;">+ CREATE</span>`;
+    description = `created ${entityType}${entityName ? ` "<strong>${escapeHtml(entityName)}</strong>"` : ''}`;
+  } else if (action === 'update') {
+    actionBadge = `<span class="badge badge-warning" style="font-size:11px;">✏️ UPDATE</span>`;
+    description = `updated ${entityType}${entityName ? ` "<strong>${escapeHtml(entityName)}</strong>"` : ''}`;
+  } else if (action === 'delete') {
+    actionBadge = `<span class="badge badge-error" style="font-size:11px;">🗑️ DELETE</span>`;
+    description = `deleted ${entityType}${entityName ? ` "<strong>${escapeHtml(entityName)}</strong>"` : ''}`;
+  } else if (action === 'import') {
+    actionBadge = `<span class="badge badge-primary" style="font-size:11px;">📥 IMPORT</span>`;
+    description = `imported CSV questions`;
+  } else {
+    description = `performed ${action} on ${entityType}`;
+  }
+
   return `
-    <div class="card" style="margin-bottom:var(--sp-2);font-size:var(--text-sm);">
-      <strong>${escapeHtml(actor)}</strong> ${a.action}d a <strong>${a.entityType}</strong>
-      <span style="color:var(--neutral-500);"> &middot; ${when}</span>
+    <div class="card" style="margin-bottom:var(--sp-2);padding:var(--sp-3);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:var(--sp-2);border-left:4px solid var(--primary-500);">
+      <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;font-size:var(--text-sm);">
+        ${actionBadge}
+        <span><strong>${escapeHtml(actor)}</strong> ${description}</span>
+      </div>
+      <div style="font-size:var(--text-xs);color:var(--neutral-500);white-space:nowrap;">
+        ⏱️ ${when}
+      </div>
     </div>
   `;
 }
