@@ -853,28 +853,28 @@ const DB = {
     },
   ],
 
-  /* ---- Mock Performance & Ranking --- */
+  /* ---- Initial Student Performance Template --- */
   performance: {
     studentName: '',
-    overallAccuracy: 68,
-    testsAttempted: 12,
-    questionsAttempted: 340,
-    correctAnswers: 231,
-    incorrectAnswers: 78,
-    unattempted: 31,
-    currentStreak: 5,
-    longestStreak: 9,
-    rank: 142,
-    totalStudents: 8540,
-    percentile: 98.3,
-    weeklyProgress: [52, 58, 63, 61, 68, 72, 68],
+    overallAccuracy: 0,
+    testsAttempted: 0,
+    questionsAttempted: 0,
+    correctAnswers: 0,
+    incorrectAnswers: 0,
+    unattempted: 0,
+    currentStreak: 1,
+    longestStreak: 1,
+    rank: 1,
+    totalStudents: 1,
+    percentile: 100,
+    weeklyProgress: [0],
     badges: [
-      { id: 'b01', name: '7-Day Streak',   icon: '🔥', earned: true  },
-      { id: 'b02', name: 'First Test',     icon: '⭐', earned: true  },
+      { id: 'b01', name: '7-Day Streak',   icon: '🔥', earned: false },
+      { id: 'b02', name: 'First Test',     icon: '⭐', earned: false },
       { id: 'b03', name: 'Perfect Score',  icon: '💯', earned: false },
       { id: 'b04', name: 'Top 1%',         icon: '🏆', earned: false },
       { id: 'b05', name: 'Speed Demon',    icon: '⚡', earned: false },
-      { id: 'b06', name: 'Consistent',     icon: '📈', earned: true  },
+      { id: 'b06', name: 'Consistent',     icon: '📈', earned: false },
     ],
     chapterProgress: {
       'ch24': 72, 'ch23': 65, 'ch11': 48, 'ch18': 55, 'ch19': 61,
@@ -1374,6 +1374,35 @@ function getFullLengthTestTrend() {
   return real;
 }
 
+function updateDailyStreak(state) {
+  if (!state || !state.performance) return;
+  const perf = state.performance;
+  const now = new Date();
+  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+  if (!perf.lastActiveDate) {
+    perf.currentStreak = 1;
+    perf.longestStreak = Math.max(perf.longestStreak || 1, 1);
+    perf.lastActiveDate = todayStr;
+    return;
+  }
+
+  if (perf.lastActiveDate === todayStr) {
+    return;
+  }
+
+  const last = new Date(perf.lastActiveDate);
+  const diffDays = Math.round((now.getTime() - last.getTime()) / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 1) {
+    perf.currentStreak = (perf.currentStreak || 0) + 1;
+  } else if (diffDays > 1) {
+    perf.currentStreak = 1;
+  }
+  perf.longestStreak = Math.max(perf.longestStreak || 1, perf.currentStreak);
+  perf.lastActiveDate = todayStr;
+}
+
 /* ---- LocalStorage State ---- */
 const State = {
   KEY: 'bioready_v1',
@@ -1388,6 +1417,7 @@ const State = {
       if (!state.mistakeReasons) state.mistakeReasons = {};
       if (!state.performance) state.performance = this.defaultState().performance;
       if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
+      updateDailyStreak(state);
       return state;
     } catch {
       return this.defaultState();
