@@ -310,23 +310,18 @@ const TestEngine = (() => {
             </div>
 
             <!-- Nav buttons -->
-            <div class="test-nav">
-              <div style="display:flex;gap:var(--sp-2);">
-                <button class="btn btn-secondary btn-sm" onclick="TestEngine.prevQ()" ${state.current === 0 ? 'disabled' : ''}>
-                  ← Prev
-                </button>
-                <button class="btn btn-secondary btn-sm" onclick="TestEngine.nextQ()" ${state.current === totalQ - 1 ? 'disabled' : ''}>
-                  Next →
-                </button>
-              </div>
-              <div style="display:flex;gap:var(--sp-2);">
-                <button class="btn btn-ghost btn-sm" onclick="TestEngine.toggleFlag()">
-                  ${state.flagged.has(state.current) ? '🚩 Flagged' : '⚑ Flag'}
-                </button>
-                <button class="btn btn-primary" onclick="TestEngine.confirmSubmit()">
-                  Submit Test
-                </button>
-              </div>
+            <div class="test-nav" style="display:flex;justify-content:space-between;align-items:center;margin-top:var(--sp-4);">
+              <button class="btn btn-secondary btn-sm" onclick="TestEngine.prevQ()" ${state.current === 0 ? 'disabled' : ''} style="display:flex;align-items:center;gap:4px;">
+                ← Previous
+              </button>
+
+              <button class="btn btn-ghost btn-sm" onclick="TestEngine.toggleFlag()" style="font-weight:600;">
+                ${state.flagged.has(state.current) ? '🚩 Flagged' : '⚑ Mark Review'}
+              </button>
+
+              <button class="btn btn-primary btn-sm" onclick="TestEngine.nextQ()" ${state.current === totalQ - 1 ? 'disabled' : ''} style="display:flex;align-items:center;gap:4px;font-weight:700;padding:var(--sp-2) var(--sp-5);">
+                Next Question →
+              </button>
             </div>
           </div>
 
@@ -344,9 +339,19 @@ const TestEngine = (() => {
                 }).join('')}
               </div>
               <div class="palette-legend">
-                <div class="legend-item"><div class="legend-dot answered"></div> Answered (${Object.keys(state.answers).length})</div>
-                <div class="legend-item"><div class="legend-dot unanswered"></div> Unanswered</div>
+                <div class="legend-item"><div class="legend-dot answered"></div> Answered (${answeredCount})</div>
+                <div class="legend-item"><div class="legend-dot unanswered"></div> Unanswered (${totalQ - answeredCount})</div>
                 <div class="legend-item"><div class="legend-dot current"></div> Current</div>
+              </div>
+
+              <!-- Submit Test Button in Question Palette -->
+              <div style="margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:1px solid var(--neutral-200);">
+                <button class="btn btn-primary btn-block" style="font-weight:800;font-size:var(--text-sm);padding:11px 16px;box-shadow:0 4px 14px rgba(16,185,129,0.25);display:flex;align-items:center;justify-content:center;gap:6px;" onclick="TestEngine.confirmSubmit()">
+                  <span>✅</span> <span>Submit Test</span>
+                </button>
+                <div style="font-size:11px;color:var(--neutral-500);text-align:center;margin-top:6px;font-weight:600;">
+                  ${answeredCount} of ${totalQ} Attempted
+                </div>
               </div>
             </div>
 
