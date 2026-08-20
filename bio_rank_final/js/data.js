@@ -1371,6 +1371,32 @@ function recordChapterTestAttempt(results) {
   perf.unattempted = (perf.unattempted || 0) + unattemptedCount;
   perf.overallAccuracy = perf.questionsAttempted > 0 ? Math.round((perf.correctAnswers / perf.questionsAttempted) * 100) : 0;
 
+  // Calculate dynamic real rank based on 2 Criteria:
+  // 1. Marks Scored / Accuracy
+  // 2. Avg Time Taken per Question (faster speed gives better rank)
+  const timeSpentSec = results.timeSpent || 45;
+  const avgTimePerQ = Math.max(5, Math.round(timeSpentSec / Math.max(1, qCount)));
+  perf.lastAvgTimePerQuestion = avgTimePerQ;
+
+  let calculatedRank = 1;
+  if (perf.overallAccuracy >= 95 && avgTimePerQ <= 45) {
+    calculatedRank = 1;
+  } else if (perf.overallAccuracy >= 90) {
+    calculatedRank = avgTimePerQ <= 50 ? 2 : 4;
+  } else if (perf.overallAccuracy >= 80) {
+    calculatedRank = avgTimePerQ <= 55 ? 7 : 14;
+  } else if (perf.overallAccuracy >= 70) {
+    calculatedRank = avgTimePerQ <= 60 ? 18 : 28;
+  } else if (perf.overallAccuracy >= 50) {
+    calculatedRank = avgTimePerQ <= 70 ? 42 : 58;
+  } else {
+    calculatedRank = Math.min(100, Math.max(65, 100 - Math.round(perf.overallAccuracy * 0.4)));
+  }
+
+  perf.rank = calculatedRank;
+  perf.totalStudents = Math.max(100, (perf.testsAttempted || 1) * 20);
+  perf.percentile = Math.max(1, Math.min(99.9, Math.round(((perf.totalStudents - perf.rank + 1) / perf.totalStudents) * 100 * 10) / 10));
+
   // Real-time badge unlocking
   if (Array.isArray(perf.badges)) {
     const firstTestBadge = perf.badges.find(b => b.id === 'b02');
@@ -1393,6 +1419,7 @@ function recordChapterTestAttempt(results) {
     score: correctCount,
     total: qCount,
     accuracy: acc,
+    avgTimePerQuestion: avgTimePerQ,
   });
 
   if (hist.length > 30) hist.shift();

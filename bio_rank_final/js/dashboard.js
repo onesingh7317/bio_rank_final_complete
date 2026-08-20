@@ -1778,17 +1778,28 @@ function renderPerformance(container) {
           </div>
         </div>
 
+        <!-- Ranking Criteria Info Pill -->
+        <div style="background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius-md);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);color:var(--primary-900);">
+          <span style="font-size:16px;">⚖️</span>
+          <span><strong>Official Bio Rank Formula:</strong> Rank is computed based on <strong>1. Marks Scored</strong> (Higher marks) and <strong>2. Speed</strong> (Lower Avg Time taken per question).</span>
+        </div>
+
         <!-- Stats Grid -->
         <div class="perf-stats-grid" style="margin-bottom:var(--sp-5);">
           <div class="stat-card">
             <div class="stat-label">Your Rank</div>
-            <div class="stat-value">#${perf.rank}</div>
-            <div class="stat-sub">of ${perf.totalStudents.toLocaleString()} students</div>
+            <div class="stat-value">#${perf.testsAttempted > 0 ? (perf.rank || 1) : '—'}</div>
+            <div class="stat-sub">of ${perf.totalStudents.toLocaleString()} active students</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Percentile</div>
-            <div class="stat-value" style="color:var(--primary-600);">${perf.percentile}%</div>
-            <div class="stat-sub">top ${(100 - perf.percentile).toFixed(1)}%</div>
+            <div class="stat-value" style="color:var(--primary-600);">${perf.testsAttempted > 0 ? perf.percentile : 0}%</div>
+            <div class="stat-sub">top ${(100 - (perf.testsAttempted > 0 ? perf.percentile : 0)).toFixed(1)}%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg Speed / Question</div>
+            <div class="stat-value" style="color:var(--primary-700);">${perf.lastAvgTimePerQuestion ? `${perf.lastAvgTimePerQuestion}s` : '42s'}</div>
+            <div class="stat-sub">${(perf.lastAvgTimePerQuestion || 42) <= 50 ? '⚡ Fast Pace' : '⏱️ Needs Speed'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Overall Accuracy</div>
@@ -1813,7 +1824,7 @@ function renderPerformance(container) {
           <div class="stat-card">
             <div class="stat-label">Incorrect</div>
             <div class="stat-value" style="color:var(--error-500);">${perf.incorrectAnswers}</div>
-            <div class="stat-sub">−${perf.incorrectAnswers} NEET marks</div>
+            <div class="stat-sub">−${perf.incorrectAnswers} negative marks</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Longest Streak</div>

@@ -82,7 +82,9 @@ exports.getPerformance = async (req, res) => {
     ]);
 
     // 3. Global Rank & Percentile Calculation Engine
-    // Ranks all students by cumulative score & accuracy
+    // Ranks all students by:
+    // Criteria 1: Marks Scored (totalScore DESC)
+    // Criteria 2: Avg Time Taken Per Question (avgTimePerQuestion ASC - faster solver wins)
     const allStudentStandings = await TestAttempt.aggregate([
       { $match: { userId: { $ne: null } } },
       {
@@ -90,7 +92,19 @@ exports.getPerformance = async (req, res) => {
           _id: '$userId',
           totalTests: { $sum: 1 },
           totalScore: { $sum: '$score' },
-          totalPossible: { $sum: '$total' },
+          totalQuestions: { $sum: { $ifNull: ['$totalQuestions', 0] } },
+          totalTimeTaken: { $sum: { $ifNull: ['$timeTakenSeconds', 0] } },
+          totalCorrect: { $sum: { $ifNull: ['$correct', 0] } },
+          totalIncorrect: { $sum: { $ifNull: ['$incorrect', 0] } },
+          totalPossible: {
+            $sum: {
+              $cond: [
+                { $gt: ['$totalQuestions', 0] },
+                { $multiply: ['$totalQuestions', 4] },
+                { $ifNull: ['$total', 0] },
+              ],
+            },
+          },
         },
       },
       {
@@ -98,16 +112,33 @@ exports.getPerformance = async (req, res) => {
           userId: '$_id',
           totalTests: 1,
           totalScore: 1,
+          totalQuestions: 1,
+          totalTimeTaken: 1,
+          avgTimePerQuestion: {
+            $cond: [
+              { $gt: ['$totalQuestions', 0] },
+              { $round: [{ $divide: ['$totalTimeTaken', '$totalQuestions'] }, 1] },
+              999,
+            ],
+          },
           accuracy: {
             $cond: [
-              { $gt: ['$totalPossible', 0] },
-              { $multiply: [{ $divide: ['$totalScore', '$totalPossible'] }, 100] },
+              { $gt: ['$totalQuestions', 0] },
+              { $multiply: [{ $divide: ['$totalCorrect', '$totalQuestions'] }, 100] },
               0,
             ],
           },
+          totalIncorrect: 1,
         },
       },
-      { $sort: { totalScore: -1, accuracy: -1, totalTests: -1 } },
+      {
+        $sort: {
+          totalScore: -1,          // 1. Higher Marks Scored (Criteria 1)
+          avgTimePerQuestion: 1,   // 2. Lower Avg Time Taken Per Question (Criteria 2)
+          accuracy: -1,            // 3. Higher Accuracy
+          totalIncorrect: 1,       // 4. Lesser Negative Marks
+        },
+      },
     ]);
 
     let rank = 0;
@@ -165,7 +196,9 @@ exports.getPerformance = async (req, res) => {
 
 /* ============================================================
    GET /api/user/performance/leaderboard
-   Returns the global top students leaderboard.
+   Returns the global top students leaderboard based on:
+   1. Marks Scored (totalScore DESC)
+   2. Avg Time Per Question (avgTimePerQuestion ASC)
    ============================================================ */
 exports.getLeaderboard = async (req, res) => {
   try {
@@ -179,7 +212,19 @@ exports.getLeaderboard = async (req, res) => {
           _id: '$userId',
           totalTests: { $sum: 1 },
           totalScore: { $sum: '$score' },
-          totalPossible: { $sum: '$total' },
+          totalQuestions: { $sum: { $ifNull: ['$totalQuestions', 0] } },
+          totalTimeTaken: { $sum: { $ifNull: ['$timeTakenSeconds', 0] } },
+          totalCorrect: { $sum: { $ifNull: ['$correct', 0] } },
+          totalIncorrect: { $sum: { $ifNull: ['$incorrect', 0] } },
+          totalPossible: {
+            $sum: {
+              $cond: [
+                { $gt: ['$totalQuestions', 0] },
+                { $multiply: ['$totalQuestions', 4] },
+                { $ifNull: ['$total', 0] },
+              ],
+            },
+          },
         },
       },
       {
@@ -187,16 +232,33 @@ exports.getLeaderboard = async (req, res) => {
           userId: '$_id',
           totalTests: 1,
           totalScore: 1,
+          totalQuestions: 1,
+          totalTimeTaken: 1,
+          avgTimePerQuestion: {
+            $cond: [
+              { $gt: ['$totalQuestions', 0] },
+              { $round: [{ $divide: ['$totalTimeTaken', '$totalQuestions'] }, 1] },
+              999,
+            ],
+          },
           accuracy: {
             $cond: [
-              { $gt: ['$totalPossible', 0] },
-              { $round: [{ $multiply: [{ $divide: ['$totalScore', '$totalPossible'] }, 100] }, 1] },
+              { $gt: ['$totalQuestions', 0] },
+              { $round: [{ $multiply: [{ $divide: ['$totalCorrect', '$totalQuestions'] }, 100] }, 1] },
               0,
             ],
           },
+          totalIncorrect: 1,
         },
       },
-      { $sort: { totalScore: -1, accuracy: -1 } },
+      {
+        $sort: {
+          totalScore: -1,          // Criteria 1: Marks Scored
+          avgTimePerQuestion: 1,   // Criteria 2: Avg Time Per Question
+          accuracy: -1,            // Tie-breaker: Accuracy
+          totalIncorrect: 1,       // Tie-breaker: Fewer wrong answers
+        },
+      },
       { $limit: limitNum },
     ]);
 
