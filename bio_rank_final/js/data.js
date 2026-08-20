@@ -1362,6 +1362,8 @@ function recordChapterTestAttempt(results) {
   const wrongCount = results.incorrect || 0;
   const unattemptedCount = results.unattempted || 0;
   const acc = results.accuracy !== undefined ? results.accuracy : (qCount > 0 ? Math.round((correctCount / qCount) * 100) : 0);
+  const timeSpentSec = results.timeSpent || 45;
+  const avgTimePerQ = Math.max(5, Math.round(timeSpentSec / Math.max(1, qCount)));
 
   // Increment real-time counters
   perf.testsAttempted = (perf.testsAttempted || 0) + 1;
@@ -1369,44 +1371,7 @@ function recordChapterTestAttempt(results) {
   perf.correctAnswers = (perf.correctAnswers || 0) + correctCount;
   perf.incorrectAnswers = (perf.incorrectAnswers || 0) + wrongCount;
   perf.unattempted = (perf.unattempted || 0) + unattemptedCount;
-  perf.overallAccuracy = perf.questionsAttempted > 0 ? Math.round((perf.correctAnswers / perf.questionsAttempted) * 100) : 0;
-
-  // Calculate dynamic real rank based on 2 Criteria:
-  // 1. Marks Scored / Accuracy
-  // 2. Avg Time Taken per Question (faster speed gives better rank)
-  const timeSpentSec = results.timeSpent || 45;
-  const avgTimePerQ = Math.max(5, Math.round(timeSpentSec / Math.max(1, qCount)));
   perf.lastAvgTimePerQuestion = avgTimePerQ;
-
-  let calculatedRank = 1;
-  if (perf.overallAccuracy >= 95 && avgTimePerQ <= 45) {
-    calculatedRank = 1;
-  } else if (perf.overallAccuracy >= 90) {
-    calculatedRank = avgTimePerQ <= 50 ? 2 : 4;
-  } else if (perf.overallAccuracy >= 80) {
-    calculatedRank = avgTimePerQ <= 55 ? 7 : 14;
-  } else if (perf.overallAccuracy >= 70) {
-    calculatedRank = avgTimePerQ <= 60 ? 18 : 28;
-  } else if (perf.overallAccuracy >= 50) {
-    calculatedRank = avgTimePerQ <= 70 ? 42 : 58;
-  } else {
-    calculatedRank = Math.min(100, Math.max(65, 100 - Math.round(perf.overallAccuracy * 0.4)));
-  }
-
-  perf.rank = calculatedRank;
-  perf.totalStudents = Math.max(100, (perf.testsAttempted || 1) * 20);
-  perf.percentile = Math.max(1, Math.min(99.9, Math.round(((perf.totalStudents - perf.rank + 1) / perf.totalStudents) * 100 * 10) / 10));
-
-  // Real-time badge unlocking
-  if (Array.isArray(perf.badges)) {
-    const firstTestBadge = perf.badges.find(b => b.id === 'b02');
-    if (firstTestBadge) firstTestBadge.earned = true;
-
-    if (acc === 100 && qCount >= 5) {
-      const perfectBadge = perf.badges.find(b => b.id === 'b03');
-      if (perfectBadge) perfectBadge.earned = true;
-    }
-  }
 
   // Chapter Test History
   if (!perf.chapterTestHistory) perf.chapterTestHistory = [];
@@ -1419,6 +1384,7 @@ function recordChapterTestAttempt(results) {
     score: correctCount,
     total: qCount,
     accuracy: acc,
+    timeSpent: timeSpentSec,
     avgTimePerQuestion: avgTimePerQ,
   });
 
@@ -1431,6 +1397,9 @@ function recordChapterTestAttempt(results) {
     perf.weeklyProgress.push(acc);
     if (perf.weeklyProgress.length > 7) perf.weeklyProgress.shift();
   }
+
+  // Re-calculate all real-time stats cleanly
+  computeRealTimePerformance(state);
 
   State.save(state);
   return hist;
@@ -1638,12 +1607,23 @@ const State = {
       if (!state.performance) state.performance = this.defaultState().performance;
       if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
 
-      // Auto-sanitize legacy mock streak values (e.g. 9 or 5 from old template)
+      // Auto-sanitize legacy mock values (e.g. 100 students, 85 rank, 9 streak from old templates)
       if (state.performance) {
         if (!state.performance.testsAttempted || state.performance.testsAttempted === 0) {
+          state.performance.rank = null;
+          state.performance.percentile = 0;
+          state.performance.totalStudents = 1;
           state.performance.longestStreak = state.performance.currentStreak || 1;
-        } else if (state.performance.longestStreak === 9 || state.performance.longestStreak > 30) {
-          state.performance.longestStreak = state.performance.currentStreak || 1;
+        } else {
+          // If in local/single testing mode, reset to exact 1 active student
+          if (!window._liveTotalStudents && (state.performance.totalStudents >= 10 || state.performance.rank > 10)) {
+            state.performance.totalStudents = 1;
+            state.performance.rank = 1;
+            state.performance.percentile = 100;
+          }
+          if (state.performance.longestStreak === 9 || state.performance.longestStreak > 30) {
+            state.performance.longestStreak = state.performance.currentStreak || 1;
+          }
         }
       }
 
