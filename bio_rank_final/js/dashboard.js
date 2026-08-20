@@ -17,16 +17,19 @@ function renderConfig(container) {
 
   container.innerHTML = `
     <div class="config-screen-wrap">
-      <!-- Animated Bio-Molecules Rain Background -->
+      <!-- Animated Bio-Molecules Rain Background (Vibrant Stream) -->
       <div class="bio-rain-container" aria-hidden="true">
-        <span class="bio-drop" style="left:5%; animation-duration:8.5s; animation-delay:0s; font-size:26px; --sway:35px;">🧬</span>
-        <span class="bio-drop" style="left:16%; animation-duration:11s; animation-delay:2.5s; font-size:22px; --sway:-25px;">🍃</span>
-        <span class="bio-drop" style="left:28%; animation-duration:9.5s; animation-delay:1s; font-size:20px; --sway:30px;">💧</span>
-        <span class="bio-drop" style="left:42%; animation-duration:13s; animation-delay:4s; font-size:18px; --sway:-20px;">✨</span>
-        <span class="bio-drop" style="left:56%; animation-duration:8s; animation-delay:0.5s; font-size:28px; --sway:40px;">🧬</span>
-        <span class="bio-drop" style="left:70%; animation-duration:10.5s; animation-delay:3s; font-size:24px; --sway:-30px;">🌿</span>
-        <span class="bio-drop" style="left:82%; animation-duration:9s; animation-delay:1.8s; font-size:22px; --sway:25px;">🔬</span>
-        <span class="bio-drop" style="left:92%; animation-duration:12s; animation-delay:5s; font-size:20px; --sway:-15px;">✨</span>
+        <span class="bio-drop" style="left:4%; animation-duration:7.5s; animation-delay:0s; font-size:32px; --sway:45px;">🧬</span>
+        <span class="bio-drop pill-tag" style="left:12%; animation-duration:9s; animation-delay:1.5s; --sway:-30px;">🌿 NCERT 360</span>
+        <span class="bio-drop" style="left:22%; animation-duration:8s; animation-delay:3s; font-size:26px; --sway:35px;">🍃</span>
+        <span class="bio-drop" style="left:32%; animation-duration:10s; animation-delay:0.8s; font-size:24px; --sway:-40px;">💧</span>
+        <span class="bio-drop pill-tag" style="left:40%; animation-duration:11.5s; animation-delay:2.2s; --sway:25px;">⚡ CUET +5/−1</span>
+        <span class="bio-drop" style="left:50%; animation-duration:7s; animation-delay:0.2s; font-size:34px; --sway:50px;">🧬</span>
+        <span class="bio-drop" style="left:60%; animation-duration:9.5s; animation-delay:4s; font-size:28px; --sway:-35px;">🔬</span>
+        <span class="bio-drop pill-tag" style="left:68%; animation-duration:10s; animation-delay:1.2s; --sway:30px;">🎯 Bio Rank #1</span>
+        <span class="bio-drop" style="left:78%; animation-duration:8.5s; animation-delay:2.8s; font-size:30px; --sway:-45px;">🧬</span>
+        <span class="bio-drop" style="left:88%; animation-duration:7.8s; animation-delay:0.6s; font-size:26px; --sway:35px;">🌿</span>
+        <span class="bio-drop" style="left:95%; animation-duration:10.5s; animation-delay:3.5s; font-size:24px; --sway:-25px;">✨</span>
       </div>
 
       <div class="config-screen">
