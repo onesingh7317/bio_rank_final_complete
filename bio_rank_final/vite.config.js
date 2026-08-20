@@ -31,8 +31,8 @@ export default defineConfig({
         copyDirSync(jsSrc, jsDest);
         copyDirSync(cssSrc, cssDest);
 
-        // Copy robots.txt and sitemap.xml to dist
-        ['robots.txt', 'sitemap.xml'].forEach(file => {
+        // Copy images and metadata files to dist
+        ['robots.txt', 'sitemap.xml', 'logo-square.jpg', 'logo.jpg', 'logo-horizontal.jpg', 'favicon.jpg'].forEach(file => {
           const srcFile = path.resolve(__dirname, file);
           const destFile = path.join(distDir, file);
           if (fs.existsSync(srcFile)) {

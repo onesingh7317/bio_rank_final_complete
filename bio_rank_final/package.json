@@ -5,9 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm --prefix server install",
+    "build": "echo 'Bio Rank Build Ready'",
     "start": "node server/server.js",
     "server": "node server/server.js",
+    "server:install": "npm --prefix server install",
     "preview": "vite preview"
   },
   "dependencies": {
