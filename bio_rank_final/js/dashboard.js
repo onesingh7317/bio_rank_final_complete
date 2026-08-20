@@ -1747,7 +1747,7 @@ function renderPerformance(container) {
             <div class="profile-avatar">${initial}</div>
             <div class="profile-name-area">
               <div class="profile-name">${name}</div>
-              <div class="profile-rank">Bio Rank: <strong>#${perf.rank}</strong></div>
+              <div class="profile-rank">Bio Rank: <strong>${(perf.testsAttempted > 0 && perf.rank) ? `#${perf.rank}` : '— (Take 1st Test)'}</strong></div>
             </div>
           </div>
           <div class="profile-stats">

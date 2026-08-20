@@ -1509,6 +1509,19 @@ const State = {
       if (!state.mistakeReasons) state.mistakeReasons = {};
       if (!state.performance) state.performance = this.defaultState().performance;
       if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
+
+      // Auto-sanitize: If student has 0 tests attempted, rank is strictly unassigned (#—)
+      if (!state.performance.testsAttempted || state.performance.testsAttempted === 0) {
+        state.performance.rank = null;
+        state.performance.percentile = 0;
+        state.performance.totalStudents = 1;
+      } else if (state.performance.rank === 142 || !state.performance.rank) {
+        // Reset legacy mock rank to real calculated rank #1
+        state.performance.rank = 1;
+        state.performance.totalStudents = Math.max(1, state.performance.testsAttempted);
+        state.performance.percentile = 100;
+      }
+
       updateDailyStreak(state);
       return state;
     } catch {
@@ -1565,9 +1578,9 @@ const State = {
         unattempted: 0,
         currentStreak: 1,
         longestStreak: 1,
-        rank: 1,
+        rank: null,
         totalStudents: 1,
-        percentile: 100,
+        percentile: 0,
         weeklyProgress: [0],
         badges: [
           { id: 'b01', name: '7-Day Streak',   icon: '🔥', earned: false },
