@@ -1081,6 +1081,66 @@ img { max-width: 100%; display: block; }
   box-shadow: 0 24px 48px -12px rgba(6, 78, 59, 0.18), 0 0 0 1px rgba(16, 185, 129, 0.08);
 }
 
+/* Auth Tab Switcher & Password Toggles */
+.auth-tab-bar {
+  display: flex;
+  background: var(--neutral-100);
+  border-radius: var(--radius-lg);
+  padding: 4px;
+  margin-bottom: var(--sp-5);
+  border: 1px solid var(--neutral-200);
+}
+
+.auth-tab-btn {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 9px 14px;
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--neutral-600);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.auth-tab-btn.active {
+  background: #ffffff;
+  color: var(--primary-700);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.password-field-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.password-field-wrap .form-input {
+  padding-right: 44px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 6px 8px;
+  color: var(--neutral-500);
+  border-radius: 4px;
+  line-height: 1;
+}
+
+.password-toggle-btn:hover {
+  background: var(--neutral-100);
+}
+
 @keyframes cardSpringRise {
   0% {
     opacity: 0;

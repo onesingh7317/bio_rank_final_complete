@@ -2,7 +2,7 @@
    dashboard.js — Home, Weakness Map, PYQ, Chapter, Improvement, Performance screens
    ============================================================ */
 
-/* ---- Student Configuration ---- */
+/* ---- Student Authentication & Configuration ---- */
 function renderConfig(container) {
   const state = State.get();
   const student = state.student || {};
@@ -14,6 +14,9 @@ function renderConfig(container) {
 
   const isClass11 = currentClass === '11th';
   const initialExamMode = state.examMode || 'NEET';
+
+  // Default to 'login' mode for returning users/other devices, or 'signup' if preferred
+  const defaultAuthMode = student.email ? 'login' : 'login';
 
   container.innerHTML = `
     <div class="config-screen-wrap">
@@ -43,103 +46,267 @@ function renderConfig(container) {
         </div>
 
         <div class="card card-lg">
+          <!-- Auth Tabs -->
+          <div class="auth-tab-bar">
+            <button type="button" class="auth-tab-btn ${defaultAuthMode === 'login' ? 'active' : ''}" id="tab-btn-login" onclick="switchAuthTab('login')">
+              <span>🔑</span> Log In (Existing Student)
+            </button>
+            <button type="button" class="auth-tab-btn ${defaultAuthMode === 'signup' ? 'active' : ''}" id="tab-btn-signup" onclick="switchAuthTab('signup')">
+              <span>✨</span> Create Account (New)
+            </button>
+          </div>
+
           <div style="margin-bottom:var(--sp-5);">
-            <div class="section-title" style="font-size:var(--text-lg);">Student Setup</div>
-            <div class="section-subtitle">Personalise your NEET &amp; CUET prep experience</div>
+            <div class="section-title" id="auth-card-title" style="font-size:var(--text-lg);">${defaultAuthMode === 'login' ? 'Student Login' : 'Create Student Account'}</div>
+            <div class="section-subtitle" id="auth-card-subtitle">${defaultAuthMode === 'login' ? 'Access your ranks, tests, and study stats on any device' : 'Personalise your NEET &amp; CUET prep experience'}</div>
           </div>
 
-        <form class="config-form" id="config-form" onsubmit="return false;">
-          <div class="form-group">
-            <label class="form-label" for="cfg-name">Full Name *</label>
-            <input class="form-input" id="cfg-name" type="text" value="${escapeHtml(student.name || '')}" placeholder="e.g. Aryan Sharma" required autocomplete="name" />
-          </div>
+          <!-- 1. LOGIN FORM SECTION -->
+          <div id="auth-login-section" style="display:${defaultAuthMode === 'login' ? 'block' : 'none'};">
+            <form class="config-form" id="login-form" onsubmit="submitLogin(); return false;">
+              <div class="form-group">
+                <label class="form-label" for="login-identifier">Email Address or Username *</label>
+                <input class="form-input" id="login-identifier" type="text" value="${escapeHtml(student.email || student.username || '')}" placeholder="e.g. aryan@gmail.com" required autocomplete="username" />
+              </div>
 
-          <div class="form-group">
-            <label class="form-label" style="font-weight:700;">Target Competitive Exam *</label>
-            <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-exam-mode">
-              <button type="button" class="error-tag ${initialExamMode === 'NEET' ? 'selected' : ''}" data-exam="NEET" onclick="selectConfigExam(this, 'NEET')">🧬 NEET (UG)</button>
-              <button type="button" class="error-tag ${initialExamMode === 'CUET' ? 'selected' : ''}" data-exam="CUET" onclick="selectConfigExam(this, 'CUET')">🎯 CUET (UG)</button>
-              <button type="button" class="error-tag ${initialExamMode === 'BOTH' ? 'selected' : ''}" data-exam="BOTH" onclick="selectConfigExam(this, 'BOTH')">⚡ Both (NEET + CUET)</button>
-            </div>
-          </div>
+              <div class="form-group">
+                <label class="form-label" for="login-password">Password *</label>
+                <div class="password-field-wrap">
+                  <input class="form-input" id="login-password" type="password" placeholder="Enter your password" required autocomplete="current-password" />
+                  <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('login-password', this)" title="Show password">👁️</button>
+                </div>
+              </div>
 
-          <div class="form-group">
-            <label class="form-label" for="cfg-class">Current Class / Preparation Stage *</label>
-            <select class="form-input form-select" id="cfg-class" onchange="onConfigClassChange(this.value)">
-              <option value="11th" ${currentClass === '11th' ? 'selected' : ''}>Class 11th (Targeting Foundation)</option>
-              <option value="12th" ${currentClass === '12th' ? 'selected' : ''}>Class 12th (Board + NEET / CUET)</option>
-              <option value="Dropper" ${currentClass === 'Dropper' ? 'selected' : ''}>Dropper / Repeater (Full Focus NEET / CUET)</option>
-            </select>
-          </div>
-
-          <div class="grid-2" style="gap:var(--sp-4);">
-            <div class="form-group">
-              <label class="form-label" for="cfg-year">Target Year</label>
-              <select class="form-input form-select" id="cfg-year">
-                <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>NEET / CUET 2025</option>
-                <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>NEET / CUET 2026</option>
-                <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>NEET / CUET 2027</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="cfg-board">School Board</label>
-              <select class="form-input form-select" id="cfg-board">
-                <option value="CBSE" ${currentBoard === 'CBSE' ? 'selected' : ''}>CBSE</option>
-                <option value="State" ${currentBoard === 'State' ? 'selected' : ''}>State Board</option>
-                <option value="ICSE" ${currentBoard === 'ICSE' ? 'selected' : ''}>ICSE</option>
-                <option value="Other" ${currentBoard === 'Other' ? 'selected' : ''}>Other</option>
-              </select>
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="cfg-hours">Daily Study Hours</label>
-            <select class="form-input form-select" id="cfg-hours">
-              <option value="2" ${currentHours === '2' ? 'selected' : ''}>2 hours</option>
-              <option value="4" ${currentHours === '4' ? 'selected' : ''}>4 hours</option>
-              <option value="6" ${currentHours === '6' ? 'selected' : ''}>6 hours</option>
-              <option value="8" ${currentHours === '8' ? 'selected' : ''}>8+ hours</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Current Biology Confidence</label>
-            <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-confidence">
-              ${['Beginner','Intermediate','Advanced'].map(l =>
-                `<button type="button" class="error-tag ${currentConfidence === l ? 'selected' : ''}" data-confidence="${l}" onclick="selectConfidence(this)">${l}</button>`
-              ).join('')}
-            </div>
-          </div>
-
-          <div id="cfg-flow-banner" style="padding:var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--primary-700);margin-bottom:var(--sp-4);">
-            ${isClass11
-              ? '<strong>Class 11th Plan:</strong> You will go directly to your dashboard to start chapter tests and practice without an initial diagnostic test.'
-              : '<strong>Optional Diagnostic Test:</strong> Take a quick 20-question vibe check to map your chapter weaknesses, or skip directly to your dashboard.'
-            }
-          </div>
-
-          <div id="cfg-action-buttons">
-            ${isClass11 ? `
-              <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(true)">
-                ${state.configured ? 'Save Details & Go to Dashboard →' : 'Save Details & Go to Dashboard →'}
-              </button>
-            ` : `
-              <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
-                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(false)">
-                  Take Diagnostic Vibe Check (Recommended) →
-                </button>
-                <button type="button" class="btn btn-outline btn-block" onclick="submitConfig(true)">
-                  Skip Test &amp; Go to Dashboard →
+              <div style="margin-bottom:var(--sp-4);">
+                <button type="submit" class="btn btn-primary btn-lg btn-block" id="btn-login-submit" style="font-weight:800;">
+                  Log In to Bio Rank →
                 </button>
               </div>
-            `}
+
+              <div style="text-align:center;font-size:var(--text-sm);color:var(--neutral-500);">
+                New to Bio Rank? <a href="#" onclick="switchAuthTab('signup'); return false;" style="color:var(--primary-700);font-weight:700;text-decoration:underline;">Create an account</a>
+              </div>
+            </form>
           </div>
-        </form>
+
+          <!-- 2. SIGN UP FORM SECTION -->
+          <div id="auth-signup-section" style="display:${defaultAuthMode === 'signup' ? 'block' : 'none'};">
+            <form class="config-form" id="config-form" onsubmit="submitConfig(true); return false;">
+              <div class="form-group">
+                <label class="form-label" for="cfg-name">Full Name *</label>
+                <input class="form-input" id="cfg-name" type="text" value="${escapeHtml(student.name || '')}" placeholder="e.g. Aryan Sharma" required autocomplete="name" />
+              </div>
+
+              <div class="grid-2" style="gap:var(--sp-4);">
+                <div class="form-group">
+                  <label class="form-label" for="cfg-email">Email Address *</label>
+                  <input class="form-input" id="cfg-email" type="email" value="${escapeHtml(student.email || '')}" placeholder="e.g. aryan@gmail.com" required autocomplete="email" />
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cfg-password">Password *</label>
+                  <div class="password-field-wrap">
+                    <input class="form-input" id="cfg-password" type="password" placeholder="Min 8 characters" required autocomplete="new-password" />
+                    <button type="button" class="password-toggle-btn" onclick="togglePasswordVisibility('cfg-password', this)" title="Show password">👁️</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" style="font-weight:700;">Target Competitive Exam *</label>
+                <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-exam-mode">
+                  <button type="button" class="error-tag ${initialExamMode === 'NEET' ? 'selected' : ''}" data-exam="NEET" onclick="selectConfigExam(this, 'NEET')">🧬 NEET (UG)</button>
+                  <button type="button" class="error-tag ${initialExamMode === 'CUET' ? 'selected' : ''}" data-exam="CUET" onclick="selectConfigExam(this, 'CUET')">🎯 CUET (UG)</button>
+                  <button type="button" class="error-tag ${initialExamMode === 'BOTH' ? 'selected' : ''}" data-exam="BOTH" onclick="selectConfigExam(this, 'BOTH')">⚡ Both (NEET + CUET)</button>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cfg-class">Current Class / Preparation Stage *</label>
+                <select class="form-input form-select" id="cfg-class" onchange="onConfigClassChange(this.value)">
+                  <option value="11th" ${currentClass === '11th' ? 'selected' : ''}>Class 11th (Targeting Foundation)</option>
+                  <option value="12th" ${currentClass === '12th' ? 'selected' : ''}>Class 12th (Board + NEET / CUET)</option>
+                  <option value="Dropper" ${currentClass === 'Dropper' ? 'selected' : ''}>Dropper / Repeater (Full Focus NEET / CUET)</option>
+                </select>
+              </div>
+
+              <div class="grid-2" style="gap:var(--sp-4);">
+                <div class="form-group">
+                  <label class="form-label" for="cfg-year">Target Year</label>
+                  <select class="form-input form-select" id="cfg-year">
+                    <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>NEET / CUET 2025</option>
+                    <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>NEET / CUET 2026</option>
+                    <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>NEET / CUET 2027</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="cfg-board">School Board</label>
+                  <select class="form-input form-select" id="cfg-board">
+                    <option value="CBSE" ${currentBoard === 'CBSE' ? 'selected' : ''}>CBSE</option>
+                    <option value="State" ${currentBoard === 'State' ? 'selected' : ''}>State Board</option>
+                    <option value="ICSE" ${currentBoard === 'ICSE' ? 'selected' : ''}>ICSE</option>
+                    <option value="Other" ${currentBoard === 'Other' ? 'selected' : ''}>Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="cfg-hours">Daily Study Hours</label>
+                <select class="form-input form-select" id="cfg-hours">
+                  <option value="2" ${currentHours === '2' ? 'selected' : ''}>2 hours</option>
+                  <option value="4" ${currentHours === '4' ? 'selected' : ''}>4 hours</option>
+                  <option value="6" ${currentHours === '6' ? 'selected' : ''}>6 hours</option>
+                  <option value="8" ${currentHours === '8' ? 'selected' : ''}>8+ hours</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Current Biology Confidence</label>
+                <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-confidence">
+                  ${['Beginner','Intermediate','Advanced'].map(l =>
+                    `<button type="button" class="error-tag ${currentConfidence === l ? 'selected' : ''}" data-confidence="${l}" onclick="selectConfidence(this)">${l}</button>`
+                  ).join('')}
+                </div>
+              </div>
+
+              <div id="cfg-flow-banner" style="padding:var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-sm);color:var(--primary-700);margin-bottom:var(--sp-4);">
+                ${isClass11
+                  ? '<strong>Class 11th Plan:</strong> You will go directly to your dashboard to start chapter tests and practice without an initial diagnostic test.'
+                  : '<strong>Optional Diagnostic Test:</strong> Take a quick 20-question vibe check to map your chapter weaknesses, or skip directly to your dashboard.'
+                }
+              </div>
+
+              <div id="cfg-action-buttons">
+                ${isClass11 ? `
+                  <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(true)">
+                    ${state.configured ? 'Save Details & Go to Dashboard →' : 'Save Details & Go to Dashboard →'}
+                  </button>
+                ` : `
+                  <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+                    <button type="button" class="btn btn-primary btn-lg btn-block" onclick="submitConfig(false)">
+                      Take Diagnostic Vibe Check (Recommended) →
+                    </button>
+                    <button type="button" class="btn btn-outline btn-block" onclick="submitConfig(true)">
+                      Skip Test &amp; Go to Dashboard →
+                    </button>
+                  </div>
+                `}
+              </div>
+
+              <div style="text-align:center;font-size:var(--text-sm);color:var(--neutral-500);margin-top:var(--sp-4);">
+                Already have an account? <a href="#" onclick="switchAuthTab('login'); return false;" style="color:var(--primary-700);font-weight:700;text-decoration:underline;">Log In</a>
+              </div>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-`;
+  `;
 }
+
+window.switchAuthTab = function(mode) {
+  const loginForm = document.getElementById('auth-login-section');
+  const signupForm = document.getElementById('auth-signup-section');
+  const loginTab = document.getElementById('tab-btn-login');
+  const signupTab = document.getElementById('tab-btn-signup');
+  const bannerTitle = document.getElementById('auth-card-title');
+  const bannerSub = document.getElementById('auth-card-subtitle');
+
+  if (mode === 'login') {
+    if (loginForm) loginForm.style.display = 'block';
+    if (signupForm) signupForm.style.display = 'none';
+    if (loginTab) loginTab.classList.add('active');
+    if (signupTab) signupTab.classList.remove('active');
+    if (bannerTitle) bannerTitle.textContent = 'Student Login';
+    if (bannerSub) bannerSub.textContent = 'Access your ranks, tests, and study stats on any device';
+  } else {
+    if (loginForm) loginForm.style.display = 'none';
+    if (signupForm) signupForm.style.display = 'block';
+    if (loginTab) loginTab.classList.remove('active');
+    if (signupTab) signupTab.classList.add('active');
+    if (bannerTitle) bannerTitle.textContent = 'Create Student Account';
+    if (bannerSub) bannerSub.textContent = 'Personalise your NEET & CUET prep experience';
+  }
+};
+
+window.togglePasswordVisibility = function(inputId, btnEl) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btnEl.textContent = '🙈';
+    btnEl.title = 'Hide password';
+  } else {
+    input.type = 'password';
+    btnEl.textContent = '👁️';
+    btnEl.title = 'Show password';
+  }
+};
+
+window.submitLogin = async function() {
+  const identifier = document.getElementById('login-identifier')?.value.trim();
+  const password = document.getElementById('login-password')?.value;
+  const submitBtn = document.getElementById('btn-login-submit');
+
+  if (!identifier || !password) {
+    App.showToast('Please enter your email/username and password');
+    return;
+  }
+
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in & Syncing...';
+  }
+
+  try {
+    if (window.ApiClient) {
+      const res = await ApiClient.post('/auth/login', { identifier, password });
+      if (res && res.token) {
+        ApiClient.setToken(res.token);
+
+        const state = State.get();
+        const user = res.user || {};
+        state.student = {
+          ...(state.student || {}),
+          name: user.name || identifier.split('@')[0],
+          username: user.username || identifier.split('@')[0],
+          email: user.email || identifier,
+          classLevel: user.classLevel || '12th',
+          targetYear: user.targetYear || '2025',
+          board: user.board || 'CBSE',
+          studyHoursPerDay: user.studyHoursPerDay || '4',
+        };
+        state.configured = true;
+        state.foundationDone = true;
+
+        // Fetch performance sync from backend
+        try {
+          const perfRes = await ApiClient.get('/performance');
+          if (perfRes && perfRes.ok && perfRes.performance) {
+            state.performance = {
+              ...(state.performance || {}),
+              ...perfRes.performance
+            };
+          }
+        } catch (e) {
+          console.warn('Performance sync:', e);
+        }
+
+        State.save(state);
+        App.showToast(`Welcome back, ${state.student.name}! Your account is synced.`);
+        App.navigate('home');
+        return;
+      }
+    }
+  } catch (err) {
+    console.error('Login error:', err);
+    App.showToast(err.message || 'Invalid email or password. Please try again.');
+  } finally {
+    if (submitBtn) {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Log In to Bio Rank →';
+    }
+  }
+};
 
 window.selectConfigExam = function(btn, exam) {
   document.querySelectorAll('#cfg-exam-mode [data-exam]').forEach(b => b.classList.remove('selected'));
@@ -178,13 +345,16 @@ window.onConfigClassChange = function(classVal) {
   }
 };
 
-window.submitConfig = function(skipTest = false) {
-  const name = document.getElementById('cfg-name').value.trim();
+window.submitConfig = async function(skipTest = false) {
+  const name = document.getElementById('cfg-name')?.value.trim();
   if (!name) { App.showToast('Please enter your name'); return; }
-  const classLevel = document.getElementById('cfg-class').value;
-  const year       = document.getElementById('cfg-year').value;
-  const board      = document.getElementById('cfg-board').value;
-  const hours      = document.getElementById('cfg-hours').value;
+
+  const email = document.getElementById('cfg-email')?.value.trim();
+  const password = document.getElementById('cfg-password')?.value;
+  const classLevel = document.getElementById('cfg-class')?.value || '12th';
+  const year       = document.getElementById('cfg-year')?.value || '2025';
+  const board      = document.getElementById('cfg-board')?.value || 'CBSE';
+  const hours      = document.getElementById('cfg-hours')?.value || '4';
   const conf       = document.querySelector('[data-confidence].selected');
   const examBtn    = document.querySelector('#cfg-exam-mode [data-exam].selected');
   const chosenExam = examBtn ? examBtn.dataset.exam : 'NEET';
@@ -193,7 +363,8 @@ window.submitConfig = function(skipTest = false) {
   state.student = {
     ...(state.student || {}),
     name,
-    classLevel: classLevel || '12th',
+    email: email || (state.student?.email || ''),
+    classLevel,
     targetYear: year,
     board,
     studyHoursPerDay: hours,
@@ -209,11 +380,33 @@ window.submitConfig = function(skipTest = false) {
     state.examMode = 'NEET';
   }
 
-  // Sync with backend profile API if authenticated
+  // Register with backend auth if email & password provided
+  if (email && password && window.ApiClient) {
+    try {
+      const username = email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') || `user_${Date.now()}`;
+      const signupRes = await ApiClient.post('/auth/signup', {
+        name,
+        username,
+        email,
+        password,
+        targetYear: year,
+        board,
+        studyHoursPerDay: hours,
+        classLevel,
+      });
+      if (signupRes && signupRes.token) {
+        ApiClient.setToken(signupRes.token);
+      }
+    } catch (err) {
+      console.warn('Signup API sync:', err);
+    }
+  }
+
+  // Sync profile details if authenticated
   if (window.ApiClient && ApiClient.getToken()) {
     ApiClient.put('/user/profile', {
       name,
-      classLevel: classLevel || '12th',
+      classLevel,
       targetYear: year,
       board,
       studyHoursPerDay: hours,
@@ -227,7 +420,7 @@ window.submitConfig = function(skipTest = false) {
   if (classLevel === '11th' || skipTest) {
     state.foundationDone = true;
     State.save(state);
-    App.showToast(`Welcome ${name}! Your dashboard is ready.`);
+    App.showToast(`Welcome ${name}! Your account is ready.`);
     App.navigate('home');
     return;
   }
