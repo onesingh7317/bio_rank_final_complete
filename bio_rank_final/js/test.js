@@ -372,18 +372,29 @@ const TestEngine = (() => {
 
   /* ---- Navigation ---- */
   function goTo(index) {
-    if (index >= 0 && index < state.questions.length) {
-      state.current = index;
+    const idx = Number(index);
+    if (!isNaN(idx) && idx >= 0 && idx < state.questions.length) {
+      state.current = idx;
       saveSession();
       render();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
 
-  function nextQ() { goTo(state.current + 1); }
-  function prevQ() { goTo(state.current - 1); }
+  function nextQ() {
+    if (state.current < state.questions.length - 1) {
+      goTo(state.current + 1);
+    }
+  }
+
+  function prevQ() {
+    if (state.current > 0) {
+      goTo(state.current - 1);
+    }
+  }
 
   function selectAnswer(optionIndex) {
-    state.answers[state.current] = optionIndex;
+    state.answers[state.current] = Number(optionIndex);
     saveSession();
     render();
   }
@@ -654,3 +665,23 @@ const TestEngine = (() => {
   };
 
 })();
+
+// Export globally on window object
+window.TestEngine = TestEngine;
+window.testNextQ = () => TestEngine.nextQ();
+window.testPrevQ = () => TestEngine.prevQ();
+window.testSelectAnswer = (i) => TestEngine.selectAnswer(i);
+window.testGoTo = (i) => TestEngine.goTo(i);
+
+// Keyboard Navigation support (Arrow Right -> Next, Arrow Left -> Prev)
+document.addEventListener('keydown', (e) => {
+  if (!document.querySelector('.test-screen')) return;
+  if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName)) return;
+
+  if (e.key === 'ArrowRight') {
+    TestEngine.nextQ();
+  } else if (e.key === 'ArrowLeft') {
+    TestEngine.prevQ();
+  }
+});
+
