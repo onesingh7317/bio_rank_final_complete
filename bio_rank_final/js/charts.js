@@ -180,18 +180,23 @@ const Charts = {
   },
 
   /* ---- Line Chart (weekly progress) ---- */
-  lineChart({ values, width = 340, height = 100, color = '#2980b9', fillColor = 'rgba(41,128,185,0.08)' }) {
-    if (!values || values.length < 2) return '';
-    const max = Math.max(...values, 1);
-    const min = Math.min(...values, 0);
-    const range = max - min || 1;
-    const padX = 16; const padY = 12;
-    const chartW = width - padX * 2;
-    const chartH = height - padY * 2;
+  lineChart({ values, width = 600, height = 110, color = '#16a34a', fillColor = 'rgba(22,163,74,0.12)' }) {
+    let data = Array.isArray(values) && values.length > 0 ? [...values] : [0, 0, 0, 0, 0, 0, 0];
+    while (data.length < 7) {
+      data.unshift(0);
+    }
+    if (data.length > 7) data = data.slice(-7);
 
-    const pts = values.map((v, i) => {
-      const x = padX + (i / (values.length - 1)) * chartW;
-      const y = padY + chartH - ((v - min) / range) * chartH;
+    const max = 100;
+    const min = 0;
+    const range = max - min || 1;
+    const padX = 24; const padY = 16;
+    const chartW = width - padX * 2;
+    const chartH = height - padY * 2 - 12;
+
+    const pts = data.map((v, i) => {
+      const x = padX + (i / (data.length - 1)) * chartW;
+      const y = padY + chartH - ((Math.min(100, Math.max(0, v)) - min) / range) * chartH;
       return { x, y, v };
     });
 
@@ -199,17 +204,24 @@ const Charts = {
     const areaPath = `${linePath} L ${pts[pts.length - 1].x.toFixed(1)} ${(padY + chartH).toFixed(1)} L ${pts[0].x.toFixed(1)} ${(padY + chartH).toFixed(1)} Z`;
 
     const dots = pts.map(p =>
-      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="3.5" fill="${color}" stroke="white" stroke-width="1.5"/>`
+      `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="4" fill="${color}" stroke="#ffffff" stroke-width="2"/>
+       <text x="${p.x.toFixed(1)}" y="${(p.y - 8).toFixed(1)}" text-anchor="middle" font-size="10" font-weight="700" fill="${color}">${p.v > 0 ? `${p.v}%` : ''}</text>`
     ).join('');
 
-    const dayLabels = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+    const dayLabels = ['Day 1','Day 2','Day 3','Day 4','Day 5','Day 6','Latest'];
     const labels = pts.map((p, i) =>
-      `<text x="${p.x.toFixed(1)}" y="${height - 2}" text-anchor="middle" font-size="9" fill="#95a5a6">${dayLabels[i] || ''}</text>`
+      `<text x="${p.x.toFixed(1)}" y="${height - 2}" text-anchor="middle" font-size="10" font-weight="600" fill="#64748b">${dayLabels[i] || ''}</text>`
     ).join('');
 
-    return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <path d="${areaPath}" fill="${fillColor}"/>
-      <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    return `<svg viewBox="0 0 ${width} ${height}" width="100%" height="${height}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="weekly-grad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="${color}" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="${color}" stop-opacity="0.0"/>
+        </linearGradient>
+      </defs>
+      <path d="${areaPath}" fill="url(#weekly-grad)"/>
+      <path d="${linePath}" fill="none" stroke="${color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
       ${dots}
       ${labels}
     </svg>`;

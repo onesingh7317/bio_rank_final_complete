@@ -1798,13 +1798,13 @@ function renderPerformance(container) {
           </div>
           <div class="stat-card">
             <div class="stat-label">Avg Speed / Question</div>
-            <div class="stat-value" style="color:var(--primary-700);">${perf.lastAvgTimePerQuestion ? `${perf.lastAvgTimePerQuestion}s` : '42s'}</div>
-            <div class="stat-sub">${(perf.lastAvgTimePerQuestion || 42) <= 50 ? '⚡ Fast Pace' : '⏱️ Needs Speed'}</div>
+            <div class="stat-value" style="color:var(--primary-700);">${(perf.testsAttempted > 0 && perf.lastAvgTimePerQuestion) ? `${perf.lastAvgTimePerQuestion}s` : '—'}</div>
+            <div class="stat-sub">${(perf.testsAttempted > 0 && perf.lastAvgTimePerQuestion) ? (perf.lastAvgTimePerQuestion <= 50 ? '⚡ Fast Pace' : '⏱️ Needs Speed') : 'No tests yet'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Overall Accuracy</div>
             <div class="stat-value">${perf.overallAccuracy}%</div>
-            <div class="stat-sub">across all attempts</div>
+            <div class="stat-sub">${perf.questionsAttempted > 0 ? 'across all attempts' : 'Take 1st test'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Tests Completed</div>
@@ -1837,7 +1837,7 @@ function renderPerformance(container) {
         <div id="progress-section">
           <div class="card" style="margin-bottom:var(--sp-5);">
             <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-4);">Weekly Accuracy Trend</div>
-            ${Charts.lineChart({ values: perf.weeklyProgress, width: 600, height: 100, color: '#2980b9' })}
+            ${Charts.lineChart({ values: perf.weeklyProgress, width: 600, height: 110, color: '#16a34a' })}
           </div>
         </div>
 
