@@ -21,7 +21,7 @@ const App = (() => {
     'admin', 'admin-login', 'admin-students', 'admin-chapters', 'admin-subskills',
     'admin-questions', 'admin-question-form', 'admin-ncert-focus', 'admin-ncert-form', 'admin-csv-import',
     'admin-fulltests', 'admin-flt-questions', 'admin-reports', 'admin-auditlogs',
-    'ncert-bio-focus',
+    'ncert-bio-focus', 'flashcards', 'duel',
   ];
 
   let current = { screen: null, data: null };
@@ -158,8 +158,8 @@ const App = (() => {
     'admin-reports':        typeof renderAdminReports === 'function' ? renderAdminReports : null,
     'admin-auditlogs':      typeof renderAdminAuditLogs === 'function' ? renderAdminAuditLogs : null,
     'ncert-bio-focus':      typeof renderNcertBioFocus === 'function' ? renderNcertBioFocus : null,
-    'flashcards':           typeof renderFlashcards === 'function' ? renderFlashcards : null,
-    'duel':                 typeof renderDuel === 'function' ? renderDuel : null,
+    'flashcards':           (c, d) => (typeof renderFlashcards === 'function' ? renderFlashcards(c, d) : (window.FlashcardsEngine && FlashcardsEngine.render(c, d))),
+    'duel':                 (c, d) => (typeof renderDuel === 'function' ? renderDuel(c, d) : (window.DuelEngine && DuelEngine.renderLobby(c, d))),
   };
 
   /* ---- Update nav active states ---- */
