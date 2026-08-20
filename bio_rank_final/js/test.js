@@ -557,23 +557,25 @@ const TestEngine = (() => {
     }
 
     modal.innerHTML = `
-      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:center;justify-content:center;padding:var(--sp-4);">
-        <div class="card" style="max-width:480px;width:100%;background:var(--surface);box-shadow:var(--shadow-xl);border-radius:var(--radius-lg);padding:var(--sp-5);">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);">
-            <div style="font-weight:700;font-size:var(--text-base);display:flex;align-items:center;gap:var(--sp-2);">
-              <span>⚠️ Report Question #${state.current + 1}</span>
+      <div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(15,23,42,0.7);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);z-index:999999;display:flex;align-items:center;justify-content:center;padding:var(--sp-4);" onclick="if(event.target===this) TestEngine.closeReportModal();">
+        <div style="max-width:500px;width:100%;background:#ffffff;color:#0f172a;box-shadow:0 25px 50px -12px rgba(0,0,0,0.45);border:1px solid var(--neutral-200);border-radius:var(--radius-xl);padding:var(--sp-6);animation:modalPop 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-3);">
+            <div style="font-weight:800;font-size:var(--text-lg);color:#0f172a;display:flex;align-items:center;gap:8px;">
+              <span style="font-size:20px;">🚩</span>
+              <span>Report Issue with Question #${state.current + 1}</span>
             </div>
-            <button class="btn btn-ghost btn-sm" onclick="TestEngine.closeReportModal()" style="font-size:16px;line-height:1;padding:4px 8px;">✕</button>
+            <button class="btn btn-ghost btn-sm" onclick="TestEngine.closeReportModal()" style="font-size:18px;line-height:1;padding:4px 8px;border-radius:50%;color:var(--neutral-500);">✕</button>
           </div>
 
-          <p style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:var(--sp-3);line-height:1.4;background:var(--neutral-50);padding:var(--sp-2);border-radius:var(--radius-sm);border-left:3px solid var(--primary-500);">
-            "${q.text.length > 90 ? q.text.substring(0, 90) + '…' : q.text}"
-          </p>
+          <div style="font-size:var(--text-xs);color:#334155;margin-bottom:var(--sp-4);line-height:1.5;background:#f8fafc;padding:var(--sp-3);border-radius:var(--radius-md);border:1px solid #e2e8f0;border-left:4px solid var(--primary-600);">
+            <strong style="color:var(--primary-800);display:block;margin-bottom:2px;">Question:</strong>
+            "${escapeHtml(q.text.length > 130 ? q.text.substring(0, 130) + '…' : q.text)}"
+          </div>
 
           <form onsubmit="event.preventDefault(); TestEngine.submitReport();">
-            <div class="form-group" style="margin-bottom:var(--sp-3);">
-              <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">What issue did you find?</label>
-              <select class="form-select form-select-sm" id="test-report-reason" required style="width:100%;">
+            <div class="form-group" style="margin-bottom:var(--sp-4);">
+              <label class="form-label" style="font-size:var(--text-xs);font-weight:700;color:#1e293b;margin-bottom:6px;">Select Issue Type *</label>
+              <select class="form-select form-select-sm" id="test-report-reason" required style="width:100%;background:#ffffff;border:1.5px solid #cbd5e1;color:#0f172a;font-size:var(--text-sm);padding:8px 12px;border-radius:var(--radius-md);">
                 <option value="Incorrect Answer / Wrong Correct Option">Incorrect Answer / Wrong Correct Option</option>
                 <option value="Question Formulation / Typo Error">Question Formulation / Typo Error</option>
                 <option value="Incorrect / Incomplete Options">Incorrect / Incomplete Options</option>
@@ -582,13 +584,13 @@ const TestEngine = (() => {
               </select>
             </div>
 
-            <div class="form-group" style="margin-bottom:var(--sp-4);">
-              <label class="form-label" style="font-size:var(--text-xs);font-weight:600;margin-bottom:4px;">Details (optional):</label>
-              <textarea class="form-input form-input-sm" id="test-report-comments" rows="3" placeholder="Describe the error so our team can review and fix it…" style="width:100%;font-size:var(--text-xs);"></textarea>
+            <div class="form-group" style="margin-bottom:var(--sp-5);">
+              <label class="form-label" style="font-size:var(--text-xs);font-weight:700;color:#1e293b;margin-bottom:6px;">Additional Details (optional):</label>
+              <textarea class="form-input form-input-sm" id="test-report-comments" rows="3" placeholder="Briefly describe what looks wrong so the admin team can verify and fix it…" style="width:100%;font-size:var(--text-xs);background:#ffffff;border:1.5px solid #cbd5e1;color:#0f172a;border-radius:var(--radius-md);line-height:1.4;padding:8px 12px;"></textarea>
             </div>
 
-            <div style="display:flex;gap:var(--sp-2);justify-content:flex-end;">
-              <button class="btn btn-outline btn-sm" type="button" onclick="TestEngine.closeReportModal()">Cancel</button>
+            <div style="display:flex;gap:var(--sp-3);justify-content:flex-end;border-top:1px solid var(--neutral-100);padding-top:var(--sp-4);">
+              <button class="btn btn-secondary btn-sm" type="button" onclick="TestEngine.closeReportModal()">Cancel</button>
               <button class="btn btn-primary btn-sm" type="submit" id="test-report-submit-btn">Submit Report</button>
             </div>
           </form>
