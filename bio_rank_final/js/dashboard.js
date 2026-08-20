@@ -1828,8 +1828,8 @@ function renderPerformance(container) {
           </div>
           <div class="stat-card">
             <div class="stat-label">Longest Streak</div>
-            <div class="stat-value" style="color:var(--warning-500);">🔥 ${perf.longestStreak}</div>
-            <div class="stat-sub">days in a row</div>
+            <div class="stat-value" style="color:var(--warning-500);">🔥 ${perf.longestStreak || perf.currentStreak || 1}</div>
+            <div class="stat-sub">${(perf.longestStreak || perf.currentStreak || 1) > 1 ? 'days in a row' : 'day on Bio Rank'}</div>
           </div>
         </div>
 

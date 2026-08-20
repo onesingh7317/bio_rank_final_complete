@@ -1562,6 +1562,7 @@ function computeRealTimePerformance(state) {
     perf.rank = null;
     perf.percentile = 0;
     perf.totalStudents = 1;
+    perf.longestStreak = perf.currentStreak || 1;
   } else {
     let computedRank = 1;
     const speed = avgSpeed || 45;
@@ -1581,6 +1582,7 @@ function computeRealTimePerformance(state) {
     perf.rank = computedRank;
     perf.totalStudents = Math.max(100, totalTests * 20);
     perf.percentile = Math.max(1, Math.min(99.9, Math.round(((perf.totalStudents - perf.rank + 1) / perf.totalStudents) * 100 * 10) / 10));
+    perf.longestStreak = Math.max(perf.longestStreak || 1, perf.currentStreak || 1);
   }
 
   // 6. Real-time Badges Unlocking
@@ -1626,6 +1628,15 @@ const State = {
       if (!state.mistakeReasons) state.mistakeReasons = {};
       if (!state.performance) state.performance = this.defaultState().performance;
       if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
+
+      // Auto-sanitize legacy mock streak values (e.g. 9 or 5 from old template)
+      if (state.performance) {
+        if (!state.performance.testsAttempted || state.performance.testsAttempted === 0) {
+          state.performance.longestStreak = state.performance.currentStreak || 1;
+        } else if (state.performance.longestStreak === 9 || state.performance.longestStreak > 30) {
+          state.performance.longestStreak = state.performance.currentStreak || 1;
+        }
+      }
 
       updateDailyStreak(state);
       computeRealTimePerformance(state);
