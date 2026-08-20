@@ -16,18 +16,34 @@ function renderConfig(container) {
   const initialExamMode = state.examMode || 'NEET';
 
   container.innerHTML = `
-    <div class="config-screen">
-      <div class="config-logo">
-        <img src="/logo-square.jpg" alt="Bio Rank Logo" class="config-logo-img" style="width:76px;height:76px;border-radius:var(--radius-xl);object-fit:cover;margin:0 auto var(--sp-4);box-shadow:0 8px 24px rgba(6,78,59,0.22);border:2px solid #ecfdf5;display:block;" />
-        <h1 style="font-size:var(--text-3xl);font-weight:800;color:var(--neutral-900);">Welcome to Bio Rank</h1>
-        <p style="color:var(--neutral-600);margin-top:var(--sp-2);font-weight:500;font-size:var(--text-sm);">Master <strong>NEET &amp; CUET (UG) Biology</strong> — Chapter PYQs, Speed Tests &amp; AI Weakness Analytics.</p>
+    <div class="config-screen-wrap">
+      <!-- Animated Bio-Molecules Rain Background -->
+      <div class="bio-rain-container" aria-hidden="true">
+        <span class="bio-drop" style="left:5%; animation-duration:8.5s; animation-delay:0s; font-size:26px; --sway:35px;">🧬</span>
+        <span class="bio-drop" style="left:16%; animation-duration:11s; animation-delay:2.5s; font-size:22px; --sway:-25px;">🍃</span>
+        <span class="bio-drop" style="left:28%; animation-duration:9.5s; animation-delay:1s; font-size:20px; --sway:30px;">💧</span>
+        <span class="bio-drop" style="left:42%; animation-duration:13s; animation-delay:4s; font-size:18px; --sway:-20px;">✨</span>
+        <span class="bio-drop" style="left:56%; animation-duration:8s; animation-delay:0.5s; font-size:28px; --sway:40px;">🧬</span>
+        <span class="bio-drop" style="left:70%; animation-duration:10.5s; animation-delay:3s; font-size:24px; --sway:-30px;">🌿</span>
+        <span class="bio-drop" style="left:82%; animation-duration:9s; animation-delay:1.8s; font-size:22px; --sway:25px;">🔬</span>
+        <span class="bio-drop" style="left:92%; animation-duration:12s; animation-delay:5s; font-size:20px; --sway:-15px;">✨</span>
       </div>
 
-      <div class="card card-lg">
-        <div style="margin-bottom:var(--sp-5);">
-          <div class="section-title" style="font-size:var(--text-lg);">Student Setup</div>
-          <div class="section-subtitle">Personalise your NEET &amp; CUET prep experience</div>
+      <div class="config-screen">
+        <div class="config-logo">
+          <div class="config-logo-drop-wrap">
+            <img src="/logo-square.jpg" alt="Bio Rank Logo" class="config-logo-img" style="width:78px;height:78px;border-radius:var(--radius-xl);object-fit:cover;margin:0 auto var(--sp-3);box-shadow:0 10px 28px rgba(6,78,59,0.22);border:2px solid #ecfdf5;display:block;" />
+            <div class="config-glow-badge">✨ Dual-Exam Biology Platform</div>
+          </div>
+          <h1 style="font-size:var(--text-3xl);font-weight:800;color:var(--neutral-900);">Welcome to Bio Rank</h1>
+          <p style="color:var(--neutral-600);margin-top:var(--sp-2);font-weight:500;font-size:var(--text-sm);">Master <strong>NEET &amp; CUET (UG) Biology</strong> — Chapter PYQs, Speed Tests &amp; AI Weakness Analytics.</p>
         </div>
+
+        <div class="card card-lg">
+          <div style="margin-bottom:var(--sp-5);">
+            <div class="section-title" style="font-size:var(--text-lg);">Student Setup</div>
+            <div class="section-subtitle">Personalise your NEET &amp; CUET prep experience</div>
+          </div>
 
         <form class="config-form" id="config-form" onsubmit="return false;">
           <div class="form-group">
@@ -118,7 +134,8 @@ function renderConfig(container) {
         </form>
       </div>
     </div>
-  `;
+  </div>
+`;
 }
 
 window.selectConfigExam = function(btn, exam) {

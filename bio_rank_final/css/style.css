@@ -937,29 +937,122 @@ img { max-width: 100%; display: block; }
    SCREEN-SPECIFIC STYLES
    ============================================================ */
 
-/* --- Configuration Screen --- */
-.config-screen {
-  max-width: 560px;
-  margin: 0 auto;
-  padding-top: var(--sp-8);
+/* --- Configuration Screen & Bio Rain Animations --- */
+.config-screen-wrap {
+  position: relative;
+  min-height: 100vh;
+  overflow: hidden;
+  padding-bottom: var(--sp-12);
 }
 
+/* Falling Bio-Molecules Rain */
+.bio-rain-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bio-drop {
+  position: absolute;
+  top: -60px;
+  display: inline-block;
+  opacity: 0.38;
+  filter: drop-shadow(0 4px 10px rgba(16, 185, 129, 0.25));
+  will-change: transform, opacity;
+  animation: bioRainDrop linear infinite;
+  user-select: none;
+}
+
+@keyframes bioRainDrop {
+  0% {
+    transform: translate3d(0, -60px, 0) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.45;
+  }
+  85% {
+    opacity: 0.4;
+  }
+  100% {
+    transform: translate3d(var(--sway, 25px), 105vh, 0) rotate(360deg) scale(1.1);
+    opacity: 0;
+  }
+}
+
+.config-screen {
+  position: relative;
+  z-index: 1;
+  max-width: 580px;
+  margin: 0 auto;
+  padding-top: var(--sp-6);
+}
+
+/* Header Smooth Drop-in Entrance */
 .config-logo {
   text-align: center;
-  margin-bottom: var(--sp-8);
+  margin-bottom: var(--sp-6);
+  animation: headerSmoothDrop 0.85s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.config-logo .brand-icon {
-  width: 64px; height: 64px;
-  font-size: 28px;
-  margin: 0 auto var(--sp-4);
-  border-radius: var(--radius-lg);
-  animation: float 3s ease-in-out infinite;
+.config-logo-drop-wrap {
+  position: relative;
+  display: inline-block;
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+.config-glow-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  border-radius: var(--radius-full);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  margin-bottom: var(--sp-2);
+  box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15);
+  animation: badgePulse 3s ease-in-out infinite alternate;
+}
+
+@keyframes headerSmoothDrop {
+  0% {
+    opacity: 0;
+    transform: translateY(-40px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes badgePulse {
+  0% { transform: scale(1); box-shadow: 0 2px 8px rgba(5, 150, 105, 0.15); }
+  100% { transform: scale(1.04); box-shadow: 0 4px 14px rgba(5, 150, 105, 0.28); }
+}
+
+.config-screen .card {
+  animation: cardSmoothRise 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.15s both;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  box-shadow: 0 20px 40px -15px rgba(6, 78, 59, 0.12), 0 0 1px 1px rgba(16, 185, 129, 0.05);
+}
+
+@keyframes cardSmoothRise {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .config-logo h1 {
@@ -970,7 +1063,7 @@ img { max-width: 100%; display: block; }
 }
 
 .config-logo p {
-  color: var(--neutral-500);
+  color: var(--neutral-600);
   margin-top: var(--sp-2);
   font-weight: 600;
   font-size: var(--text-md);
