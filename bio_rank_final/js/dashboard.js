@@ -1789,7 +1789,7 @@ function renderPerformance(container) {
           <div class="stat-card">
             <div class="stat-label">Your Rank</div>
             <div class="stat-value">#${perf.testsAttempted > 0 ? (perf.rank || 1) : '—'}</div>
-            <div class="stat-sub">of ${perf.totalStudents.toLocaleString()} active students</div>
+            <div class="stat-sub">of ${(perf.totalStudents || 1).toLocaleString()} active student${(perf.totalStudents || 1) === 1 ? '' : 's'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Percentile</div>

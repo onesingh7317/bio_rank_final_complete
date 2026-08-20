@@ -1561,27 +1561,36 @@ function computeRealTimePerformance(state) {
   if (totalTests === 0) {
     perf.rank = null;
     perf.percentile = 0;
-    perf.totalStudents = 1;
+    perf.totalStudents = perf.totalStudents || 1;
     perf.longestStreak = perf.currentStreak || 1;
   } else {
-    let computedRank = 1;
-    const speed = avgSpeed || 45;
-    if (perf.overallAccuracy >= 95 && speed <= 45) {
-      computedRank = 1;
-    } else if (perf.overallAccuracy >= 90) {
-      computedRank = speed <= 50 ? 2 : 4;
-    } else if (perf.overallAccuracy >= 80) {
-      computedRank = speed <= 55 ? 7 : 14;
-    } else if (perf.overallAccuracy >= 70) {
-      computedRank = speed <= 60 ? 18 : 28;
-    } else if (perf.overallAccuracy >= 50) {
-      computedRank = speed <= 70 ? 42 : 58;
+    // Exact dynamic active student count from backend or active sessions
+    const activeStudentCount = perf.totalStudents || 1;
+    perf.totalStudents = activeStudentCount;
+    
+    // When only 1 student is testing, rank is #1
+    if (activeStudentCount <= 1) {
+      perf.rank = 1;
+      perf.percentile = 100;
     } else {
-      computedRank = Math.min(100, Math.max(65, 100 - Math.round(perf.overallAccuracy * 0.4)));
+      let computedRank = 1;
+      const speed = avgSpeed || 45;
+      if (perf.overallAccuracy >= 95 && speed <= 45) {
+        computedRank = 1;
+      } else if (perf.overallAccuracy >= 90) {
+        computedRank = Math.min(activeStudentCount, speed <= 50 ? 2 : 3);
+      } else if (perf.overallAccuracy >= 80) {
+        computedRank = Math.min(activeStudentCount, Math.ceil(activeStudentCount * 0.15));
+      } else if (perf.overallAccuracy >= 70) {
+        computedRank = Math.min(activeStudentCount, Math.ceil(activeStudentCount * 0.35));
+      } else if (perf.overallAccuracy >= 50) {
+        computedRank = Math.min(activeStudentCount, Math.ceil(activeStudentCount * 0.60));
+      } else {
+        computedRank = Math.min(activeStudentCount, Math.ceil(activeStudentCount * 0.85));
+      }
+      perf.rank = computedRank;
+      perf.percentile = Math.max(1, Math.min(99.9, Math.round(((activeStudentCount - perf.rank + 1) / activeStudentCount) * 100 * 10) / 10));
     }
-    perf.rank = computedRank;
-    perf.totalStudents = Math.max(100, totalTests * 20);
-    perf.percentile = Math.max(1, Math.min(99.9, Math.round(((perf.totalStudents - perf.rank + 1) / perf.totalStudents) * 100 * 10) / 10));
     perf.longestStreak = Math.max(perf.longestStreak || 1, perf.currentStreak || 1);
   }
 

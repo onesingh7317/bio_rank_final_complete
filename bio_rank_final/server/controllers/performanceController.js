@@ -159,7 +159,7 @@ exports.getPerformance = async (req, res) => {
         );
       } else {
         // Not yet taken any tests
-        rank = totalRankedStudents + 1;
+        rank = null;
         percentile = 0;
       }
     }
