@@ -13,19 +13,20 @@ function renderConfig(container) {
   const currentConfidence = student.confidence || 'Intermediate';
 
   const isClass11 = currentClass === '11th';
+  const initialExamMode = state.examMode || 'NEET';
 
   container.innerHTML = `
     <div class="config-screen">
       <div class="config-logo">
         <img src="/logo-square.jpg" alt="Bio Rank Logo" class="config-logo-img" style="width:76px;height:76px;border-radius:var(--radius-xl);object-fit:cover;margin:0 auto var(--sp-4);box-shadow:0 8px 24px rgba(6,78,59,0.22);border:2px solid #ecfdf5;display:block;" />
         <h1 style="font-size:var(--text-3xl);font-weight:800;color:var(--neutral-900);">Welcome to Bio Rank</h1>
-        <p style="color:var(--neutral-500);margin-top:var(--sp-2);">NEET Biology, but make it actually fun. No cap.</p>
+        <p style="color:var(--neutral-600);margin-top:var(--sp-2);font-weight:500;font-size:var(--text-sm);">Master <strong>NEET &amp; CUET (UG) Biology</strong> — Chapter PYQs, Speed Tests &amp; AI Weakness Analytics.</p>
       </div>
 
       <div class="card card-lg">
         <div style="margin-bottom:var(--sp-5);">
           <div class="section-title" style="font-size:var(--text-lg);">Student Setup</div>
-          <div class="section-subtitle">This helps us personalise your test experience</div>
+          <div class="section-subtitle">Personalise your NEET &amp; CUET prep experience</div>
         </div>
 
         <form class="config-form" id="config-form" onsubmit="return false;">
@@ -35,11 +36,20 @@ function renderConfig(container) {
           </div>
 
           <div class="form-group">
+            <label class="form-label" style="font-weight:700;">Target Competitive Exam *</label>
+            <div style="display:flex;gap:var(--sp-2);flex-wrap:wrap;" id="cfg-exam-mode">
+              <button type="button" class="error-tag ${initialExamMode === 'NEET' ? 'selected' : ''}" data-exam="NEET" onclick="selectConfigExam(this, 'NEET')">🧬 NEET (UG)</button>
+              <button type="button" class="error-tag ${initialExamMode === 'CUET' ? 'selected' : ''}" data-exam="CUET" onclick="selectConfigExam(this, 'CUET')">🎯 CUET (UG)</button>
+              <button type="button" class="error-tag ${initialExamMode === 'BOTH' ? 'selected' : ''}" data-exam="BOTH" onclick="selectConfigExam(this, 'BOTH')">⚡ Both (NEET + CUET)</button>
+            </div>
+          </div>
+
+          <div class="form-group">
             <label class="form-label" for="cfg-class">Current Class / Preparation Stage *</label>
             <select class="form-input form-select" id="cfg-class" onchange="onConfigClassChange(this.value)">
               <option value="11th" ${currentClass === '11th' ? 'selected' : ''}>Class 11th (Targeting Foundation)</option>
-              <option value="12th" ${currentClass === '12th' ? 'selected' : ''}>Class 12th (Board + NEET)</option>
-              <option value="Dropper" ${currentClass === 'Dropper' ? 'selected' : ''}>Dropper / Repeater (Full Focus NEET)</option>
+              <option value="12th" ${currentClass === '12th' ? 'selected' : ''}>Class 12th (Board + NEET / CUET)</option>
+              <option value="Dropper" ${currentClass === 'Dropper' ? 'selected' : ''}>Dropper / Repeater (Full Focus NEET / CUET)</option>
             </select>
           </div>
 
@@ -47,9 +57,9 @@ function renderConfig(container) {
             <div class="form-group">
               <label class="form-label" for="cfg-year">Target Year</label>
               <select class="form-input form-select" id="cfg-year">
-                <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>NEET 2025</option>
-                <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>NEET 2026</option>
-                <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>NEET 2027</option>
+                <option value="2025" ${currentYear === '2025' ? 'selected' : ''}>NEET / CUET 2025</option>
+                <option value="2026" ${currentYear === '2026' ? 'selected' : ''}>NEET / CUET 2026</option>
+                <option value="2027" ${currentYear === '2027' ? 'selected' : ''}>NEET / CUET 2027</option>
               </select>
             </div>
             <div class="form-group">
@@ -111,6 +121,11 @@ function renderConfig(container) {
   `;
 }
 
+window.selectConfigExam = function(btn, exam) {
+  document.querySelectorAll('#cfg-exam-mode [data-exam]').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+};
+
 window.selectConfidence = function(btn) {
   document.querySelectorAll('[data-confidence]').forEach(b => b.classList.remove('selected'));
   btn.classList.add('selected');
@@ -151,6 +166,8 @@ window.submitConfig = function(skipTest = false) {
   const board      = document.getElementById('cfg-board').value;
   const hours      = document.getElementById('cfg-hours').value;
   const conf       = document.querySelector('[data-confidence].selected');
+  const examBtn    = document.querySelector('#cfg-exam-mode [data-exam].selected');
+  const chosenExam = examBtn ? examBtn.dataset.exam : 'NEET';
 
   const state = State.get();
   state.student = {
@@ -161,9 +178,16 @@ window.submitConfig = function(skipTest = false) {
     board,
     studyHoursPerDay: hours,
     confidence: conf ? conf.dataset.confidence : 'Intermediate',
+    targetExam: chosenExam,
   };
   state.performance.studentName = name;
   state.configured = true;
+
+  if (chosenExam === 'CUET') {
+    state.examMode = 'CUET';
+  } else {
+    state.examMode = 'NEET';
+  }
 
   // Sync with backend profile API if authenticated
   if (window.ApiClient && ApiClient.getToken()) {
@@ -173,6 +197,7 @@ window.submitConfig = function(skipTest = false) {
       targetYear: year,
       board,
       studyHoursPerDay: hours,
+      targetExam: chosenExam,
       configured: true,
       foundationDone: classLevel === '11th' || skipTest,
     }).catch(err => console.warn('Profile background sync:', err));
