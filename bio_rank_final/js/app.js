@@ -237,8 +237,10 @@ const App = (() => {
     const dStreak = document.getElementById('drawer-user-streak');
     const dAvatar = document.getElementById('drawer-avatar');
 
+    const testsAttempted = state?.performance?.testsAttempted || 0;
+
     if (dName)   dName.textContent = name;
-    if (dRank)   dRank.textContent = rank ? `Bio Rank #${rank}` : 'Bio Rank —';
+    if (dRank)   dRank.textContent = (testsAttempted > 0) ? `Bio Rank #${rank || 1}` : 'Bio Rank #—';
     if (dStreak) dStreak.textContent = `🔥 ${streak} Day Streak`;
     if (dAvatar) dAvatar.textContent = initial;
   }

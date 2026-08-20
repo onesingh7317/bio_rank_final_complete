@@ -13,8 +13,31 @@
 
   let lastFocused = null;
 
+  function updateDrawerUserInfo() {
+    if (!window.State) return;
+    const state = State.get();
+    const name = state?.student?.name || 'Student';
+    const streak = state?.performance?.currentStreak || 0;
+    const testsAttempted = state?.performance?.testsAttempted || 0;
+    const rank = state?.performance?.rank;
+    const initial = (name.charAt(0) || 'S').toUpperCase();
+
+    const dName   = document.getElementById('drawer-user-name');
+    const dRank   = document.getElementById('drawer-user-rank');
+    const dStreak = document.getElementById('drawer-user-streak');
+    const dAvatar = document.getElementById('drawer-avatar');
+
+    if (dName)   dName.textContent = name;
+    if (dRank) {
+      dRank.textContent = (testsAttempted > 0) ? `Bio Rank #${rank || 1}` : 'Bio Rank #—';
+    }
+    if (dStreak) dStreak.textContent = `🔥 ${streak} Day Streak`;
+    if (dAvatar) dAvatar.textContent = initial;
+  }
+
   function openDrawer() {
     lastFocused = document.activeElement;
+    updateDrawerUserInfo();
     drawer.classList.add('open');
     overlay.classList.add('active');
     document.body.classList.add('drawer-open');
