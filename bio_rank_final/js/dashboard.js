@@ -522,13 +522,33 @@ function renderHome(container) {
                 <div class="quick-nav-sub">${state.weaknessMap?.length || 0} weak areas tracked</div>
               </div>
             </div>
+            <div class="quick-nav-card" onclick="App.navigate('flashcards')" role="button" tabindex="0" style="position:relative;border:1.5px solid #a7f3d0;">
+              <span class="flt-new-badge" style="background:#059669;color:#fff;">10 Daily</span>
+              <div class="quick-nav-icon green" style="background:#ecfdf5;color:#059669;font-size:20px;">
+                🗂️
+              </div>
+              <div>
+                <div class="quick-nav-label">Daily Flashcards</div>
+                <div class="quick-nav-sub">Swipe &amp; lock NCERT facts</div>
+              </div>
+            </div>
+            <div class="quick-nav-card" onclick="App.navigate('duel')" role="button" tabindex="0" style="position:relative;border:1.5px solid #fecaca;">
+              <span class="flt-new-badge" style="background:#dc2626;color:#fff;">Live Duel</span>
+              <div class="quick-nav-icon red" style="background:#fef2f2;color:#dc2626;font-size:20px;">
+                ⚔️
+              </div>
+              <div>
+                <div class="quick-nav-label">1v1 Friend Battle</div>
+                <div class="quick-nav-sub">Challenge friends on WhatsApp</div>
+              </div>
+            </div>
             <div class="quick-nav-card" onclick="App.navigate('performance')" role="button" tabindex="0">
               <div class="quick-nav-icon green">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
               </div>
               <div>
-                <div class="quick-nav-label">Performance & Ranking</div>
-                <div class="quick-nav-sub">Rank #${perf.rank} of ${perf.totalStudents.toLocaleString()}</div>
+                <div class="quick-nav-label">Performance &amp; Ranking</div>
+                <div class="quick-nav-sub">Rank #${perf.rank || '—'} &middot; Real Analytics</div>
               </div>
             </div>
           </div>

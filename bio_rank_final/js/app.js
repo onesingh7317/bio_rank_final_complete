@@ -158,6 +158,8 @@ const App = (() => {
     'admin-reports':        typeof renderAdminReports === 'function' ? renderAdminReports : null,
     'admin-auditlogs':      typeof renderAdminAuditLogs === 'function' ? renderAdminAuditLogs : null,
     'ncert-bio-focus':      typeof renderNcertBioFocus === 'function' ? renderNcertBioFocus : null,
+    'flashcards':           typeof renderFlashcards === 'function' ? renderFlashcards : null,
+    'duel':                 typeof renderDuel === 'function' ? renderDuel : null,
   };
 
   /* ---- Update nav active states ---- */
