@@ -10,6 +10,8 @@ const fullLengthTestSchema = new mongoose.Schema(
     description: { type: String, default: '', trim: true },
     numberOfQuestions: { type: Number, required: true, min: 1 },
     durationMinutes: { type: Number, required: true, min: 1 },
+    examType: { type: String, enum: ['NEET', 'CUET'], default: 'NEET' },
+    maxMarks: { type: Number, default: 360 },
     questions: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Question' }],
 
     isDeleted: { type: Boolean, default: false },

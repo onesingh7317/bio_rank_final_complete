@@ -45,13 +45,14 @@ function validateFullLengthTestInput(body, { partial = false } = {}) {
   return errors;
 }
 
-/* ---- GET /api/admin/full-length-tests?includeDeleted=true ----
-   No pagination — full-length test definitions realistically stay in
-   the tens, not hundreds, unlike Question. */
+/* ---- GET /api/admin/full-length-tests?includeDeleted=true&examType=CUET ---- */
 async function listFullLengthTests(req, res) {
   try {
     const includeDeleted = req.query.includeDeleted === 'true';
     const filter = includeDeleted ? {} : { isDeleted: false };
+    if (req.query.examType) {
+      filter.examType = req.query.examType;
+    }
     const tests = await FullLengthTest.find(filter).sort({ title: 1 });
     return res.json({ fullLengthTests: tests });
   } catch (err) {
@@ -78,13 +79,16 @@ async function createFullLengthTest(req, res) {
     const errors = validateFullLengthTestInput(req.body);
     if (errors.length) return res.status(400).json({ errors });
 
-    const { title, description, numberOfQuestions, durationMinutes, questions } = req.body;
+    const { title, description, numberOfQuestions, durationMinutes, questions, examType, maxMarks } = req.body;
+    const isCuet = examType === 'CUET';
 
     const test = await FullLengthTest.create({
       title: title.trim(),
       description: description !== undefined ? description.trim() : '',
       numberOfQuestions,
       durationMinutes,
+      examType: isCuet ? 'CUET' : 'NEET',
+      maxMarks: maxMarks || (isCuet ? 200 : 360),
       questions: Array.isArray(questions) ? questions : [],
     });
 
@@ -112,12 +116,14 @@ async function updateFullLengthTest(req, res) {
     const errors = validateFullLengthTestInput(req.body, { partial: true });
     if (errors.length) return res.status(400).json({ errors });
 
-    const { title, description, numberOfQuestions, durationMinutes, questions } = req.body;
+    const { title, description, numberOfQuestions, durationMinutes, questions, examType, maxMarks } = req.body;
 
     if (title !== undefined) test.title = title.trim();
     if (description !== undefined) test.description = description.trim();
     if (numberOfQuestions !== undefined) test.numberOfQuestions = numberOfQuestions;
     if (durationMinutes !== undefined) test.durationMinutes = durationMinutes;
+    if (examType !== undefined) test.examType = examType;
+    if (maxMarks !== undefined) test.maxMarks = maxMarks;
     if (questions !== undefined && Array.isArray(questions)) test.questions = questions;
 
     await test.save();

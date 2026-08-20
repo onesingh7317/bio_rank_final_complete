@@ -27,6 +27,8 @@ async function submitTest(req, res) {
     const userId = (req.user && req.user.userId) || null;
     const sessionId = meta.sessionId || req.headers['x-session-id'] || null;
     const duration = timeTakenSeconds || timeTaken || 0;
+    const examType = (meta && meta.examType) || req.body.examType || (mode === 'cuet' ? 'CUET' : 'NEET');
+    const isCuet = examType === 'CUET';
 
     // Collect all question IDs from submitted answers map or questions array
     const questionIdList = [];
@@ -71,7 +73,7 @@ async function submitTest(req, res) {
     let correctCount = 0;
     let incorrectCount = 0;
     let unattemptedCount = 0;
-    let neetScore = 0;
+    let finalScore = 0;
     const questionResults = [];
     const subSkillBreakdown = {};
     const bloomBreakdown = {};
@@ -117,11 +119,11 @@ async function submitTest(req, res) {
       } else if (Number(selected) === Number(correctOption)) {
         correctCount++;
         isCorrect = true;
-        neetScore += 4; // +4 for correct
+        finalScore += isCuet ? 5 : 4; // +5 for CUET, +4 for NEET
       } else {
         incorrectCount++;
         isCorrect = false;
-        neetScore -= 1; // -1 for incorrect
+        finalScore -= 1; // -1 for both CUET & NEET
       }
 
       // Track Sub-Skill breakdown
@@ -157,20 +159,23 @@ async function submitTest(req, res) {
     }
 
     const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
-    const finalTitle = testTitle || meta.testTitle || `${mode.toUpperCase()} Biology Test`;
+    const finalTitle = testTitle || meta.testTitle || `${isCuet ? 'CUET UG' : 'NEET'} Biology Test`;
+    const maxScore = isCuet ? 200 : (totalQuestions * 4);
 
     // Save TestAttempt to database
     const attempt = await TestAttempt.create({
       userId,
       sessionId,
       mode,
+      examType: isCuet ? 'CUET' : 'NEET',
       testTitle: finalTitle,
       chapterId: meta.chapterId && mongoose.Types.ObjectId.isValid(meta.chapterId) ? meta.chapterId : null,
       totalQuestions,
       correct: correctCount,
       incorrect: incorrectCount,
       unattempted: unattemptedCount,
-      score: neetScore,
+      score: finalScore,
+      maxScore,
       accuracy,
       timeTakenSeconds: duration,
       questionResults,

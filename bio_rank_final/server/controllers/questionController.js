@@ -117,6 +117,9 @@ async function listQuestions(req, res) {
     if (req.query.isFoundation !== undefined) {
       filter.isFoundation = req.query.isFoundation === 'true';
     }
+    if (req.query.targetExam) {
+      filter.targetExam = { $in: [req.query.targetExam, 'BOTH'] };
+    }
 
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(MAX_LIMIT, Math.max(1, parseInt(req.query.limit, 10) || DEFAULT_LIMIT));
@@ -158,6 +161,7 @@ async function createQuestion(req, res) {
     const {
       chapterId, subSkillId, bloomLevel, weightage, year,
       text, options, correctOption, explanation, isFoundation,
+      targetExam, caseStudyPassage,
     } = req.body;
 
     let question;
@@ -170,6 +174,8 @@ async function createQuestion(req, res) {
         correctOption,
         explanation: explanation.trim(),
         isFoundation: !!isFoundation,
+        targetExam: targetExam || 'BOTH',
+        caseStudyPassage: caseStudyPassage ? caseStudyPassage.trim() : null,
       });
     } catch (err) {
       if (err.name === 'ValidationError') {
@@ -214,6 +220,7 @@ async function updateQuestion(req, res) {
     const {
       chapterId, subSkillId, bloomLevel, weightage, year,
       text, options, correctOption, explanation, isFoundation,
+      targetExam, caseStudyPassage,
     } = req.body;
 
     if (chapterId !== undefined) question.chapterId = chapterId;
@@ -222,10 +229,12 @@ async function updateQuestion(req, res) {
     if (weightage !== undefined) question.weightage = weightage;
     if (year !== undefined) question.year = year;
     if (text !== undefined) question.text = text.trim();
-    if (options !== undefined) question.options = options; // schema validator enforces shape on save
+    if (options !== undefined) question.options = options;
     if (correctOption !== undefined) question.correctOption = correctOption;
     if (explanation !== undefined) question.explanation = explanation.trim();
     if (isFoundation !== undefined) question.isFoundation = !!isFoundation;
+    if (targetExam !== undefined) question.targetExam = targetExam;
+    if (caseStudyPassage !== undefined) question.caseStudyPassage = caseStudyPassage ? caseStudyPassage.trim() : null;
 
     try {
       await question.save();

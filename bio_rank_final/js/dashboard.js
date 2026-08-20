@@ -352,7 +352,9 @@ function renderHome(container) {
   const badgeProgress = Math.round((earnedBadges.length / allBadges.length) * 100);
   const desc = DB.badgeDescriptions || {};
 
-  const classTag = state.student?.classLevel ? `Class ${state.student.classLevel}` : 'NEET 2025';
+  const examMode = state.examMode || 'NEET';
+  const isCuet = examMode === 'CUET';
+  const classTag = isCuet ? 'CUET UG &middot; Class 12th' : (state.student?.classLevel ? `Class ${state.student.classLevel}` : 'NEET Prep');
   const streakCount = perf.currentStreak || 0;
 
   container.innerHTML = `
@@ -361,19 +363,21 @@ function renderHome(container) {
       <div class="hero-content">
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-3);flex-wrap:wrap;">
           <img src="logo-square.jpg" alt="Bio Rank Logo" style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.18);border:2px solid rgba(255,255,255,0.35);object-fit:cover;" />
-          <div class="hero-badge" style="margin-bottom:0;">🎯 NEET Biology Prep &middot; Target 360/360</div>
+          <div class="hero-badge" style="margin-bottom:0;">
+            ${isCuet ? '🔵 CUET (UG) Biological Studies &middot; Target 200/200' : '🎯 NEET Biology Prep &middot; Target 360/360'}
+          </div>
         </div>
-        <h1 class="hero-title">Dream big. Lock in. Make it happen.</h1>
-        <p class="hero-subtitle">Turn concepts into confidence and mistakes into mastery with daily focused chapter practice.</p>
+        <h1 class="hero-title">${isCuet ? 'Master CUET Biology. Secure Top Universities.' : 'Dream big. Lock in. Make it happen.'}</h1>
+        <p class="hero-subtitle">${isCuet ? '100% Class 12th NCERT line-by-line mastery, Case-Study passages, and timed 50-Q drills (+5 / -1 marking).' : 'Turn concepts into confidence and mistakes into mastery with daily focused chapter practice.'}</p>
 
         <div class="hero-footer">
           <div class="hero-greeting-box">
             <span class="hero-greeting">Good ${getTimeGreeting()}, <strong>${escapeHtml(name)}</strong> 👋</span>
             <span class="hero-pill-tag">🔥 ${streakCount} Day Streak</span>
-            <span class="hero-pill-tag">📚 ${escapeHtml(classTag)}</span>
+            <span class="hero-pill-tag">${isCuet ? '🎓 CUET Mode' : `📚 ${escapeHtml(classTag)}`}</span>
           </div>
-          <button class="hero-cta-btn" onclick="App.navigate('chapter-test')">
-            Start Chapter Practice →
+          <button class="hero-cta-btn" onclick="App.navigate(${isCuet ? "'full-length-test'" : "'chapter-test'"})">
+            ${isCuet ? 'Take CUET Mock Test →' : 'Start Chapter Practice →'}
           </button>
         </div>
       </div>
@@ -1908,16 +1912,17 @@ function renderResult(container, results) {
   });
 
   // Calculate metrics
+  const isCuet = (results.meta && results.meta.examType === 'CUET') || results.examType === 'CUET' || state.examMode === 'CUET';
   const totalQ = results.totalQuestions || results.questionResults.length || 1;
   const correctCount = results.correct || 0;
   const incorrectCount = results.incorrect || 0;
   const unattemptedCount = results.unattempted || (totalQ - correctCount - incorrectCount);
   const accuracy = results.accuracy !== undefined ? results.accuracy : Math.round((correctCount / totalQ) * 100);
-  const maxMarks = totalQ * 4;
-  const neetScore = results.neetScore !== undefined ? results.neetScore : (correctCount * 4 - incorrectCount * 1);
+  const maxMarks = isCuet ? (results.maxScore || (totalQ * 5)) : (totalQ * 4);
+  const evaluatedScore = results.score !== undefined ? results.score : (results.neetScore !== undefined ? results.neetScore : (isCuet ? (correctCount * 5 - incorrectCount * 1) : (correctCount * 4 - incorrectCount * 1)));
   const timeStr = formatSeconds(results.timeSpent || 0);
   const avgSeconds = results.timeSpent ? Math.round(results.timeSpent / totalQ) : 0;
-  const rank = state.performance?.rank ? `#${state.performance.rank}` : '#142';
+  const rank = state.performance?.rank ? `#${state.performance.rank}` : '#1';
 
   // Group performance by chapter
   const chapterBreakdown = {};
@@ -1951,11 +1956,9 @@ function renderResult(container, results) {
     }
   });
 
-  // Mistakes aggregation for analysis
+  // Calculate mistake breakdown summary
   const mistakeCounts = {};
-  DB.errorTypes.forEach(et => { mistakeCounts[et.id] = 0; });
   let totalTaggedMistakes = 0;
-
   results.questionResults.forEach(r => {
     if (r.status === 'incorrect' || r.status === 'skipped') {
       if (r.errorType) {
@@ -2035,21 +2038,21 @@ function renderResult(container, results) {
       <div class="result-v2-hero">
         <div class="result-v2-hero-header">
           <div class="result-v2-pill-badge">
-            <span>🎉 Test Completed</span>
+            <span>🎉 ${isCuet ? 'CUET (UG) Test Done' : 'Test Completed'}</span>
           </div>
           <div style="display:flex;align-items:center;gap:var(--sp-2);">
             <div class="result-v2-neet-badge">
-              <span>🎯 NEET Score: <strong>${neetScore}</strong> / ${maxMarks}</span>
+              <span>${isCuet ? '🔵 CUET Score' : '🎯 NEET Score'}: <strong>${evaluatedScore}</strong> / ${maxMarks}</span>
             </div>
           </div>
         </div>
 
         <div class="result-v2-main-score-box">
           <div>
-            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.85);margin-bottom:6px;font-weight:800;">Score Achieved</div>
+            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.85);margin-bottom:6px;font-weight:800;">Total ${isCuet ? 'CUET (UG)' : 'NEET'} Score</div>
             <div style="display:flex;align-items:baseline;gap:10px;">
-              <span class="result-v2-score-num">${correctCount}</span>
-              <span class="result-v2-score-max">/ ${totalQ} Correct</span>
+              <span class="result-v2-score-num">${evaluatedScore}</span>
+              <span class="result-v2-score-max">/ ${maxMarks} Marks &middot; ${correctCount}/${totalQ} Qs</span>
             </div>
           </div>
         </div>
@@ -2062,7 +2065,7 @@ function renderResult(container, results) {
           </div>
           <div class="result-v2-stat-tile">
             <div class="result-v2-stat-tile-val" style="color:#6ee7b7;">${correctCount}</div>
-            <div class="result-v2-stat-tile-label">Correct (+${correctCount * 4})</div>
+            <div class="result-v2-stat-tile-label">Correct (+${correctCount * (isCuet ? 5 : 4)})</div>
           </div>
           <div class="result-v2-stat-tile">
             <div class="result-v2-stat-tile-val" style="color:#fca5a5;">${incorrectCount}</div>

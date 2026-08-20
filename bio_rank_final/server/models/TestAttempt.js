@@ -65,9 +65,18 @@ const testAttemptSchema = new mongoose.Schema(
       required: true,
       min: 0,
     },
+    examType: {
+      type: String,
+      enum: ['NEET', 'CUET'],
+      default: 'NEET',
+    },
     score: {
       type: Number,
-      required: true, // NEET standard: +4 for correct, -1 for incorrect, 0 for unattempted
+      required: true,
+    },
+    maxScore: {
+      type: Number,
+      default: 360,
     },
     accuracy: {
       type: Number,

@@ -6,14 +6,24 @@
 
 const FLT = {
   filter: 'all', // 'all' | 'attempted' | 'not-attempted'
+  examFilter: 'all', // 'all' | 'NEET' | 'CUET'
 };
 
 /* ---- Full Length Test list page ---- */
 function renderFullLengthTest(container) {
   const tests = DB.fullLengthTests || [];
+  const currentExam = (window.State && State.getExamMode()) || 'NEET';
+  if (FLT.examFilter === 'all') {
+    FLT.examFilter = currentExam;
+  }
 
   const withProgress = tests.map(t => ({ test: t, progress: getFLTProgress(t.id) }));
-  const filtered = withProgress.filter(({ progress }) => {
+  const filtered = withProgress.filter(({ test, progress }) => {
+    // Exam type filter
+    if (FLT.examFilter === 'NEET' && test.examType === 'CUET') return false;
+    if (FLT.examFilter === 'CUET' && test.examType !== 'CUET') return false;
+
+    // Attempted filter
     if (FLT.filter === 'attempted') return progress.attempts > 0;
     if (FLT.filter === 'not-attempted') return progress.attempts === 0;
     return true;
@@ -22,20 +32,27 @@ function renderFullLengthTest(container) {
   container.innerHTML = `
     <div class="flt-layout">
       <div class="flt-main-col">
-        <div style="margin-bottom:var(--sp-5);">
-          <div class="page-title">Full Length Tests</div>
-          <div class="page-subtitle">Test your Biology preparation with complete-length mock tests.</div>
+        <div style="margin-bottom:var(--sp-4);">
+          <div class="page-title">Full Length Mock Tests</div>
+          <div class="page-subtitle">Official pattern timed mock tests for NEET (360 Marks) and CUET UG (200 Marks).</div>
+        </div>
+
+        <!-- Exam Filter Selector -->
+        <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-4);flex-wrap:wrap;">
+          <button class="btn ${FLT.examFilter === 'all' ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="setFLTExamFilter('all')">All Exams</button>
+          <button class="btn ${FLT.examFilter === 'NEET' ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="setFLTExamFilter('NEET')">🟢 NEET Mocks (90 Qs &middot; +4/-1)</button>
+          <button class="btn ${FLT.examFilter === 'CUET' ? 'btn-primary' : 'btn-ghost'} btn-sm" onclick="setFLTExamFilter('CUET')">🔵 CUET UG Mocks (50 Qs &middot; +5/-1)</button>
         </div>
 
         <div class="flt-filter-tabs">
-          <button class="flt-filter-tab ${FLT.filter === 'all' ? 'active' : ''}" onclick="setFLTFilter('all')">All Tests</button>
+          <button class="flt-filter-tab ${FLT.filter === 'all' ? 'active' : ''}" onclick="setFLTFilter('all')">All Status</button>
           <button class="flt-filter-tab ${FLT.filter === 'attempted' ? 'active' : ''}" onclick="setFLTFilter('attempted')">Attempted</button>
           <button class="flt-filter-tab ${FLT.filter === 'not-attempted' ? 'active' : ''}" onclick="setFLTFilter('not-attempted')">Not Attempted</button>
         </div>
 
         ${filtered.length === 0 ? `
           <div class="card" style="text-align:center;padding:var(--sp-10);">
-            <p style="color:var(--neutral-500);">No tests in this view yet.</p>
+            <p style="color:var(--neutral-500);">No tests found in this category.</p>
           </div>
         ` : `
           <div class="flt-grid">
@@ -45,28 +62,44 @@ function renderFullLengthTest(container) {
       </div>
 
       <aside class="flt-ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="ad-header">High Yield Resource</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, var(--primary-50), #fff);border:1px solid var(--primary-200);">
+          <div style="font-size:24px;margin-bottom:var(--sp-2);">🎯</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--sp-1);color:var(--primary-900);">NTA Exam Simulation</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.4;">Real-time timers, automatic score calculation, and negative marking analysis.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4, #fff);border:1px solid var(--success-200);">
+          <div style="font-size:24px;margin-bottom:var(--sp-2);">🌿</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--sp-1);color:var(--success-900);">NCERT Line-by-Line</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.4;">Direct citations to NCERT Class 11th &amp; 12th pages for every single question.</p>
         </div>
       </aside>
     </div>
   `;
 }
 
+function setFLTExamFilter(exam) {
+  FLT.examFilter = exam;
+  const container = document.getElementById('screen-container');
+  if (container) renderFullLengthTest(container);
+}
+
 function fltCardHtml(test, progress) {
   const attempted = progress.attempts > 0;
+  const isCuet = test.examType === 'CUET';
+  const maxScore = isCuet ? 200 : 360;
   const recentHistory = progress.attemptHistory.slice(-5);
 
   return `
     <div class="flt-card">
       <div class="flt-card-top">
         <div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span class="badge ${isCuet ? 'badge-primary' : 'badge-neutral'}" style="font-size:10px;font-weight:700;">
+              ${isCuet ? '🔵 CUET (UG)' : '🟢 NEET'}
+            </span>
+            <span class="badge badge-neutral" style="font-size:10px;">${isCuet ? '200 Marks' : '360 Marks'}</span>
+          </div>
           <div class="flt-card-title">${test.title}</div>
           <div class="flt-card-desc">${test.description}</div>
         </div>
@@ -76,6 +109,7 @@ function fltCardHtml(test, progress) {
       <div class="flt-card-meta">
         <span>📝 ${test.numberOfQuestions} Questions</span>
         <span>⏱️ ${test.durationMinutes} Minutes</span>
+        <span>⚖️ ${isCuet ? '+5 / -1' : '+4 / -1'}</span>
       </div>
 
       ${attempted ? `
@@ -85,7 +119,7 @@ function fltCardHtml(test, progress) {
             <div class="flt-card-progress-label">Attempts</div>
           </div>
           <div class="flt-card-progress-item">
-            <div class="flt-card-progress-num">${progress.bestScore}/${progress.bestTotal}</div>
+            <div class="flt-card-progress-num">${progress.bestScore}/${progress.bestTotal || maxScore}</div>
             <div class="flt-card-progress-label">Best Score</div>
           </div>
         </div>
@@ -98,9 +132,11 @@ function fltCardHtml(test, progress) {
         <div style="font-size:var(--text-xs);color:var(--neutral-400);font-weight:600;">Not attempted yet</div>
       `}
 
-      <button class="btn btn-primary btn-block" onclick="startFullLengthTest('${test.id}')">
-        ${attempted ? 'Attempt Test Again →' : 'Attempt Test →'}
-      </button>
+      <div class="flt-card-actions">
+        <button class="btn btn-primary btn-block" onclick="startFullLengthTest('${test.id}')">
+          ${attempted ? 'Retake Test →' : 'Start Test →'}
+        </button>
+      </div>
     </div>
   `;
 }
@@ -121,7 +157,12 @@ window.startFullLengthTest = function (testId) {
   App.navigate('test', {
     questions,
     mode: 'fulllength',
-    meta: { testId: test.id, title: test.title, durationSeconds: test.durationMinutes * 60 },
+    meta: {
+      testId: test.id,
+      title: test.title,
+      examType: test.examType || 'NEET',
+      durationSeconds: test.durationMinutes * 60,
+    },
     onComplete: (results) => {
       recordFLTAttempt(test.id, results);
       App.navigate('flt-result', results);
@@ -133,31 +174,39 @@ window.startFullLengthTest = function (testId) {
 function renderFLTResult(container, results) {
   if (!results) { App.navigate('full-length-test'); return; }
 
-  const testId = results.meta.testId;
+  const testId = results.meta && results.meta.testId;
   const test = (DB.fullLengthTests || []).find(t => t.id === testId);
   const progress = getFLTProgress(testId);
-  const totalQ = results.totalQuestions || 90;
-  const maxMarks = totalQ * 4;
-  const neetScore = results.neetScore !== undefined ? results.neetScore : (results.correct * 4 - results.incorrect * 1);
+  const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
+  const totalQ = results.totalQuestions || (isCuet ? 50 : 90);
+  const maxMarks = isCuet ? 200 : (totalQ * 4);
+  const finalScore = results.score !== undefined ? results.score : (results.neetScore !== undefined ? results.neetScore : (isCuet ? (results.correct * 5 - results.incorrect * 1) : (results.correct * 4 - results.incorrect * 1)));
   const percent = results.accuracy !== undefined ? results.accuracy : (totalQ > 0 ? Math.round((results.correct / totalQ) * 100) : 0);
+
+  window._fltLastResults = results;
 
   container.innerHTML = `
     <div style="max-width:760px;margin:0 auto;">
       <div style="margin-bottom:var(--sp-5);">
-        <div class="page-title">${(test && test.title) || results.meta.title || 'Full Length Test'}</div>
-        <div class="page-subtitle">Your NEET Mock Test Score</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span class="badge ${isCuet ? 'badge-primary' : 'badge-neutral'}" style="font-size:11px;font-weight:700;">
+            ${isCuet ? '🔵 CUET (UG) Official' : '🟢 NEET Pattern'}
+          </span>
+        </div>
+        <div class="page-title">${(test && test.title) || results.meta.title || (isCuet ? 'CUET Biology Mock' : 'Full Length Test')}</div>
+        <div class="page-subtitle">Your ${isCuet ? 'CUET (UG)' : 'NEET'} Mock Test Evaluation</div>
       </div>
 
       <div class="result-hero" style="background:linear-gradient(135deg,var(--primary-700) 0%,var(--primary-600) 100%);color:#fff;border-radius:var(--radius-lg);padding:var(--sp-6);text-align:center;box-shadow:var(--shadow-md);">
-        <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;opacity:0.9;font-weight:800;margin-bottom:6px;">Total NEET Biology Score</div>
-        <div class="result-score flt-score" style="font-size:3.2rem;font-weight:800;line-height:1.1;margin-bottom:4px;">${neetScore} <span style="font-size:var(--text-lg);font-weight:600;opacity:0.85;">/ ${maxMarks} Marks</span></div>
+        <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;opacity:0.9;font-weight:800;margin-bottom:6px;">Total ${isCuet ? 'CUET (UG)' : 'NEET Biology'} Score</div>
+        <div class="result-score flt-score" style="font-size:3.2rem;font-weight:800;line-height:1.1;margin-bottom:4px;">${finalScore} <span style="font-size:var(--text-lg);font-weight:600;opacity:0.85;">/ ${maxMarks} Marks</span></div>
         <div class="result-score-label" style="font-size:var(--text-sm);opacity:0.95;">${results.correct} of ${totalQ} Correct &middot; ${percent}% Accuracy</div>
       </div>
 
       <div class="result-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:var(--sp-3);margin:var(--sp-5) 0;">
         <div class="result-stat card" style="text-align:center;padding:var(--sp-4);">
           <span class="result-stat-num" style="font-size:var(--text-2xl);font-weight:800;color:var(--success-600);">${results.correct}</span>
-          <span class="result-stat-label" style="font-size:var(--text-xs);color:var(--neutral-500);display:block;margin-top:2px;">Correct (+${results.correct * 4})</span>
+          <span class="result-stat-label" style="font-size:var(--text-xs);color:var(--neutral-500);display:block;margin-top:2px;">Correct (+${results.correct * (isCuet ? 5 : 4)})</span>
         </div>
         <div class="result-stat card" style="text-align:center;padding:var(--sp-4);">
           <span class="result-stat-num" style="font-size:var(--text-2xl);font-weight:800;color:var(--error-600);">${results.incorrect}</span>
@@ -174,7 +223,7 @@ function renderFLTResult(container, results) {
           <div class="section-title" style="font-size:var(--text-base);">Best Score Achieved</div>
           <div style="font-size:var(--text-xs);color:var(--neutral-500);">Across ${progress.attempts} attempt${progress.attempts === 1 ? '' : 's'} on this test</div>
         </div>
-        <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">${progress.bestScore * 4}/${progress.bestTotal * 4} <span style="font-size:var(--text-xs);font-weight:600;color:var(--neutral-500);">(${progress.bestScore}/${progress.bestTotal} Qs)</span></div>
+        <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">${progress.bestScore * (isCuet ? 5 : 4)}/${(progress.bestTotal || totalQ) * (isCuet ? 5 : 4)} <span style="font-size:var(--text-xs);font-weight:600;color:var(--neutral-500);">(${progress.bestScore}/${progress.bestTotal || totalQ} Qs)</span></div>
       </div>
 
       <div class="flt-result-actions" style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
@@ -184,8 +233,6 @@ function renderFLTResult(container, results) {
       </div>
     </div>
   `;
-
-  window._fltLastResults = results;
 }
 
 /* ---- Full Length Test review-answers page ---- */

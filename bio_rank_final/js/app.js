@@ -224,9 +224,12 @@ const App = (() => {
     const streak = state?.performance?.currentStreak || 0;
     const rank = state?.performance?.rank;
     const initial = (name.charAt(0) || 'S').toUpperCase();
+    const examMode = (window.State && State.getExamMode()) || 'NEET';
 
     const tStreak = document.getElementById('topbar-streak-count');
     if (tStreak) tStreak.textContent = streak;
+
+    updateExamToggleUI(examMode);
 
     // Drawer user card
     const dName   = document.getElementById('drawer-user-name');
@@ -238,6 +241,33 @@ const App = (() => {
     if (dRank)   dRank.textContent = rank ? `Bio Rank #${rank}` : 'Bio Rank —';
     if (dStreak) dStreak.textContent = `🔥 ${streak} Day Streak`;
     if (dAvatar) dAvatar.textContent = initial;
+  }
+
+  /* ---- Switch Target Exam Mode (NEET / CUET) ---- */
+  function setExam(mode) {
+    const valid = mode === 'CUET' ? 'CUET' : 'NEET';
+    if (window.State) {
+      State.setExamMode(valid);
+    }
+    updateExamToggleUI(valid);
+    showToast(`Switched to ${valid === 'CUET' ? '🔵 CUET (UG)' : '🟢 NEET'} Mode`);
+
+    // Re-render current screen to immediately adapt curriculum and tests
+    if (current.screen && !['config', 'foundation', 'test'].includes(current.screen)) {
+      navigate(current.screen, current.data);
+    }
+  }
+
+  function updateExamToggleUI(examMode) {
+    const isCuet = examMode === 'CUET';
+    document.querySelectorAll('.exam-pill-btn').forEach(btn => {
+      const btnExam = btn.getAttribute('data-exam');
+      if (btnExam === 'CUET') {
+        btn.className = isCuet ? 'exam-pill-btn active cuet' : 'exam-pill-btn';
+      } else {
+        btn.className = !isCuet ? 'exam-pill-btn active neet' : 'exam-pill-btn';
+      }
+    });
   }
 
   /* ---- Error state HTML ---- */
@@ -408,7 +438,7 @@ const App = (() => {
   }
 
   /* ---- Public API ---- */
-  return { navigate, showToast, init, logout, SCREENS };
+  return { navigate, showToast, init, logout, setExam, updateExamToggleUI, SCREENS };
 })();
 
 // Assign to window for global access across scripts

@@ -262,10 +262,17 @@ const TestEngine = (() => {
                 </div>
               ` : ''}
 
+              ${q.caseStudyPassage ? `
+                <div style="background:var(--primary-50);border-left:4px solid var(--primary-600);padding:var(--sp-3) var(--sp-4);border-radius:var(--radius-md);margin-bottom:var(--sp-4);font-size:var(--text-sm);color:var(--neutral-800);line-height:1.5;">
+                  <strong style="color:var(--primary-800);display:block;margin-bottom:var(--sp-1);font-size:var(--text-xs);text-transform:uppercase;letter-spacing:0.5px;">📖 CUET / NCERT Case Study Passage:</strong>
+                  ${escapeHtml(q.caseStudyPassage)}
+                </div>
+              ` : ''}
+
               <div class="question-text" style="line-height:1.5;margin-bottom:var(--sp-3);">${q.text}</div>
 
               ${q.assertion && q.reason ? `
-                <div style="background:var(--neutral-50);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-4);border-left:3px solid var(--primary-500);font-size:var(--text-sm);">
+                <div style="background:var(--neutral-50);border-radius:var(--radius-md);padding:var(--sp-3);margin-bottom:var(--sp-4);font-size:var(--text-sm);border:1px solid var(--neutral-100);">
                   <div style="margin-bottom:var(--sp-2);line-height:1.4;">
                     <strong style="color:var(--primary-700);">Assertion (A):</strong> ${escapeHtml(q.assertion)}
                   </div>
@@ -337,16 +344,24 @@ const TestEngine = (() => {
                 }).join('')}
               </div>
               <div class="palette-legend">
-                <div class="legend-item"><div class="legend-dot answered"></div> Answered</div>
-                <div class="legend-item"><div class="legend-dot unanswered"></div> Not answered</div>
+                <div class="legend-item"><div class="legend-dot answered"></div> Answered (${Object.keys(state.answers).length})</div>
+                <div class="legend-item"><div class="legend-dot unanswered"></div> Unanswered</div>
                 <div class="legend-item"><div class="legend-dot current"></div> Current</div>
               </div>
             </div>
 
-            <div style="margin-top:var(--sp-3);padding:var(--sp-3) var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--primary-700);">
-              <strong>NEET Marking:</strong><br>
-              Correct: +4 &nbsp; Incorrect: −1 &nbsp; Skipped: 0
-            </div>
+            ${((state.meta && state.meta.examType === 'CUET') || (window.State && State.getExamMode() === 'CUET') || state.mode === 'cuet') ? `
+              <div style="margin-top:var(--sp-3);padding:var(--sp-3) var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--primary-700);border:1px solid var(--primary-200);">
+                <strong>🎯 CUET (UG) Marking Scheme:</strong><br>
+                Correct: +5 &nbsp;&middot;&nbsp; Incorrect: −1 &nbsp;&middot;&nbsp; Max: 200<br>
+                <span style="font-size:11px;color:var(--primary-800);margin-top:4px;display:block;">NTA Rule: 50 Questions (Attempt any 40).</span>
+              </div>
+            ` : `
+              <div style="margin-top:var(--sp-3);padding:var(--sp-3) var(--sp-4);background:var(--primary-50);border-radius:var(--radius-md);font-size:var(--text-xs);color:var(--primary-700);">
+                <strong>🎯 NEET Marking Scheme:</strong><br>
+                Correct: +4 &nbsp;&middot;&nbsp; Incorrect: −1 &nbsp;&middot;&nbsp; Skipped: 0
+              </div>
+            `}
           </div>
         </div>
       </div>
@@ -444,8 +459,9 @@ const TestEngine = (() => {
 
   function buildResults() {
     const qs = state.questions;
+    const isCuet = (state.meta && state.meta.examType === 'CUET') || (window.State && State.getExamMode() === 'CUET') || state.mode === 'cuet';
     let correct = 0, incorrect = 0, unattempted = 0;
-    let neetScore = 0;
+    let finalScore = 0;
     const questionResults = [];
 
     qs.forEach((q, i) => {
@@ -458,11 +474,11 @@ const TestEngine = (() => {
       } else if (Number(selected) === Number(correctOpt)) {
         status = 'correct';
         correct++;
-        neetScore += 4;
+        finalScore += isCuet ? 5 : 4;
       } else {
         status = 'incorrect';
         incorrect++;
-        neetScore -= 1;
+        finalScore -= 1;
       }
       questionResults.push({
         questionId: q.id || q._id,
@@ -474,6 +490,7 @@ const TestEngine = (() => {
     });
 
     const accuracy = qs.length > 0 ? Math.round((correct / qs.length) * 100) : 0;
+    const maxScore = isCuet ? 200 : (qs.length * 4);
 
     // Track NCERT Bio Focus progress
     if (state.mode === 'ncert-focus' && state.meta && state.meta.chapterId && window.State) {
@@ -506,12 +523,15 @@ const TestEngine = (() => {
 
     return {
       mode: state.mode,
+      examType: isCuet ? 'CUET' : 'NEET',
       meta: state.meta,
       totalQuestions: qs.length,
       correct,
       incorrect,
       unattempted,
-      neetScore,
+      score: finalScore,
+      maxScore,
+      neetScore: finalScore,
       accuracy,
       timeSpent: state.secondsElapsed,
       questionResults,

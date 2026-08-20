@@ -960,6 +960,70 @@ const DB = {
     },
   ],
 
+  /* ---- Full-Length Mock Tests (NEET & CUET UG) ---- */
+  fullLengthTests: [
+    {
+      id: 'flt_01',
+      title: 'Full Length Test 1',
+      description: 'Comprehensive NEET pattern test covering all 28 Biology chapters (Class 11th & 12th).',
+      numberOfQuestions: 90,
+      durationMinutes: 45,
+      examType: 'NEET',
+      maxMarks: 360,
+      questions: []
+    },
+    {
+      id: 'flt_02',
+      title: 'Full Length Test 2',
+      description: 'High-yield full syllabus NEET mock test with balanced Botany & Zoology weightage.',
+      numberOfQuestions: 90,
+      durationMinutes: 45,
+      examType: 'NEET',
+      maxMarks: 360,
+      questions: []
+    },
+    {
+      id: 'flt_03',
+      title: 'Full Length Test 3',
+      description: 'Advanced difficulty full syllabus NEET mock test with A&R and diagram questions.',
+      numberOfQuestions: 90,
+      durationMinutes: 45,
+      examType: 'NEET',
+      maxMarks: 360,
+      questions: []
+    },
+    {
+      id: 'flt_04',
+      title: 'Full Length Test 4',
+      description: 'NEET speed drill mock test to master accuracy and time management under pressure.',
+      numberOfQuestions: 90,
+      durationMinutes: 45,
+      examType: 'NEET',
+      maxMarks: 360,
+      questions: []
+    },
+    {
+      id: 'flt_cuet_01',
+      title: 'CUET UG Biology Mock Test 1',
+      description: 'NTA CUET (UG) official pattern: 50 Questions (Attempt 40), +5/−1 marking. 100% Class 12th NCERT Syllabus.',
+      numberOfQuestions: 50,
+      durationMinutes: 45,
+      examType: 'CUET',
+      maxMarks: 200,
+      questions: []
+    },
+    {
+      id: 'flt_cuet_02',
+      title: 'CUET UG Biology Mock Test 2',
+      description: 'Comprehensive Class 12th NCERT CUET Mock with Case-Study & Assertion-Reason drills.',
+      numberOfQuestions: 50,
+      durationMinutes: 45,
+      examType: 'CUET',
+      maxMarks: 200,
+      questions: []
+    }
+  ],
+
   /* ---- Badge descriptions ---- */
   badgeDescriptions: {
     'b01': 'Log in 7 days in a row',
@@ -1411,6 +1475,7 @@ const State = {
     try {
       const raw = localStorage.getItem(this.KEY);
       const state = raw ? JSON.parse(raw) : this.defaultState();
+      if (!state.examMode) state.examMode = 'NEET';
       if (!state.spacedReviewPool) state.spacedReviewPool = [];
       if (!state.masteredPool) state.masteredPool = [];
       if (!state.fullLengthTests) state.fullLengthTests = {};
@@ -1439,10 +1504,23 @@ const State = {
     return next;
   },
 
+  getExamMode() {
+    const state = this.get();
+    return state.examMode || 'NEET';
+  },
+
+  setExamMode(mode) {
+    const valid = mode === 'CUET' ? 'CUET' : 'NEET';
+    this.update({ examMode: valid });
+    document.dispatchEvent(new CustomEvent('biorank:exam-change', { detail: { examMode: valid } }));
+    return valid;
+  },
+
   defaultState() {
     return {
       configured: false,
       foundationDone: false,
+      examMode: 'NEET', // 'NEET' | 'CUET'
       student: {
         name: '',
         classLevel: '12th',

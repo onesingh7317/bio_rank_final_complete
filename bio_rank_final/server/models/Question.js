@@ -48,6 +48,16 @@ const questionSchema = new mongoose.Schema(
     // assessment set (replaces the hardcoded DB.foundationQuestions ID list).
     isFoundation: { type: Boolean, default: false },
 
+    // Exam target: NEET, CUET (UG), or BOTH
+    targetExam: {
+      type: String,
+      enum: ['NEET', 'CUET', 'BOTH'],
+      default: 'BOTH',
+    },
+
+    // Case Study Passage (for CUET / NCERT comprehension paragraph questions)
+    caseStudyPassage: { type: String, default: null, trim: true },
+
     isDeleted: { type: Boolean, default: false },
   },
   { timestamps: true }

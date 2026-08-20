@@ -353,6 +353,8 @@ const Admin = {
   async saveQuestion() {
     const chapterId = document.getElementById('admin-q-chapter').value;
     const yearRaw = document.getElementById('admin-q-year').value.trim();
+    const targetExam = document.getElementById('admin-q-target-exam')?.value || 'BOTH';
+    const caseStudyPassage = document.getElementById('admin-q-case-passage')?.value?.trim() || null;
     const text = document.getElementById('admin-q-text').value.trim();
     const options = [1, 2, 3, 4].map((n) => document.getElementById(`admin-q-option-${n}`).value.trim());
     const correctRadio = document.querySelector('input[name="admin-q-correct"]:checked');
@@ -372,6 +374,8 @@ const Admin = {
       bloomLevel: 'remember',
       weightage: 4,
       year: yearRaw ? Number(yearRaw) : undefined,
+      targetExam,
+      caseStudyPassage,
       text, options,
       correctOption: Number(correctRadio.value),
       explanation, isFoundation,
@@ -1804,14 +1808,31 @@ async function renderAdminQuestionForm(container, data) {
   container.innerHTML = adminShell('questions', `
     <div class="section-title" style="margin-bottom:var(--sp-4);">${isEdit ? 'Edit Question' : 'Add Question'}</div>
     <form class="card card-lg" onsubmit="event.preventDefault(); Admin.saveQuestion();">
-      <div class="form-group">
-        <label class="form-label">Chapter</label>
-        <select class="form-select" id="admin-q-chapter" required></select>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);">
+        <div class="form-group">
+          <label class="form-label">Chapter</label>
+          <select class="form-select" id="admin-q-chapter" required></select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Target Exam</label>
+          <select class="form-select" id="admin-q-target-exam">
+            <option value="BOTH">Both NEET &amp; CUET (UG)</option>
+            <option value="NEET">NEET Only</option>
+            <option value="CUET">CUET (UG) Only</option>
+          </select>
+        </div>
       </div>
+
       <div class="form-group">
         <label class="form-label">Year (optional, e.g. PYQ 2024)</label>
         <input class="form-input" type="number" id="admin-q-year" placeholder="e.g. 2024" />
       </div>
+
+      <div class="form-group">
+        <label class="form-label">Case Study Passage (Optional for CUET / Passage Questions)</label>
+        <textarea class="form-input" id="admin-q-case-passage" rows="2" placeholder="Paste paragraph/experimental context for case-study questions..."></textarea>
+      </div>
+
       <div class="form-group"><label class="form-label">Question Text</label><textarea class="form-input" id="admin-q-text" rows="3" required></textarea></div>
 
       <div class="form-group">
@@ -1847,7 +1868,9 @@ async function renderAdminQuestionForm(container, data) {
       const res = await ApiClient.get(`/admin/questions/${questionId}`);
       const q = res.question;
       document.getElementById('admin-q-chapter').value = q.chapterId;
+      document.getElementById('admin-q-target-exam').value = q.targetExam || 'BOTH';
       document.getElementById('admin-q-year').value = q.year ?? '';
+      document.getElementById('admin-q-case-passage').value = q.caseStudyPassage || '';
       document.getElementById('admin-q-text').value = q.text;
       q.options.forEach((opt, i) => { document.getElementById(`admin-q-option-${i + 1}`).value = opt; });
       const radio = document.getElementById(`admin-q-correct-${q.correctOption + 1}`);
