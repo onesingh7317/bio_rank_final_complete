@@ -1,13 +1,5 @@
 {
-  "name": "bio-rank-frontend",
+  "name": "bio-rank",
   "private": true,
-  "version": "1.0.0",
-  "scripts": {
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "vite": "^5.4.2"
-  }
+  "version": "1.0.0"
 }
