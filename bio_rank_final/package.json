@@ -3,6 +3,8 @@
   "private": true,
   "version": "1.0.0",
   "scripts": {
-    "build": "echo 'Bio Rank Build Ready'"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   }
 }

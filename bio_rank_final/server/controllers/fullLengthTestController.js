@@ -88,7 +88,7 @@ async function createFullLengthTest(req, res) {
       numberOfQuestions,
       durationMinutes,
       examType: isCuet ? 'CUET' : 'NEET',
-      maxMarks: maxMarks || (isCuet ? 200 : 360),
+      maxMarks: maxMarks || (isCuet ? 250 : 360),
       questions: Array.isArray(questions) ? questions : [],
     });
 

@@ -160,7 +160,7 @@ async function submitTest(req, res) {
 
     const accuracy = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
     const finalTitle = testTitle || meta.testTitle || `${isCuet ? 'CUET UG' : 'NEET'} Biology Test`;
-    const maxScore = isCuet ? 200 : (totalQuestions * 4);
+    const maxScore = isCuet ? 250 : (totalQuestions * 4);
 
     // Save TestAttempt to database
     const attempt = await TestAttempt.create({

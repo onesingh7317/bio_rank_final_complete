@@ -25,6 +25,8 @@ const AdminState = {
   reportFilter: 'all',
   ncertFilters: { chapterId: '', class: '', questionType: '', search: '', page: 1 },
   editingNcertQuestionId: null,
+  cuetFilters: { year: '', chapterId: '', questionType: '', search: '', page: 1 },
+  editingCuetQuestionId: null,
   subSkillChapterFilter: '',
   importPreview: null, // last /preview response, held until confirm
   cachedChapters: [],  // used to populate dropdowns without refetching every render
@@ -1279,6 +1281,138 @@ const Admin = {
       alert('Failed to delete question: ' + err.message);
     }
   },
+
+  /* ---- CUET PYQ Methods ---- */
+  async loadCuetQuestions(page = 1) {
+    const listEl = document.getElementById('admin-cuet-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading CUET (UG) PYQ questions…</p>';
+
+    const { chapterId, year, questionType, search } = AdminState.cuetFilters;
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (chapterId) params.set('chapterId', chapterId);
+    if (year) params.set('year', year);
+    if (questionType) params.set('questionType', questionType);
+    if (search) params.set('search', search);
+
+    try {
+      const res = await ApiClient.get(`/admin/cuet-pyqs?${params.toString()}`);
+      const qs = res.questions || res.cuetQuestions || [];
+      listEl.innerHTML = qs.length
+        ? qs.map(adminCuetRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No CUET PYQ questions found for this filter. Click <strong>+ Add CUET PYQ Question</strong> to add one!</p>';
+      renderAdminPagination('admin-cuet-pagination', res.pagination, (p) => Admin.loadCuetQuestions(p));
+    } catch (err) {
+      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  onCuetFilterChange(key, value) {
+    AdminState.cuetFilters[key] = value;
+    Admin.loadCuetQuestions(1);
+  },
+
+  startCreateCuetQuestion() {
+    AdminState.editingCuetQuestionId = null;
+    App.navigate('admin-cuet-pyq-form', null);
+  },
+
+  async startEditCuetQuestion(id) {
+    AdminState.editingCuetQuestionId = id;
+    try {
+      const res = await ApiClient.get(`/admin/cuet-pyqs/${id}`);
+      const q = res.question || res.cuetQuestion;
+      App.navigate('admin-cuet-pyq-form', q);
+    } catch (err) {
+      alert('Could not fetch CUET question for editing: ' + err.message);
+    }
+  },
+
+  onCuetTypeChangeInForm(type) {
+    const casePassageBlock = document.getElementById('cuet-case-passage-block');
+    if (casePassageBlock) {
+      casePassageBlock.style.display = type === 'case_study' ? 'block' : 'none';
+    }
+  },
+
+  async saveCuetQuestion(e) {
+    e.preventDefault();
+    const id = AdminState.editingCuetQuestionId;
+    const errorEl = document.getElementById('admin-cuet-form-error');
+    if (errorEl) errorEl.style.display = 'none';
+
+    const year = Number(document.getElementById('cuet-q-year')?.value) || 2024;
+    const shift = document.getElementById('cuet-q-shift')?.value?.trim() || 'Official Slot';
+    const chapterId = document.getElementById('cuet-q-chapter')?.value;
+    const questionType = document.getElementById('cuet-q-type')?.value || 'mcq';
+    const caseStudyPassage = document.getElementById('cuet-q-passage')?.value?.trim() || '';
+    const text = document.getElementById('cuet-q-text')?.value?.trim() || '';
+    const explanation = document.getElementById('cuet-q-explanation')?.value?.trim() || '';
+    const ncertReference = document.getElementById('cuet-q-ref')?.value?.trim() || '';
+
+    const options = [
+      document.getElementById('cuet-opt-0')?.value?.trim() || '',
+      document.getElementById('cuet-opt-1')?.value?.trim() || '',
+      document.getElementById('cuet-opt-2')?.value?.trim() || '',
+      document.getElementById('cuet-opt-3')?.value?.trim() || '',
+    ];
+    const correctRadio = document.querySelector('input[name="cuet-correct-opt"]:checked');
+    const correctOption = correctRadio ? Number(correctRadio.value) : 0;
+
+    if (!chapterId || !text) {
+      if (errorEl) { errorEl.textContent = 'Please choose a Class 12th chapter and enter the question text.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    if (options.some(o => !o)) {
+      if (errorEl) { errorEl.textContent = 'Please provide all 4 option choices.'; errorEl.style.display = 'block'; }
+      return;
+    }
+
+    const payload = {
+      chapterId,
+      year,
+      shift,
+      examType: 'CUET',
+      isPyq: true,
+      questionType,
+      caseStudyPassage,
+      text,
+      options,
+      correctOption,
+      explanation,
+      ncertReference,
+    };
+
+    try {
+      if (id) {
+        await ApiClient.put(`/admin/cuet-pyqs/${id}`, payload);
+        App.showToast('✅ CUET PYQ Question updated successfully.');
+      } else {
+        await ApiClient.post('/admin/cuet-pyqs', payload);
+        App.showToast('✅ CUET PYQ Question created successfully.');
+      }
+      App.navigate('admin-cuet-pyqs');
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Failed to save CUET question.';
+        errorEl.style.display = 'block';
+      } else {
+        alert(err.message);
+      }
+    }
+  },
+
+  async deleteCuetQuestion(id, name) {
+    if (!confirm(`Delete this CUET PYQ Question? "${name || id}"`)) return;
+    try {
+      await ApiClient.del(`/admin/cuet-pyqs/${id}`);
+      App.showToast('CUET Question deleted.');
+      Admin.loadCuetQuestions();
+    } catch (err) {
+      alert('Failed to delete CUET question: ' + err.message);
+    }
+  },
 };
 
 /* ============================================================
@@ -1513,6 +1647,58 @@ function adminNcertRow(q) {
   `;
 }
 
+function adminCuetRow(q) {
+  const chapterName =
+    q.chapterId?.name ||
+    AdminState.cachedChapters.find((c) => c._id === q.chapterId || c._id === q.chapter)?.name ||
+    q.chapter ||
+    'Class 12 Chapter';
+
+  const typeLabelMap = {
+    mcq: '<span class="badge badge-neutral" style="font-size:10px;">MCQ (+5/−1)</span>',
+    assertion_reason: '<span class="badge badge-warning" style="font-size:10px;">Assertion &amp; Reason</span>',
+    case_study: '<span class="badge badge-primary" style="font-size:10px;">Case Study / Passage</span>',
+  };
+  const typeBadge = typeLabelMap[q.questionType] || '<span class="badge badge-neutral" style="font-size:10px;">MCQ (+5/−1)</span>';
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid #2563eb;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+          <span class="badge badge-primary" style="font-size:10px;font-weight:700;">CUET ${q.year || 2024}</span>
+          <span class="badge badge-neutral" style="font-size:10px;">Class 12: ${escapeHtml(chapterName)}</span>
+          ${typeBadge}
+          ${q.shift ? `<span style="font-size:11px;color:var(--neutral-500);font-weight:600;">&bull; ${escapeHtml(q.shift)}</span>` : ''}
+        </div>
+        <div style="display:flex;gap:var(--sp-1);">
+          <button class="btn btn-outline btn-sm" onclick="Admin.startEditCuetQuestion('${q._id || q.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteCuetQuestion('${q._id || q.id}', '${escapeHtml(q.text).replace(/'/g, "\\'")}')">Delete</button>
+        </div>
+      </div>
+
+      ${q.caseStudyPassage ? `
+        <div style="background:#f8fafc;border:1px dashed #94a3b8;padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);margin-bottom:var(--sp-2);font-size:var(--text-xs);color:#334155;">
+          <strong>📄 Case Passage:</strong> ${escapeHtml(q.caseStudyPassage.substring(0, 140))}${q.caseStudyPassage.length > 140 ? '…' : ''}
+        </div>
+      ` : ''}
+
+      <div style="font-weight:600;font-size:var(--text-sm);line-height:1.4;margin-bottom:var(--sp-2);">
+        ${escapeHtml(q.text)}
+      </div>
+
+      <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:var(--sp-1);">
+        <strong>Correct:</strong> Option ${String.fromCharCode(65 + (q.correctOption ?? q.correct ?? 0))} &mdash; ${escapeHtml((q.options || [])[q.correctOption ?? q.correct ?? 0] || '')}
+      </div>
+
+      ${q.explanation ? `
+        <div style="font-size:11px;color:var(--neutral-500);margin-top:var(--sp-1);">
+          💡 <strong>Explanation:</strong> ${escapeHtml(q.explanation)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 function adminReportRow(r) {
   const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'Recently';
   const isPending = (r.status || 'pending') === 'pending';
@@ -1668,7 +1854,7 @@ function truncate(str, len) {
   return str.length > len ? str.slice(0, len) + '…' : str;
 }
 
-async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Select a chapter…') {
+async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Select a chapter…', classFilter = null) {
   const select = document.getElementById(selectId);
   if (!select) return;
   if (!AdminState.cachedChapters.length) {
@@ -1677,16 +1863,20 @@ async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Selec
       AdminState.cachedChapters = res.chapters || [];
     } catch (err) {
       if (window.DB && window.DB.chapters) {
-        AdminState.cachedChapters = window.DB.chapters.map((c) => ({ _id: c.id, name: c.name }));
+        AdminState.cachedChapters = window.DB.chapters.map((c) => ({ _id: c.id, name: c.name, class: c.class }));
       } else {
         select.innerHTML = '<option value="">Failed to load chapters</option>';
         return;
       }
     }
   }
+  let chapters = AdminState.cachedChapters || [];
+  if (classFilter) {
+    chapters = chapters.filter(c => String(c.class) === String(classFilter));
+  }
   select.innerHTML =
     `<option value="">${emptyLabel}</option>` +
-    (AdminState.cachedChapters || []).map((c) => `<option value="${c._id}" ${c._id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+    chapters.map((c) => `<option value="${c._id}" ${c._id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
 }
 
 async function populateSubSkillFilterDropdown(chapterId) {
@@ -2351,6 +2541,193 @@ function renderAdminAuditLogs(container) {
 }
 
 /* ============================================================
+   Screen: admin-cuet-pyqs (CUET PYQ Question Bank)
+   ============================================================ */
+function renderAdminCuetPyqs(container) {
+  const { chapterId, year, questionType, search } = AdminState.cuetFilters;
+
+  container.innerHTML = adminShell('cuet-pyqs', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">🎯 CUET (UG) PYQ Question Bank</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Manage official NTA CUET previous year questions (2022–2024) for Class 12th Biology (+5/−1 marking).</p>
+      </div>
+      <button class="btn btn-primary" onclick="Admin.startCreateCuetQuestion()">
+        + Add CUET PYQ Question
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:var(--sp-4);padding:var(--sp-3);">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(170px, 1fr));gap:var(--sp-2);align-items:center;">
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Year</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onCuetFilterChange('year', this.value)">
+            <option value="" ${!year ? 'selected' : ''}>All Years</option>
+            <option value="2024" ${year === '2024' ? 'selected' : ''}>2024 Papers</option>
+            <option value="2023" ${year === '2023' ? 'selected' : ''}>2023 Papers</option>
+            <option value="2022" ${year === '2022' ? 'selected' : ''}>2022 Papers</option>
+            <option value="2025" ${year === '2025' ? 'selected' : ''}>2025 Model / PYQs</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Class 12th Chapter</label>
+          <select class="form-select form-select-sm" id="admin-cuet-filter-chapter" style="width:100%;" onchange="Admin.onCuetFilterChange('chapterId', this.value)">
+            <option value="">All Class 12th Chapters</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Question Type</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onCuetFilterChange('questionType', this.value)">
+            <option value="" ${!questionType ? 'selected' : ''}>All Types</option>
+            <option value="mcq" ${questionType === 'mcq' ? 'selected' : ''}>MCQ (+5/−1)</option>
+            <option value="assertion_reason" ${questionType === 'assertion_reason' ? 'selected' : ''}>Assertion & Reason</option>
+            <option value="case_study" ${questionType === 'case_study' ? 'selected' : ''}>Case Study / Passage</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Search Text / Ref</label>
+          <input type="text" class="form-input form-input-sm" placeholder="Search CUET questions…" value="${escapeHtml(search)}" oninput="Admin.onCuetFilterChange('search', this.value)" style="width:100%;" />
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-cuet-list"></div>
+    <div id="admin-cuet-pagination"></div>
+  `);
+
+  populateChapterDropdown('admin-cuet-filter-chapter', '', 'All Class 12th Chapters', '12');
+  Admin.loadCuetQuestions();
+}
+
+/* ============================================================
+   Screen: admin-cuet-pyq-form (Add/Edit CUET PYQ Question)
+   ============================================================ */
+function renderAdminCuetPyqForm(container, questionData) {
+  const isEdit = !!questionData;
+  const q = questionData || {};
+  AdminState.editingCuetQuestionId = q._id || q.id || null;
+
+  const currentYear = q.year || 2024;
+  const currentType = q.questionType || q.type || 'mcq';
+  const correctOpt = q.correctOption ?? q.correct ?? 0;
+
+  container.innerHTML = adminShell('cuet-pyqs', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">
+          ${isEdit ? '✏️ Edit' : '➕ Add'} CUET (UG) PYQ Question
+        </div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">
+          Add authentic Class 12th Biology questions from official NTA CUET (UG) examination papers.
+        </p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="App.navigate('admin-cuet-pyqs')">← Back to List</button>
+    </div>
+
+    <div class="card" style="padding:var(--sp-5);">
+      <form onsubmit="Admin.saveCuetQuestion(event)">
+        <div id="admin-cuet-form-error" style="color:var(--error-600);background:var(--error-50);border-left:3px solid var(--error-600);padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);margin-bottom:var(--sp-4);display:none;"></div>
+
+        <!-- Section 1: Exam & Chapter Meta -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#2563eb;">
+          1. Paper &amp; Chapter Details (Class 12th Only)
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-year">Exam Year *</label>
+            <select class="form-select" id="cuet-q-year" required>
+              <option value="2024" ${currentYear === 2024 ? 'selected' : ''}>2024 Paper</option>
+              <option value="2023" ${currentYear === 2023 ? 'selected' : ''}>2023 Paper</option>
+              <option value="2022" ${currentYear === 2022 ? 'selected' : ''}>2022 Paper</option>
+              <option value="2025" ${currentYear === 2025 ? 'selected' : ''}>2025 Model / PYQs</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-shift">Shift / Slot (e.g. May 15 Slot 1)</label>
+            <input class="form-input" id="cuet-q-shift" type="text" placeholder="e.g. Slot 1 / Official NTA" value="${escapeHtml(q.shift || 'May 15 Slot 1')}" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-chapter">Class 12th Chapter *</label>
+            <select class="form-select" id="cuet-q-chapter" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-type">Question Type *</label>
+            <select class="form-select" id="cuet-q-type" required onchange="Admin.onCuetTypeChangeInForm(this.value)">
+              <option value="mcq" ${currentType === 'mcq' ? 'selected' : ''}>Multiple Choice Question (MCQ)</option>
+              <option value="assertion_reason" ${currentType === 'assertion_reason' ? 'selected' : ''}>Assertion &amp; Reason</option>
+              <option value="case_study" ${currentType === 'case_study' ? 'selected' : ''}>Case-Study / Passage-based</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Passage Block for Case Studies -->
+        <div id="cuet-case-passage-block" style="display:${currentType === 'case_study' ? 'block' : 'none'};margin-bottom:var(--sp-4);background:#f8fafc;border:1.5px dashed #cbd5e1;padding:var(--sp-3);border-radius:var(--radius-md);">
+          <label class="form-label" for="cuet-q-passage" style="color:#0f172a;font-weight:700;">📄 Case Study / Passage Context</label>
+          <textarea class="form-textarea" id="cuet-q-passage" rows="3" placeholder="Enter the scientific passage or experiment description here…">${escapeHtml(q.caseStudyPassage || '')}</textarea>
+        </div>
+
+        <!-- Section 2: Question & Options -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#2563eb;">
+          2. Question Statement &amp; Options (+5 Correct / −1 Incorrect)
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--sp-4);">
+          <label class="form-label" for="cuet-q-text">Question Text *</label>
+          <textarea class="form-textarea" id="cuet-q-text" rows="3" required placeholder="Enter the exact question statement from the CUET paper…">${escapeHtml(q.text || '')}</textarea>
+        </div>
+
+        <div style="margin-bottom:var(--sp-4);">
+          <label class="form-label">Options &amp; Correct Answer (Select the radio of correct option) *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+            ${[0, 1, 2, 3].map(idx => `
+              <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;font-weight:700;font-size:var(--text-xs);width:85px;flex-shrink:0;">
+                  <input type="radio" name="cuet-correct-opt" value="${idx}" ${correctOpt === idx ? 'checked' : ''} />
+                  Option ${String.fromCharCode(65 + idx)}
+                </label>
+                <input class="form-input" id="cuet-opt-${idx}" type="text" placeholder="Option ${String.fromCharCode(65 + idx)} text" required value="${escapeHtml((q.options || [])[idx] || '')}" style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Section 3: Explanation & NCERT Reference -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#2563eb;">
+          3. Explanation &amp; NCERT Reference
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-explanation">Step-by-step Explanation</label>
+            <textarea class="form-textarea" id="cuet-q-explanation" rows="2" placeholder="Explain why this option is correct based on NCERT…">${escapeHtml(q.explanation || '')}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="cuet-q-ref">NCERT Reference Line / Page</label>
+            <input class="form-input" id="cuet-q-ref" type="text" placeholder="e.g. NCERT Class 12 Biology, Chapter 6, Page 112" value="${escapeHtml(q.ncertReference || '')}" />
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:var(--sp-2);border-top:1px solid var(--neutral-100);padding-top:var(--sp-4);">
+          <button type="button" class="btn btn-secondary" onclick="App.navigate('admin-cuet-pyqs')">Cancel</button>
+          <button type="submit" class="btn btn-primary">${isEdit ? 'Save Changes' : 'Create CUET Question'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+  populateChapterDropdown('cuet-q-chapter', q.chapterId || q.chapter || '', 'Select Class 12th Chapter', '12');
+}
+
+/* ============================================================
    Shared admin shell — simple tab nav across admin screens.
    Reuses existing .card/.btn classes rather than introducing a
    parallel style system, per the Stage 8 instruction.
@@ -2361,6 +2738,7 @@ function adminShell(activeTab, innerHtml) {
     ['chapters', 'admin-chapters', 'Chapters'],
     ['questions', 'admin-questions', 'Questions'],
     ['ncertfocus', 'admin-ncert-focus', '🌿 NCERT Focus'],
+    ['cuet-pyqs', 'admin-cuet-pyqs', '🎯 CUET PYQs'],
     ['csv-import', 'admin-csv-import', 'CSV Import'],
     ['fulltests', 'admin-fulltests', 'Full-Length Tests'],
     ['reports', 'admin-reports', '🚩 Reports'],
@@ -2394,6 +2772,8 @@ window.renderAdminQuestions = renderAdminQuestions;
 window.renderAdminQuestionForm = renderAdminQuestionForm;
 window.renderAdminNcertFocus = renderAdminNcertFocus;
 window.renderAdminNcertForm = renderAdminNcertForm;
+window.renderAdminCuetPyqs = renderAdminCuetPyqs;
+window.renderAdminCuetPyqForm = renderAdminCuetPyqForm;
 window.renderAdminCsvImport = renderAdminCsvImport;
 window.renderAdminFullLengthTests = renderAdminFullLengthTests;
 window.renderAdminFLTQuestions = renderAdminFLTQuestions;

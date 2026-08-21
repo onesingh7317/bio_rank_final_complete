@@ -602,7 +602,7 @@ function renderHome(container) {
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:var(--sp-3);flex-wrap:wrap;">
           <img src="logo-square.jpg" alt="Bio Rank Logo" style="width:44px;height:44px;border-radius:10px;box-shadow:0 4px 14px rgba(0,0,0,0.18);border:2px solid rgba(255,255,255,0.35);object-fit:cover;" />
           <div class="hero-badge" style="margin-bottom:0;">
-            ${isCuet ? '🔵 CUET (UG) Biological Studies &middot; Target 200/200' : '🎯 NEET Biology Prep &middot; Target 360/360'}
+            ${isCuet ? '🔵 CUET (UG) Biological Studies &middot; Target 250/250' : '🎯 NEET Biology Prep &middot; Target 360/360'}
           </div>
         </div>
         <h1 class="hero-title">${isCuet ? 'Master CUET Biology. Secure Top Universities.' : 'Dream big. Lock in. Make it happen.'}</h1>
@@ -665,87 +665,216 @@ function renderHome(container) {
         <!-- Quick Nav -->
         <div class="reveal">
           <div class="section-header">
-            <div class="section-title">Quick Access</div>
+            <div class="section-title">${isCuet ? '🔵 CUET (UG) Quick Access' : 'Quick Access'}</div>
           </div>
           <div class="quick-nav-grid">
-            <div class="quick-nav-card" onclick="App.navigate('pyq-test')" role="button" tabindex="0">
-              <div class="quick-nav-icon blue">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            ${isCuet ? `
+              <div class="quick-nav-card" onclick="App.navigate('cuet-pyq')" role="button" tabindex="0" style="position:relative;border:1.5px solid #93c5fd;">
+                <span class="flt-new-badge" style="background:#2563eb;color:#fff;">2022–2024</span>
+                <div class="quick-nav-icon blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">CUET PYQ Test</div>
+                  <div class="quick-nav-sub">Official NTA PYQ papers</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">PYQ Test</div>
-                <div class="quick-nav-sub">2019–2024 papers</div>
+              <div class="quick-nav-card" onclick="App.navigate('chapter-test')" role="button" tabindex="0">
+                <div class="quick-nav-icon teal">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Class 12th Chapter Test</div>
+                  <div class="quick-nav-sub">100% Class 12 NCERT chapters</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('chapter-test')" role="button" tabindex="0">
-              <div class="quick-nav-icon teal">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+              <div class="quick-nav-card" onclick="App.navigate('ncert-bio-focus')" role="button" tabindex="0" style="position:relative;">
+                <span class="flt-new-badge" style="background:var(--success-600);color:#fff;">Class 12th</span>
+                <div class="quick-nav-icon green" style="background:var(--success-50);color:var(--success-600);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">NCERT Bio Focus</div>
+                  <div class="quick-nav-sub">Line-by-line Class 12 NCERT</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">Chapter Test</div>
-                <div class="quick-nav-sub">${(DB.chapters || []).length} Biology chapters</div>
+              <div class="quick-nav-card flt-quick-nav-card" onclick="App.navigate('full-length-test')" role="button" tabindex="0">
+                <span class="flt-new-badge">250 Marks</span>
+                <div class="quick-nav-icon purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">CUET Full Length Test</div>
+                  <div class="quick-nav-sub">50 Questions &middot; +5/−1 Mocks</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('ncert-bio-focus')" role="button" tabindex="0" style="position:relative;">
-              <span class="flt-new-badge" style="background:var(--success-600);color:#fff;">Line-by-Line</span>
-              <div class="quick-nav-icon green" style="background:var(--success-50);color:var(--success-600);">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              <div class="quick-nav-card" onclick="App.navigate('flashcards')" role="button" tabindex="0" style="position:relative;border:1.5px solid #a7f3d0;">
+                <span class="flt-new-badge" style="background:#059669;color:#fff;">10 Daily</span>
+                <div class="quick-nav-icon green" style="background:#ecfdf5;color:#059669;font-size:20px;">
+                  🗂️
+                </div>
+                <div>
+                  <div class="quick-nav-label">Daily Flashcards</div>
+                  <div class="quick-nav-sub">Swipe &amp; lock NCERT facts</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">NCERT Bio Focus</div>
-                <div class="quick-nav-sub">Line-by-line NCERT mastery</div>
+              <div class="quick-nav-card" onclick="App.navigate('duel')" role="button" tabindex="0" style="position:relative;border:1.5px solid #fecaca;">
+                <span class="flt-new-badge" style="background:#dc2626;color:#fff;">Live Duel</span>
+                <div class="quick-nav-icon red" style="background:#fef2f2;color:#dc2626;font-size:20px;">
+                  ⚔️
+                </div>
+                <div>
+                  <div class="quick-nav-label">1v1 Friend Battle</div>
+                  <div class="quick-nav-sub">Challenge friends on WhatsApp</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card flt-quick-nav-card" onclick="App.navigate('full-length-test')" role="button" tabindex="0">
-              <span class="flt-new-badge">New</span>
-              <div class="quick-nav-icon purple">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+              <div class="quick-nav-card" onclick="App.navigate('performance')" role="button" tabindex="0">
+                <div class="quick-nav-icon green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Ranking &amp; Analytics</div>
+                  <div class="quick-nav-sub">Rank #${perf.rank || '—'} &middot; CUET Analytics</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">Full Length Test</div>
-                <div class="quick-nav-sub">Complete NEET Biology mocks</div>
+            ` : `
+              <div class="quick-nav-card" onclick="App.navigate('pyq-test')" role="button" tabindex="0">
+                <div class="quick-nav-icon blue">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">PYQ Test</div>
+                  <div class="quick-nav-sub">2019–2024 papers</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('improvement-book')" role="button" tabindex="0">
-              <div class="quick-nav-icon orange">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+              <div class="quick-nav-card" onclick="App.navigate('chapter-test')" role="button" tabindex="0">
+                <div class="quick-nav-icon teal">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Chapter Test</div>
+                  <div class="quick-nav-sub">${(DB.chapters || []).length} Biology chapters</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">Improvement Book</div>
-                <div class="quick-nav-sub">${state.weaknessMap?.length || 0} weak areas tracked</div>
+              <div class="quick-nav-card" onclick="App.navigate('ncert-bio-focus')" role="button" tabindex="0" style="position:relative;">
+                <span class="flt-new-badge" style="background:var(--success-600);color:#fff;">Line-by-Line</span>
+                <div class="quick-nav-icon green" style="background:var(--success-50);color:var(--success-600);">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">NCERT Bio Focus</div>
+                  <div class="quick-nav-sub">Line-by-line NCERT mastery</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('flashcards')" role="button" tabindex="0" style="position:relative;border:1.5px solid #a7f3d0;">
-              <span class="flt-new-badge" style="background:#059669;color:#fff;">10 Daily</span>
-              <div class="quick-nav-icon green" style="background:#ecfdf5;color:#059669;font-size:20px;">
-                🗂️
+              <div class="quick-nav-card flt-quick-nav-card" onclick="App.navigate('full-length-test')" role="button" tabindex="0">
+                <span class="flt-new-badge">New</span>
+                <div class="quick-nav-icon purple">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Full Length Test</div>
+                  <div class="quick-nav-sub">Complete NEET Biology mocks</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">Daily Flashcards</div>
-                <div class="quick-nav-sub">Swipe &amp; lock NCERT facts</div>
+              <div class="quick-nav-card" onclick="App.navigate('improvement-book')" role="button" tabindex="0">
+                <div class="quick-nav-icon orange">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Improvement Book</div>
+                  <div class="quick-nav-sub">${state.weaknessMap?.length || 0} weak areas tracked</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('duel')" role="button" tabindex="0" style="position:relative;border:1.5px solid #fecaca;">
-              <span class="flt-new-badge" style="background:#dc2626;color:#fff;">Live Duel</span>
-              <div class="quick-nav-icon red" style="background:#fef2f2;color:#dc2626;font-size:20px;">
-                ⚔️
+              <div class="quick-nav-card" onclick="App.navigate('flashcards')" role="button" tabindex="0" style="position:relative;border:1.5px solid #a7f3d0;">
+                <span class="flt-new-badge" style="background:#059669;color:#fff;">10 Daily</span>
+                <div class="quick-nav-icon green" style="background:#ecfdf5;color:#059669;font-size:20px;">
+                  🗂️
+                </div>
+                <div>
+                  <div class="quick-nav-label">Daily Flashcards</div>
+                  <div class="quick-nav-sub">Swipe &amp; lock NCERT facts</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">1v1 Friend Battle</div>
-                <div class="quick-nav-sub">Challenge friends on WhatsApp</div>
+              <div class="quick-nav-card" onclick="App.navigate('duel')" role="button" tabindex="0" style="position:relative;border:1.5px solid #fecaca;">
+                <span class="flt-new-badge" style="background:#dc2626;color:#fff;">Live Duel</span>
+                <div class="quick-nav-icon red" style="background:#fef2f2;color:#dc2626;font-size:20px;">
+                  ⚔️
+                </div>
+                <div>
+                  <div class="quick-nav-label">1v1 Friend Battle</div>
+                  <div class="quick-nav-sub">Challenge friends on WhatsApp</div>
+                </div>
               </div>
-            </div>
-            <div class="quick-nav-card" onclick="App.navigate('performance')" role="button" tabindex="0">
-              <div class="quick-nav-icon green">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              <div class="quick-nav-card" onclick="App.navigate('performance')" role="button" tabindex="0">
+                <div class="quick-nav-icon green">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <div>
+                  <div class="quick-nav-label">Performance &amp; Ranking</div>
+                  <div class="quick-nav-sub">Rank #${perf.rank || '—'} &middot; Real Analytics</div>
+                </div>
               </div>
-              <div>
-                <div class="quick-nav-label">Performance &amp; Ranking</div>
-                <div class="quick-nav-sub">Rank #${perf.rank || '—'} &middot; Real Analytics</div>
-              </div>
-            </div>
+            `}
           </div>
         </div>
+
+        ${isCuet ? `
+          <!-- Dedicated CUET (UG) PYQ Section on Dashboard -->
+          <div class="reveal" style="margin-top:var(--sp-6);">
+            <div class="section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-3);flex-wrap:wrap;gap:var(--sp-2);">
+              <div>
+                <div class="section-title" style="display:flex;align-items:center;gap:8px;">
+                  <span>🎯</span> <span>CUET (UG) Biology PYQs</span>
+                  <span class="badge badge-primary" style="font-size:10px;font-weight:700;">2022–2024 Papers</span>
+                </div>
+                <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">
+                  Official NTA CUET previous year papers with +5 / -1 marking &amp; case-study passage drills.
+                </div>
+              </div>
+              <button class="btn btn-outline btn-sm" onclick="App.navigate('cuet-pyq')">View All CUET PYQs →</button>
+            </div>
+
+            <!-- Year-wise Quick Cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
+              ${(DB.cuetPyqYears || []).map(y => `
+                <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);border:1.5px solid #a7f3d0;display:flex;flex-direction:column;justify-content:space-between;">
+                  <div>
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                      <span class="badge badge-primary" style="font-size:10px;font-weight:700;">NTA Official</span>
+                      <span style="font-size:var(--text-xs);font-weight:700;color:var(--primary-700);">${y.year}</span>
+                    </div>
+                    <div style="font-weight:800;font-size:var(--text-base);color:var(--neutral-900);margin-bottom:4px;">
+                      CUET (UG) ${y.year} Biology
+                    </div>
+                    <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:12px;line-height:1.4;">
+                      50 Questions &middot; 45 Mins &middot; Max 250 Marks (+5/−1)
+                    </div>
+                  </div>
+                  <button class="btn btn-primary btn-sm btn-block" onclick="startCuetPYQTest('all', ${y.year}, 'CUET UG ${y.year} Official Paper')">
+                    Practice ${y.year} Paper →
+                  </button>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- High-Yield Class 12 Chapter PYQ Drill Grid -->
+            <div class="section-title" style="font-size:var(--text-sm);margin-bottom:var(--sp-2);">Class 12th Chapter PYQ Drills</div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--sp-2);">
+              ${(DB.chapters || []).filter(c => String(c.class) === '12').slice(0, 6).map(ch => `
+                <div class="card" style="padding:var(--sp-3);display:flex;align-items:center;justify-content:space-between;gap:8px;cursor:pointer;border:1px solid var(--neutral-200);transition:all 0.15s ease;" onclick="startCuetPYQTest('${ch.id}', 'all', 'CUET PYQ — ${ch.name}')" role="button" tabindex="0">
+                  <div style="display:flex;align-items:center;gap:8px;min-width:0;">
+                    <span style="font-size:20px;">${ch.icon}</span>
+                    <div style="min-width:0;">
+                      <div style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${ch.name}</div>
+                      <div style="font-size:10px;color:var(--primary-600);font-weight:600;">CUET PYQ Drill</div>
+                    </div>
+                  </div>
+                  <span style="font-size:12px;color:var(--neutral-400);">→</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        ` : ''}
 
       </div>
 
@@ -850,7 +979,7 @@ function pyqFilteredChapters() {
     if (PYQState.classFilter !== 'all' && ch.class !== PYQState.classFilter) return false;
     if (PYQState.difficultyFilter !== 'all' && pyqDifficultyOf(ch) !== PYQState.difficultyFilter) return false;
     if (PYQState.yearFilter !== 'all') {
-      const hasYear = DB.questions.some(qn => qn.chapter === ch.id && qn.year === parseInt(PYQState.yearFilter, 10));
+      const hasYear = DB.getNeetPyqQuestions({ chapterId: ch.id, year: PYQState.yearFilter }).length > 0;
       if (!hasYear) return false;
     }
     return true;
@@ -860,16 +989,18 @@ function pyqFilteredChapters() {
 function pyqChapterCardHtml(ch) {
   const diff = pyqDifficultyOf(ch);
   const diffColor = diff === 'Hard' ? 'var(--error-600)' : diff === 'Medium' ? 'var(--warning-600)' : 'var(--success-600)';
+  const neetQs = DB.getNeetPyqQuestions({ chapterId: ch.id });
+  const qCount = neetQs.length || ch.questions || 10;
   return `
     <div class="pyq-chapter-card">
       <div class="pyq-chapter-top">
-        <span class="pyq-chapter-eyebrow">BIOLOGY &middot; CLASS ${ch.class}</span>
+        <span class="pyq-chapter-eyebrow">NEET BIOLOGY &middot; CLASS ${ch.class}</span>
         <span class="pyq-chapter-diff" style="color:${diffColor};">${diff}</span>
       </div>
       <div class="pyq-chapter-icon">${ch.icon}</div>
       <div class="pyq-chapter-name">${ch.name}</div>
-      <div class="pyq-chapter-count">${ch.questions} PYQs</div>
-      <button class="btn btn-primary btn-sm btn-block" onclick="startPYQTest('${ch.id}','${ch.name.replace(/'/g, "\\'")}')">Practice PYQs →</button>
+      <div class="pyq-chapter-count">${qCount} NEET PYQs</div>
+      <button class="btn btn-primary btn-sm btn-block" onclick="startPYQTest('${ch.id}','${ch.name.replace(/'/g, "\\'")}')">Practice NEET PYQs →</button>
     </div>
   `;
 }
@@ -880,7 +1011,7 @@ function renderPYQChapterGrid() {
   const chapters = pyqFilteredChapters();
   grid.innerHTML = chapters.length
     ? chapters.map(pyqChapterCardHtml).join('')
-    : `<div class="pyq-empty-state">No chapters match your search/filters. Try clearing them.</div>`;
+    : `<div class="pyq-empty-state">No NEET chapters match your search/filters. Try clearing them.</div>`;
 }
 
 function renderPYQFiltersAndGrid() {
@@ -924,8 +1055,8 @@ function renderPYQFiltersAndGrid() {
       <div class="pyq-filter-group">
         <span class="pyq-filter-label">Year</span>
         <select class="pyq-year-select" onchange="PYQState.yearFilter=this.value; renderPYQChapterGrid();">
-          <option value="all">All years</option>
-          ${years.map(y => `<option value="${y}" ${PYQState.yearFilter == y ? 'selected' : ''}>${y}</option>`).join('')}
+          <option value="all">All years (2019–2024)</option>
+          ${years.map(y => `<option value="${y}" ${PYQState.yearFilter == y ? 'selected' : ''}>NEET ${y}</option>`).join('')}
         </select>
       </div>
     </div>
@@ -947,8 +1078,11 @@ function renderPYQTest(container) {
     <div class="pyq-layout">
       <div class="pyq-main-col">
         <div style="margin-bottom:var(--sp-5);">
+          <div style="display:inline-flex;align-items:center;gap:6px;background:var(--success-50);border:1px solid var(--success-200);border-radius:var(--radius-full);padding:2px 10px;font-size:var(--text-xs);font-weight:700;color:var(--success-700);margin-bottom:var(--sp-2);">
+            <span>🟢</span> <span>NEET (UG) Official Biology PYQs (2019–2024)</span>
+          </div>
           <div class="page-title">NEET Biology Previous Year Questions</div>
-          <div class="page-subtitle">Practice chapter-wise NEET Biology PYQs and strengthen your prep.</div>
+          <div class="page-subtitle">Practice chapter-wise authentic NEET Biology PYQs with +4/−1 marking.</div>
         </div>
 
         <div id="pyq-controls"></div>
@@ -972,28 +1106,265 @@ function renderPYQTest(container) {
 }
 
 window.startPYQTest = function(chapterId, chapterName) {
-  const questions = getQuestionsByChapter(chapterId, 15);
-  if (questions.length === 0) { App.showToast('No PYQs available for this chapter yet'); return; }
+  const yearFilter = PYQState.yearFilter;
+  let questions = DB.getNeetPyqQuestions({ chapterId, year: yearFilter });
+  if (questions.length === 0) {
+    questions = DB.getNeetPyqQuestions({ chapterId });
+  }
+  if (questions.length === 0) {
+    App.showToast('No NEET PYQs available for this chapter yet');
+    return;
+  }
+  const selectedQs = questions.slice(0, 15);
   App.navigate('test', {
-    questions,
+    questions: selectedQs,
     mode: 'pyq',
-    meta: { chapterId, chapterName, title: `NEET Biology PYQ — ${chapterName}` }
+    meta: {
+      examType: 'NEET',
+      chapterId,
+      chapterName,
+      title: `NEET Biology PYQ — ${chapterName}`,
+      maxMarks: selectedQs.length * 4,
+    },
+    onComplete: (results) => {
+      results.examType = 'NEET';
+      App.navigate('result', results);
+    }
+  });
+};
+
+/* ============================================================
+   CUET (UG) PYQ Test Screen & Handlers
+   ============================================================ */
+const CuetPYQState = {
+  search: '',
+  yearFilter: 'all',
+  chapterFilter: 'all',
+};
+
+function renderCuetPYQTest(container) {
+  CuetPYQState.search = '';
+  CuetPYQState.yearFilter = 'all';
+  CuetPYQState.chapterFilter = 'all';
+
+  const class12Chapters = (DB.chapters || []).filter(c => String(c.class) === '12');
+  const years = (DB.cuetPyqYears || []).map(y => y.year);
+
+  container.innerHTML = `
+    <div class="pyq-layout">
+      <div class="pyq-main-col">
+        <div style="margin-bottom:var(--sp-5);">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span class="badge badge-primary" style="font-size:11px;font-weight:700;">🎯 NTA CUET (UG)</span>
+            <span class="badge badge-neutral" style="font-size:11px;">+5 / −1 Marking &middot; Max 250 Marks</span>
+          </div>
+          <div class="page-title">CUET (UG) Biology Official PYQs</div>
+          <div class="page-subtitle">Authentic chapter-wise &amp; slot-wise NTA CUET (UG) Biological Studies question papers (2022–2024). 100% Class 12th NCERT Syllabus.</div>
+        </div>
+
+        <!-- Year Tabs -->
+        <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-4);flex-wrap:wrap;align-items:center;">
+          <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);text-transform:uppercase;">Exam Year:</span>
+          <button class="btn btn-sm ${CuetPYQState.yearFilter === 'all' ? 'btn-primary' : 'btn-ghost'}" onclick="setCuetPYQYear('all')">All Years</button>
+          ${years.map(y => `
+            <button class="btn btn-sm ${CuetPYQState.yearFilter == y ? 'btn-primary' : 'btn-ghost'}" onclick="setCuetPYQYear('${y}')">${y} Papers</button>
+          `).join('')}
+        </div>
+
+        <!-- Search & Chapter Filter -->
+        <div style="display:flex;gap:var(--sp-3);margin-bottom:var(--sp-4);flex-wrap:wrap;">
+          <div style="flex:1;min-width:220px;">
+            <input type="text" class="form-input form-input-sm" id="cuet-pyq-search" placeholder="🔍 Search topic or chapter (e.g. Genetics, Lac Operon)…" oninput="CuetPYQState.search=this.value; renderCuetPYQGrid();" />
+          </div>
+          <select class="form-input form-input-sm" style="width:240px;" onchange="CuetPYQState.chapterFilter=this.value; renderCuetPYQGrid();">
+            <option value="all">All Class 12th Chapters</option>
+            ${class12Chapters.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}
+          </select>
+        </div>
+
+        <!-- Grid Container -->
+        <div id="cuet-pyq-grid-container"></div>
+      </div>
+
+      <aside class="pyq-ad-sidebar">
+        <div class="ad-header">CUET Target Tips</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #eff6ff, #fff);border:1.5px solid #93c5fd;">
+          <div style="font-size:24px;margin-bottom:var(--sp-2);">🎯</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--sp-1);color:#1e40af;">50 Questions · 250 Marks</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.4;">Each question awards +5 for correct and penalizes −1 for wrong answers. Max score is 250.</p>
+        </div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid var(--success-200);">
+          <div style="font-size:24px;margin-bottom:var(--sp-2);">📖</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:var(--sp-1);color:var(--success-900);">Class 12th NCERT Focus</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.4;">CUET (UG) Biology tests only Class 12th NCERT chapters. Master diagrams &amp; Case Studies.</p>
+        </div>
+      </aside>
+    </div>
+  `;
+
+  renderCuetPYQGrid();
+}
+
+window.setCuetPYQYear = function(year) {
+  CuetPYQState.yearFilter = year;
+  const container = document.getElementById('screen-container');
+  if (container) renderCuetPYQTest(container);
+};
+
+window.renderCuetPYQGrid = function() {
+  const gridEl = document.getElementById('cuet-pyq-grid-container');
+  if (!gridEl) return;
+
+  const class12Chapters = (DB.chapters || []).filter(c => {
+    if (String(c.class) !== '12') return false;
+    if (CuetPYQState.chapterFilter !== 'all' && c.id !== CuetPYQState.chapterFilter) return false;
+    if (CuetPYQState.search) {
+      const s = CuetPYQState.search.toLowerCase();
+      if (!c.name.toLowerCase().includes(s)) return false;
+    }
+    return true;
+  });
+
+  gridEl.innerHTML = `
+    <!-- Year Full Paper Cards (if All or Year selected) -->
+    ${CuetPYQState.chapterFilter === 'all' && !CuetPYQState.search ? `
+      <div style="margin-bottom:var(--sp-5);">
+        <div style="font-size:var(--text-sm);font-weight:800;text-transform:uppercase;color:var(--neutral-600);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:6px;">
+          <span>⚡</span> <span>Full Official Slot Papers (50 Qs · 250 Marks)</span>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));gap:var(--sp-3);">
+          ${(DB.cuetPyqYears || []).filter(y => CuetPYQState.yearFilter === 'all' || String(y.year) === String(CuetPYQState.yearFilter)).map(y => `
+            <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);border:1.5px solid #a7f3d0;display:flex;flex-direction:column;justify-content:space-between;">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                  <span class="badge badge-primary" style="font-size:10px;font-weight:700;">Official NTA Paper</span>
+                  <span style="font-size:var(--text-xs);font-weight:700;color:var(--primary-700);">${y.year}</span>
+                </div>
+                <div style="font-weight:800;font-size:var(--text-base);color:var(--neutral-900);margin-bottom:4px;">
+                  CUET (UG) ${y.year} Biology
+                </div>
+                <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-bottom:12px;line-height:1.4;">
+                  ${y.shifts.join(', ')} &middot; 50 Qs &middot; 250 Marks
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm btn-block" onclick="startCuetPYQTest('all', ${y.year}, 'CUET UG ${y.year} Official Paper')">
+                Practice ${y.year} Full Paper →
+              </button>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : ''}
+
+    <!-- Chapter-wise CUET PYQ Drills -->
+    <div style="font-size:var(--text-sm);font-weight:800;text-transform:uppercase;color:var(--neutral-600);margin-bottom:var(--sp-3);display:flex;align-items:center;gap:6px;">
+      <span>📖</span> <span>Class 12th Chapter-Wise CUET PYQs</span>
+    </div>
+
+    ${class12Chapters.length === 0 ? `
+      <div class="card" style="text-align:center;padding:var(--sp-8);">
+        <p style="color:var(--neutral-500);margin:0;">No Class 12th chapters match your filters.</p>
+      </div>
+    ` : `
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(260px, 1fr));gap:var(--sp-3);">
+        ${class12Chapters.map(ch => {
+          const chQs = (DB.cuetQuestions || []).filter(q => q.chapter === ch.id || q.chapterId === ch.id);
+          const qCount = chQs.length || ch.questions || 15;
+          return `
+            <div class="card" style="padding:var(--sp-4);display:flex;flex-direction:column;justify-content:space-between;border:1px solid var(--neutral-200);border-radius:var(--radius-md);transition:all 0.15s ease;">
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+                  <span style="font-size:28px;">${ch.icon}</span>
+                  <span class="badge badge-neutral" style="font-size:10px;">Class 12th</span>
+                </div>
+                <div style="font-weight:700;font-size:var(--text-sm);color:var(--neutral-900);margin-bottom:4px;line-height:1.3;">
+                  ${ch.name}
+                </div>
+                <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-bottom:12px;">
+                  ${qCount} CUET PYQ Questions available
+                </div>
+              </div>
+              <button class="btn btn-primary btn-sm btn-block" onclick="startCuetPYQTest('${ch.id}', '${CuetPYQState.yearFilter}', 'CUET PYQ — ${ch.name}')">
+                Practice Chapter PYQs →
+              </button>
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `}
+  `;
+};
+
+window.startCuetPYQTest = function(chapterId, year, title) {
+  let list = DB.getCuetPyqQuestions({
+    chapterId: (chapterId && chapterId !== 'all') ? chapterId : undefined,
+    year: (year && year !== 'all') ? year : undefined,
+  });
+
+  if (list.length === 0 && chapterId && chapterId !== 'all') {
+    // If specific year filter had 0, get all CUET PYQs for this Class 12 chapter
+    list = DB.getCuetPyqQuestions({ chapterId });
+  }
+
+  if (list.length === 0) {
+    // Fallback strictly to CUET PYQ pool
+    list = DB.getCuetPyqQuestions({});
+  }
+
+  if (!list || list.length === 0) {
+    App.showToast('No CUET PYQ questions available');
+    return;
+  }
+
+  const maxQ = Math.min(list.length, 50);
+  const selectedQs = list.slice(0, maxQ);
+
+  App.navigate('test', {
+    questions: selectedQs,
+    mode: 'cuet',
+    meta: {
+      examType: 'CUET',
+      chapterId: chapterId !== 'all' ? chapterId : null,
+      title: title || (chapterId !== 'all' ? `CUET PYQ — Chapter Test` : `CUET (UG) ${year !== 'all' ? year : '2024'} Biology Paper`),
+      year: year !== 'all' ? year : 2024,
+      timeLimitMin: 45,
+      durationSeconds: 45 * 60,
+      questionCount: selectedQs.length,
+      maxMarks: 250,
+    },
+    onComplete: (results) => {
+      results.examType = 'CUET';
+      results.maxScore = 250;
+      App.navigate('result', results);
+    }
   });
 };
 
 /* ---- Chapter-wise Test Screen ---- */
 function renderChapterTest(container) {
   const state = State.get();
+  const isCuet = state.examMode === 'CUET';
+  const displayedChapters = isCuet
+    ? (DB.chapters || []).filter(c => String(c.class) === '12')
+    : (DB.chapters || []);
+
   container.innerHTML = `
     <div class="chtest-layout">
       <div class="chtest-main-col">
         <div style="margin-bottom:var(--sp-5);">
-          <div class="page-title">Chapter-wise Test</div>
-          <div class="page-subtitle">All ${(DB.chapters || []).length} chapters — pick your fighter</div>
+          <div class="page-title">${isCuet ? '🔵 CUET (UG) Class 12th Chapter Test' : 'Chapter-wise Test'}</div>
+          <div class="page-subtitle">${isCuet ? '100% Class 12th NCERT Syllabus (' + displayedChapters.length + ' Chapters) &middot; Target 250 Marks (+5/−1)' : 'All ' + displayedChapters.length + ' chapters — pick your fighter'}</div>
         </div>
 
+        ${isCuet ? `
+          <div style="background:linear-gradient(135deg,#eff6ff,#dbeafe);border:1.5px solid #93c5fd;border-radius:var(--radius-md);padding:10px 14px;margin-bottom:var(--sp-4);display:flex;align-items:center;gap:10px;font-size:var(--text-xs);color:#1e40af;font-weight:600;">
+            <span style="font-size:18px;">🎯</span>
+            <span><strong>CUET (UG) Mode Active:</strong> Showing Class 12th NCERT Chapters only. Full Class 12th Biological Studies curriculum.</span>
+          </div>
+        ` : ''}
+
         <div class="chapter-grid">
-          ${DB.chapters.map((ch, i) => {
+          ${displayedChapters.map((ch, i) => {
             const prog = state.performance?.chapterProgress?.[ch.id] || 0;
             const progColor = prog >= 70 ? 'var(--success-500)' : prog >= 50 ? 'var(--primary-500)' : 'var(--neutral-400)';
             return `
@@ -1006,7 +1377,7 @@ function renderChapterTest(container) {
                   </div>
                 </div>
                 <div class="chapter-name">${ch.name}</div>
-                <div class="chapter-meta">~${ch.questions} Qs</div>
+                <div class="chapter-meta">~${ch.questions} Qs ${isCuet ? '&middot; Class 12th' : ''}</div>
                 <div class="progress-bar" style="width:100%;height:4px;">
                   <div class="progress-fill ${prog >= 70 ? 'success' : prog >= 50 ? '' : 'error'}" style="width:${prog}%;"></div>
                 </div>
@@ -1165,7 +1536,12 @@ const NcertFocusState = {
 
 async function renderNcertBioFocus(container) {
   const state = State.get();
+  const isCuet = state.examMode === 'CUET';
   const ncertProgress = state.ncertProgress || {};
+
+  if (isCuet) {
+    NcertFocusState.activeClass = '12';
+  }
 
   // Fetch all NCERT focus questions (or use DB fallback) to compute real-time counts
   let allNcertQs = (window.DB && window.DB.ncertQuestions) || [];
@@ -1188,7 +1564,8 @@ async function renderNcertBioFocus(container) {
 
   // Filter chapters
   const filteredChapters = (DB.chapters || []).filter((ch) => {
-    if (NcertFocusState.activeClass !== 'all' && ch.class !== NcertFocusState.activeClass) return false;
+    if (isCuet && String(ch.class) !== '12') return false;
+    if (!isCuet && NcertFocusState.activeClass !== 'all' && ch.class !== NcertFocusState.activeClass) return false;
     if (NcertFocusState.searchTerm) {
       const s = NcertFocusState.searchTerm.toLowerCase();
       if (!ch.name.toLowerCase().includes(s)) return false;
@@ -1203,13 +1580,13 @@ async function renderNcertBioFocus(container) {
         <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:var(--sp-4);">
           <div style="max-width:580px;">
             <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,0.18);padding:4px 10px;border-radius:20px;font-size:var(--text-xs);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin-bottom:var(--sp-2);">
-              🌿 100% NCERT Line-by-Line
+              🌿 100% NCERT Line-by-Line ${isCuet ? '&middot; Class 12th CUET' : ''}
             </div>
             <div style="font-size:var(--text-2xl);font-weight:800;line-height:1.2;margin-bottom:var(--sp-2);">
-              NCERT Bio Focus
+              ${isCuet ? '🔵 CUET (UG) NCERT Bio Focus' : 'NCERT Bio Focus'}
             </div>
             <div style="font-size:var(--text-sm);opacity:0.92;line-height:1.5;">
-              Practice questions based on NCERT Biology, line by line. Master MCQs, Assertion &amp; Reason, Matching Columns, and Diagram questions directly referenced to NCERT textbooks.
+              ${isCuet ? 'Practice Class 12th NCERT Biology line-by-line questions for CUET (UG). Master MCQs, Assertion & Reason, Matching Columns, and Diagram questions.' : 'Practice questions based on NCERT Biology, line by line. Master MCQs, Assertion &amp; Reason, Matching Columns, and Diagram questions directly referenced to NCERT textbooks.'}
             </div>
           </div>
 
@@ -1239,9 +1616,13 @@ async function renderNcertBioFocus(container) {
           <!-- Class Tabs -->
           <div style="display:flex;gap:var(--sp-2);align-items:center;">
             <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);text-transform:uppercase;">Class:</span>
-            <button class="btn btn-sm ${NcertFocusState.activeClass === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('all')">All Classes</button>
-            <button class="btn btn-sm ${NcertFocusState.activeClass === '11' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('11')">Class 11</button>
-            <button class="btn btn-sm ${NcertFocusState.activeClass === '12' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('12')">Class 12</button>
+            ${isCuet ? `
+              <button class="btn btn-sm btn-primary">Class 12 (CUET Syllabus)</button>
+            ` : `
+              <button class="btn btn-sm ${NcertFocusState.activeClass === 'all' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('all')">All Classes</button>
+              <button class="btn btn-sm ${NcertFocusState.activeClass === '11' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('11')">Class 11</button>
+              <button class="btn btn-sm ${NcertFocusState.activeClass === '12' ? 'btn-primary' : 'btn-outline'}" onclick="setNcertClassFilter('12')">Class 12</button>
+            `}
           </div>
 
           <!-- Question Type Pills -->
@@ -1984,6 +2365,7 @@ window.setPerfTab = function (tab) {
 function renderPerformance(container) {
   PerfPage.activeTab = 'chapter';
   const state = State.get();
+  const isCuet = (state.examMode === 'CUET');
   const perf = state.performance;
   const name = state.student.name || 'Student';
   const initial = (name.charAt(0) || 'S').toUpperCase();
@@ -1995,9 +2377,34 @@ function renderPerformance(container) {
     <div class="perf-layout">
       <div class="perf-main-col">
         <div style="margin-bottom:var(--sp-6);">
-          <div class="page-title">Performance & Ranking</div>
-          <div class="page-subtitle">Your stats, your rank, your glow-up tracker</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span class="badge ${isCuet ? 'badge-primary' : 'badge-success'}" style="font-size:11px;font-weight:700;">
+              ${isCuet ? '🔵 CUET (UG) Mode' : '🟢 NEET (UG) Mode'}
+            </span>
+            <span class="badge badge-neutral" style="font-size:11px;">
+              ${isCuet ? 'Target 250 Marks &middot; +5/−1 Marking' : 'Target 360 Marks &middot; +4/−1 Marking'}
+            </span>
+          </div>
+          <div class="page-title">${isCuet ? 'CUET (UG) Performance & Ranking' : 'NEET Biology Performance & Ranking'}</div>
+          <div class="page-subtitle">${isCuet ? 'Your CUET test stats, percentile rank & Class 12th test analytics' : 'Your NEET stats, your rank, your 360-marks glow-up tracker'}</div>
         </div>
+
+        ${perf.testsAttempted === 0 ? `
+          <!-- Notice when 0 tests in active mode -->
+          <div style="background:linear-gradient(135deg, ${isCuet ? '#eff6ff, #dbeafe' : '#f0fdf4, #dcfce7'});border:1.5px solid ${isCuet ? '#93c5fd' : '#86efac'};border-radius:var(--radius-md);padding:var(--sp-4);margin-bottom:var(--sp-5);display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);flex-wrap:wrap;">
+            <div>
+              <div style="font-weight:700;color:${isCuet ? '#1e40af' : '#166534'};font-size:var(--text-sm);">
+                🎯 No ${isCuet ? 'CUET' : 'NEET'} test attempts recorded yet
+              </div>
+              <div style="font-size:var(--text-xs);color:${isCuet ? '#2563eb' : '#15803d'};margin-top:2px;">
+                ${isCuet ? 'Attempt a CUET PYQ test or CUET Full Mock to calculate your live CUET Bio Rank & stats.' : 'Take a Chapter Test or NEET Mock to unlock your NEET Bio Rank & live analytics.'}
+              </div>
+            </div>
+            <button class="btn btn-primary btn-sm" onclick="App.navigate('${isCuet ? 'cuet-pyq' : 'chapter-test'}')">
+              ${isCuet ? 'Start CUET PYQ Test →' : 'Start Chapter Test →'}
+            </button>
+          </div>
+        ` : ''}
 
         <!-- Profile / Rank Summary Card -->
         <div class="profile-card" id="rank-section" style="margin-bottom:var(--sp-5);">
@@ -2005,7 +2412,9 @@ function renderPerformance(container) {
             <div class="profile-avatar">${initial}</div>
             <div class="profile-name-area">
               <div class="profile-name">${name}</div>
-              <div class="profile-rank">Bio Rank: <strong>${(perf.testsAttempted > 0 && perf.rank) ? `#${perf.rank}` : '— (Take 1st Test)'}</strong></div>
+              <div class="profile-rank">
+                ${isCuet ? 'CUET Bio Rank' : 'NEET Bio Rank'}: <strong>${(perf.testsAttempted > 0 && perf.rank) ? `#${perf.rank}` : `— (Take 1st ${isCuet ? 'CUET' : 'NEET'} Test)`}</strong>
+              </div>
             </div>
           </div>
           <div class="profile-stats">
@@ -2022,7 +2431,7 @@ function renderPerformance(container) {
             <div class="profile-stat-item">
               <span class="profile-stat-icon">🎯</span>
               <span class="profile-stat-val">${perf.overallAccuracy}%</span>
-              <span class="profile-stat-label">Accuracy</span>
+              <span class="profile-stat-label">${isCuet ? 'CUET Accuracy' : 'NEET Accuracy'}</span>
             </div>
           </div>
           <div class="profile-progress">
@@ -2039,13 +2448,13 @@ function renderPerformance(container) {
         <!-- Ranking Criteria Info Pill -->
         <div style="background:var(--primary-50);border:1px solid var(--primary-200);border-radius:var(--radius-md);padding:var(--sp-3) var(--sp-4);margin-bottom:var(--sp-4);display:flex;align-items:center;gap:var(--sp-2);font-size:var(--text-xs);color:var(--primary-900);">
           <span style="font-size:16px;">⚖️</span>
-          <span><strong>Official Bio Rank Formula:</strong> Rank is computed based on <strong>1. Marks Scored</strong> (Higher marks) and <strong>2. Speed</strong> (Lower Avg Time taken per question).</span>
+          <span><strong>Official ${isCuet ? 'CUET (UG)' : 'NEET Biology'} Rank Formula:</strong> Rank is computed based on <strong>1. Marks Scored</strong> (${isCuet ? '+5/−1 Marking Scheme out of 250' : '+4/−1 Marking Scheme out of 360'}) and <strong>2. Speed</strong> (Lower Avg Time taken per question).</span>
         </div>
 
         <!-- Stats Grid -->
         <div class="perf-stats-grid" style="margin-bottom:var(--sp-5);">
           <div class="stat-card">
-            <div class="stat-label">Your Rank</div>
+            <div class="stat-label">Your ${isCuet ? 'CUET' : 'NEET'} Rank</div>
             <div class="stat-value">#${perf.testsAttempted > 0 ? (perf.rank || 1) : '—'}</div>
             <div class="stat-sub">of ${(perf.totalStudents || 1).toLocaleString()} active student${(perf.totalStudents || 1) === 1 ? '' : 's'}</div>
           </div>
@@ -2057,22 +2466,27 @@ function renderPerformance(container) {
           <div class="stat-card">
             <div class="stat-label">Avg Speed / Question</div>
             <div class="stat-value" style="color:var(--primary-700);">${(perf.testsAttempted > 0 && perf.lastAvgTimePerQuestion) ? `${perf.lastAvgTimePerQuestion}s` : '—'}</div>
-            <div class="stat-sub">${(perf.testsAttempted > 0 && perf.lastAvgTimePerQuestion) ? (perf.lastAvgTimePerQuestion <= 50 ? '⚡ Fast Pace' : '⏱️ Needs Speed') : 'No tests yet'}</div>
+            <div class="stat-sub">${(perf.testsAttempted > 0 && perf.lastAvgTimePerQuestion) ? (perf.lastAvgTimePerQuestion <= 50 ? '⚡ Fast Pace' : '⏱️ Needs Speed') : `No ${isCuet ? 'CUET' : 'NEET'} tests yet`}</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Overall Accuracy</div>
+            <div class="stat-label">Projected Score</div>
+            <div class="stat-value" style="color:${isCuet ? '#2563eb' : 'var(--success-600)'};">${perf.projectedScore || 0}<span style="font-size:var(--text-xs);color:var(--neutral-400);font-weight:600;">/${isCuet ? 250 : 360}</span></div>
+            <div class="stat-sub">${isCuet ? 'CUET Target: 250' : 'NEET Target: 360'}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">${isCuet ? 'CUET' : 'NEET'} Accuracy</div>
             <div class="stat-value">${perf.overallAccuracy}%</div>
-            <div class="stat-sub">${perf.questionsAttempted > 0 ? 'across all attempts' : 'Take 1st test'}</div>
+            <div class="stat-sub">${perf.questionsAttempted > 0 ? `across ${isCuet ? 'CUET' : 'NEET'} attempts` : `Take 1st ${isCuet ? 'CUET' : 'NEET'} test`}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Tests Completed</div>
             <div class="stat-value">${perf.testsAttempted}</div>
-            <div class="stat-sub">tests done</div>
+            <div class="stat-sub">${isCuet ? 'CUET tests done' : 'NEET tests done'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Questions Attempted</div>
             <div class="stat-value">${perf.questionsAttempted}</div>
-            <div class="stat-sub">of available questions</div>
+            <div class="stat-sub">${isCuet ? 'CUET questions' : 'NEET questions'}</div>
           </div>
           <div class="stat-card">
             <div class="stat-label">Correct Answers</div>
@@ -2080,22 +2494,17 @@ function renderPerformance(container) {
             <div class="stat-sub">${perf.questionsAttempted > 0 ? Math.round(perf.correctAnswers / perf.questionsAttempted * 100) : 0}% hit rate</div>
           </div>
           <div class="stat-card">
-            <div class="stat-label">Incorrect</div>
+            <div class="stat-label">Incorrect Answers</div>
             <div class="stat-value" style="color:var(--error-500);">${perf.incorrectAnswers}</div>
-            <div class="stat-sub">−${perf.incorrectAnswers} negative marks</div>
-          </div>
-          <div class="stat-card">
-            <div class="stat-label">Longest Streak</div>
-            <div class="stat-value" style="color:var(--warning-500);">🔥 ${perf.longestStreak || perf.currentStreak || 1}</div>
-            <div class="stat-sub">${(perf.longestStreak || perf.currentStreak || 1) > 1 ? 'days in a row' : 'day on Bio Rank'}</div>
+            <div class="stat-sub">−${perf.incorrectAnswers * 1} negative marks</div>
           </div>
         </div>
 
         <!-- Weekly Chart -->
         <div id="progress-section">
           <div class="card" style="margin-bottom:var(--sp-5);">
-            <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-4);">Weekly Accuracy Trend</div>
-            ${Charts.lineChart({ values: perf.weeklyProgress, width: 600, height: 110, color: '#16a34a' })}
+            <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-4);">${isCuet ? 'CUET' : 'NEET'} Weekly Accuracy Trend</div>
+            ${Charts.lineChart({ values: perf.weeklyProgress, width: 600, height: 110, color: isCuet ? '#2563eb' : '#16a34a' })}
           </div>
         </div>
 
@@ -2103,12 +2512,12 @@ function renderPerformance(container) {
         <div class="card" id="perf-trend-section" style="margin-bottom:var(--sp-5);">
           <div class="perf-chart-header">
             <div>
-              <div class="section-title" style="font-size:var(--text-base);">Test Performance</div>
-              <div class="section-subtitle">How your scores are trending over time</div>
+              <div class="section-title" style="font-size:var(--text-base);">${isCuet ? 'CUET Test Performance Trend' : 'NEET Test Performance Trend'}</div>
+              <div class="section-subtitle">How your scores in ${isCuet ? 'CUET' : 'NEET'} tests are trending over time</div>
             </div>
             <div class="perf-chart-tabs" role="tablist" aria-label="Test performance graph type">
-              <button type="button" class="perf-chart-tab-btn active" data-tab="chapter" role="tab" aria-selected="true" onclick="setPerfTab('chapter')">Chapter-wise Tests</button>
-              <button type="button" class="perf-chart-tab-btn" data-tab="fulllength" role="tab" aria-selected="false" onclick="setPerfTab('fulllength')">Full-Length Tests</button>
+              <button type="button" class="perf-chart-tab-btn active" data-tab="chapter" role="tab" aria-selected="true" onclick="setPerfTab('chapter')">${isCuet ? 'Class 12th Chapter Tests' : 'Chapter-wise Tests'}</button>
+              <button type="button" class="perf-chart-tab-btn" data-tab="fulllength" role="tab" aria-selected="false" onclick="setPerfTab('fulllength')">${isCuet ? 'CUET Full-Length Mocks' : 'Full-Length Tests'}</button>
             </div>
           </div>
           <div id="perf-chart-body" style="margin-top:var(--sp-3);"></div>
@@ -2116,7 +2525,7 @@ function renderPerformance(container) {
 
         <!-- Badges -->
         <div class="card" id="badges-section">
-          <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-4);">Badges</div>
+          <div class="section-title" style="font-size:var(--text-base);margin-bottom:var(--sp-4);">Badges &amp; Achievements</div>
           <div class="badges-grid">
             ${perf.badges.map(b => `
               <div class="badge-card ${b.earned ? 'earned' : 'locked'}">
@@ -2129,7 +2538,7 @@ function renderPerformance(container) {
         </div>
       </div>
 
-      <!-- Advertisement Sidebar (placeholder only — no ad network wired up) -->
+      <!-- Advertisement Sidebar -->
       <aside class="perf-ad-sidebar" id="perf-ad-sidebar">
         <div class="ad-header">Sponsored</div>
         <div class="ad-card ad-placeholder" data-ad-slot="1">
@@ -2303,50 +2712,93 @@ function renderResult(container, results) {
   container.innerHTML = `
     <div class="result-v2-container">
       
-      <!-- ================= 1. Score & Hero Header ================= -->
-      <div class="result-v2-hero">
+      <!-- ================= 1. Aesthetic Redesigned Score & Hero Header ================= -->
+      <div class="result-v2-hero" style="${isCuet ? 'background: linear-gradient(135deg, #1e3a8a 0%, #1d4ed8 45%, #0284c7 100%);' : ''}">
         <div class="result-v2-hero-header">
           <div class="result-v2-pill-badge">
-            <span>🎉 ${isCuet ? 'CUET (UG) Test Done' : 'Test Completed'}</span>
+            <span>🎉 ${isCuet ? 'CUET (UG) Test Evaluation' : 'NEET Biology Test Evaluation'}</span>
           </div>
           <div style="display:flex;align-items:center;gap:var(--sp-2);">
             <div class="result-v2-neet-badge">
-              <span>${isCuet ? '🔵 CUET Score' : '🎯 NEET Score'}: <strong>${evaluatedScore}</strong> / ${maxMarks}</span>
+              <span>${isCuet ? '🔵 CUET Target: 250' : '🟢 NEET Target: 360'} &middot; Bio Rank: <strong>${rank}</strong></span>
             </div>
           </div>
         </div>
 
-        <div class="result-v2-main-score-box">
-          <div>
-            <div style="font-size:var(--text-xs);text-transform:uppercase;letter-spacing:1.5px;color:rgba(255,255,255,0.85);margin-bottom:6px;font-weight:800;">Total ${isCuet ? 'CUET (UG)' : 'NEET'} Score</div>
-            <div style="display:flex;align-items:baseline;gap:10px;">
-              <span class="result-v2-score-num">${evaluatedScore}</span>
-              <span class="result-v2-score-max">/ ${maxMarks} Marks &middot; ${correctCount}/${totalQ} Qs</span>
+        <!-- Big Bold Aesthetic Marks + Sideline Layout -->
+        <div class="result-marks-aesthetic-banner">
+          <!-- LEFT: Big Bold Aesthetic Marks Display -->
+          <div class="result-marks-main-display">
+            <div class="result-marks-tag">
+              <span class="result-marks-sparkle">✨</span> TOTAL MARKS SCORED
+            </div>
+            <div class="result-marks-value-row">
+              <span class="result-marks-big-number">${evaluatedScore}</span>
+              <div class="result-marks-denom-group">
+                <span class="result-marks-slash">/</span>
+                <span class="result-marks-max">${maxMarks}</span>
+                <span class="result-marks-unit">MARKS</span>
+              </div>
+            </div>
+            <div class="result-marks-subtext">
+              <span class="result-marks-eval-badge ${evaluatedScore >= (maxMarks * 0.8) ? 'stellar' : evaluatedScore >= (maxMarks * 0.5) ? 'good' : 'improve'}">
+                ${evaluatedScore >= (maxMarks * 0.8) ? '🏆 Excellent Performance' : evaluatedScore >= (maxMarks * 0.5) ? '⚡ Good Attempt' : '🎯 Needs Focused Practice'}
+              </span>
+              <span class="result-marks-mode-hint">${isCuet ? '+5 for Correct &middot; −1 for Wrong' : '+4 for Correct &middot; −1 for Wrong'}</span>
+            </div>
+          </div>
+
+          <!-- RIGHT / SIDELINE: Correct Questions & Question Split Cards -->
+          <div class="result-marks-sideline">
+            <!-- Sideline Primary Card: Correct Questions -->
+            <div class="result-sideline-card correct-card">
+              <div class="result-sideline-icon">🎯</div>
+              <div class="result-sideline-info">
+                <div class="result-sideline-label">Correct Questions</div>
+                <div class="result-sideline-val-group">
+                  <span class="result-sideline-big-val">${correctCount}</span>
+                  <span class="result-sideline-total">/ ${totalQ} Qs</span>
+                </div>
+                <div class="result-sideline-sub">
+                  <span class="result-sideline-tag">+${correctCount * (isCuet ? 5 : 4)} Marks</span>
+                  <span class="result-sideline-acc">${correctPct}% Accuracy</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sideline Secondary Row: Wrong & Skipped pills -->
+            <div class="result-sideline-mini-grid">
+              <div class="result-sideline-mini-tile wrong">
+                <div class="mini-tile-top">
+                  <span class="mini-tile-icon">❌</span>
+                  <span class="mini-tile-val">${incorrectCount}</span>
+                </div>
+                <div class="mini-tile-label">Wrong (−${incorrectCount * 1})</div>
+              </div>
+              <div class="result-sideline-mini-tile skipped">
+                <div class="mini-tile-top">
+                  <span class="mini-tile-icon">⏳</span>
+                  <span class="mini-tile-val">${unattemptedCount}</span>
+                </div>
+                <div class="mini-tile-label">Skipped (0)</div>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- 6 Compact Statistics -->
+        <!-- 4 Compact Statistics Row -->
         <div class="result-v2-stats-grid">
           <div class="result-v2-stat-tile">
             <div class="result-v2-stat-tile-val" style="color:#a7f3d0;">${accuracy}%</div>
             <div class="result-v2-stat-tile-label">Accuracy</div>
           </div>
           <div class="result-v2-stat-tile">
-            <div class="result-v2-stat-tile-val" style="color:#6ee7b7;">${correctCount}</div>
-            <div class="result-v2-stat-tile-label">Correct (+${correctCount * (isCuet ? 5 : 4)})</div>
-          </div>
-          <div class="result-v2-stat-tile">
-            <div class="result-v2-stat-tile-val" style="color:#fca5a5;">${incorrectCount}</div>
-            <div class="result-v2-stat-tile-label">Wrong (−${incorrectCount})</div>
-          </div>
-          <div class="result-v2-stat-tile">
-            <div class="result-v2-stat-tile-val" style="color:#cbd5e1;">${unattemptedCount}</div>
-            <div class="result-v2-stat-tile-label">Skipped (0)</div>
-          </div>
-          <div class="result-v2-stat-tile">
             <div class="result-v2-stat-tile-val">${timeStr}</div>
-            <div class="result-v2-stat-tile-label">Time Spent</div>
+            <div class="result-v2-stat-tile-label">Time Taken</div>
+          </div>
+          <div class="result-v2-stat-tile">
+            <div class="result-v2-stat-tile-val" style="color:#93c5fd;">${avgSeconds}s</div>
+            <div class="result-v2-stat-tile-label">Avg Speed / Q</div>
           </div>
           <div class="result-v2-stat-tile">
             <div class="result-v2-stat-tile-val" style="color:#fef08a;">${rank}</div>
@@ -2359,26 +2811,29 @@ function renderResult(container, results) {
       <div class="result-section" id="question-review-section">
         <div class="result-section-header">
           <div>
-            <div class="result-section-title">
-              <span>📝 Question Review & Solutions</span>
+            <div class="result-section-badge-step">
+              <span>📌 STEP 01</span> &middot; <span>DETAILED SOLUTIONS</span>
             </div>
-            <div class="result-section-subtitle">Click any question to view full solution, options, and tag mistake reasons</div>
+            <div class="result-section-title">
+              <span>📝 Question Review &amp; Solutions</span>
+            </div>
+            <div class="result-section-subtitle">Click any question to view step-by-step solution, option breakdown, and tag your mistake reasons</div>
           </div>
         </div>
 
         <!-- Filter tabs -->
         <div class="q-review-filter-tabs">
           <button class="q-review-tab-btn ${_resultFilter === 'all' ? 'active' : ''}" onclick="setResultFilter('all')">
-            All Questions (${totalQ})
+            <strong>All Questions (${totalQ})</strong>
           </button>
           <button class="q-review-tab-btn ${_resultFilter === 'incorrect' ? 'active' : ''}" onclick="setResultFilter('incorrect')">
-            ❌ Incorrect (${incorrectCount})
+            <strong>❌ Incorrect (${incorrectCount})</strong>
           </button>
           <button class="q-review-tab-btn ${_resultFilter === 'correct' ? 'active' : ''}" onclick="setResultFilter('correct')">
-            ✅ Correct (${correctCount})
+            <strong>✅ Correct (${correctCount})</strong>
           </button>
           <button class="q-review-tab-btn ${_resultFilter === 'skipped' ? 'active' : ''}" onclick="setResultFilter('skipped')">
-            — Skipped (${unattemptedCount})
+            <strong>— Skipped (${unattemptedCount})</strong>
           </button>
         </div>
 
@@ -2398,32 +2853,32 @@ function renderResult(container, results) {
                   <div class="q-review-card-topline">
                     <div class="q-review-meta">
                       <span class="q-review-num-chip ${r.status}">
-                        ${r.status === 'correct' ? `Q${qNum} · Correct ✅` : r.status === 'incorrect' ? `Q${qNum} · Wrong ❌` : `Q${qNum} · Skipped —`}
+                        ${r.status === 'correct' ? `Q${qNum} &middot; Correct ✅` : r.status === 'incorrect' ? `Q${qNum} &middot; Wrong ❌` : `Q${qNum} &middot; Skipped —`}
                       </span>
-                      ${chName ? `<span style="font-size:11px;color:var(--neutral-500);font-weight:600;">${escapeHtml(chName)}</span>` : ''}
-                      ${q.ncertReference ? `<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:10px;">📖 ${escapeHtml(q.ncertReference)}</span>` : ''}
+                      ${chName ? `<span style="font-size:12px;color:var(--neutral-700);font-weight:700;">📖 ${escapeHtml(chName)}</span>` : ''}
+                      ${q.ncertReference ? `<span class="badge" style="background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;font-size:10px;font-weight:700;">🌿 ${escapeHtml(q.ncertReference)}</span>` : ''}
                     </div>
                     <div style="display:flex;align-items:center;gap:var(--sp-2);">
-                      <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
-                        ${r.status === 'correct' ? '+4 Marks' : r.status === 'incorrect' ? '−1 Mark' : '0 Marks'}
+                      <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}" style="font-weight:800;">
+                        ${r.status === 'correct' ? (isCuet ? '+5 Marks' : '+4 Marks') : r.status === 'incorrect' ? '−1 Mark' : '0 Marks'}
                       </span>
-                      <span style="font-size:12px;color:var(--neutral-400);">${isExpanded ? '▲' : '▼'}</span>
+                      <span style="font-size:12px;color:var(--neutral-500);font-weight:800;">${isExpanded ? '▲' : '▼'}</span>
                     </div>
                   </div>
 
-                  <div class="q-review-text">${q.text}</div>
+                  <div class="q-review-text" style="font-size:var(--text-sm);font-weight:700;color:var(--neutral-900);line-height:1.45;margin-bottom:var(--sp-2);">${q.text}</div>
 
                   ${r.status === 'correct' ? `
                     <div class="q-review-correct-badge-row">
-                      <span class="q-review-correct-pill">✓ Choice: <strong>${escapeHtml(correctAnsText)}</strong></span>
+                      <span class="q-review-correct-pill">✓ Your Correct Choice: <strong>${escapeHtml(correctAnsText)}</strong></span>
                     </div>
                   ` : `
                     <div class="q-review-answers-compact">
                       <div>
-                        Your Answer: <strong style="${r.status === 'incorrect' ? 'color:var(--error-700);' : ''}">${escapeHtml(userAnsText)}</strong>
+                        Your Answer: <strong style="${r.status === 'incorrect' ? 'color:var(--error-700);font-weight:800;' : ''}">${escapeHtml(userAnsText)}</strong>
                       </div>
                       <div>
-                        Correct Answer: <strong style="color:var(--success-700);">${escapeHtml(correctAnsText)}</strong>
+                        Correct Answer: <strong style="color:var(--success-700);font-weight:800;">${escapeHtml(correctAnsText)}</strong>
                       </div>
                     </div>
                   `}
@@ -2433,8 +2888,8 @@ function renderResult(container, results) {
                 ${r.status !== 'correct' ? `
                   <div class="why-wrong-box">
                     <div class="why-wrong-header">
-                      <span>🤔 Why did I get this wrong?</span>
-                      ${r.errorType ? `<span style="font-size:11px;color:#b45309;font-weight:700;">Saved ✓</span>` : ''}
+                      <span>🤔 <strong>Why did I lose marks on this question?</strong></span>
+                      ${r.errorType ? `<span style="font-size:11px;color:#b45309;font-weight:800;">Saved in Improvement Book ✓</span>` : ''}
                     </div>
                     <div class="why-wrong-options-grid">
                       ${DB.errorTypes.map(et => `
@@ -2443,7 +2898,7 @@ function renderResult(container, results) {
                           onclick="selectMistakeReason(${r.originalIdx}, '${et.id}', event)"
                           title="${et.description}">
                           <span>${et.icon || '📌'}</span>
-                          <span>${et.label}</span>
+                          <strong>${et.label}</strong>
                         </button>
                       `).join('')}
                     </div>
@@ -2452,7 +2907,7 @@ function renderResult(container, results) {
 
                 <!-- Collapsible Explanation Details -->
                 <div class="q-review-card-details" style="${isExpanded ? 'display:block;' : 'display:none;'}">
-                  <div style="font-size:11px;font-weight:700;color:var(--neutral-500);text-transform:uppercase;margin-bottom:var(--sp-2);">Options:</div>
+                  <div style="font-size:11px;font-weight:800;color:var(--neutral-600);text-transform:uppercase;margin-bottom:var(--sp-2);letter-spacing:0.5px;">All Options:</div>
                   <div class="q-review-options-list">
                     ${q.options.map((opt, oi) => {
                       const isCorrect = oi === q.correct;
@@ -2461,11 +2916,11 @@ function renderResult(container, results) {
                       return `
                         <div class="q-review-opt ${cls}">
                           <div>
-                            <strong>${['A','B','C','D'][oi]}.</strong> ${escapeHtml(opt)}
+                            <strong style="font-size:var(--text-sm);">${['A','B','C','D'][oi]}.</strong> ${escapeHtml(opt)}
                           </div>
                           <div>
-                            ${isCorrect ? '<span style="font-size:11px;font-weight:700;color:var(--success-700);">✓ Correct Answer</span>' : ''}
-                            ${isUserSelected && !isCorrect ? '<span style="font-size:11px;font-weight:700;color:var(--error-700);">✗ Your Choice</span>' : ''}
+                            ${isCorrect ? '<span style="font-size:11px;font-weight:800;color:var(--success-700);">✓ Correct Answer</span>' : ''}
+                            ${isUserSelected && !isCorrect ? '<span style="font-size:11px;font-weight:800;color:var(--error-700);">✗ Your Choice</span>' : ''}
                           </div>
                         </div>
                       `;
@@ -2474,15 +2929,15 @@ function renderResult(container, results) {
 
                   ${q.explanation ? `
                     <div class="q-review-exp-box">
-                      <div style="font-weight:700;color:var(--primary-700);margin-bottom:4px;display:flex;align-items:center;gap:4px;">
-                        <span>💡 Detailed Solution</span>
+                      <div style="font-weight:800;color:var(--primary-800);margin-bottom:6px;display:flex;align-items:center;gap:6px;">
+                        <span>💡 Detailed NCERT Solution &amp; Logic</span>
                       </div>
-                      <div>${q.explanation}</div>
+                      <div style="font-weight:500;line-height:1.5;">${q.explanation}</div>
                     </div>
                   ` : ''}
 
                   <div style="display:flex;justify-content:flex-end;margin-top:var(--sp-3);">
-                    <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--neutral-500);" onclick="openQuestionReportModal(window._currentResults.questionResults[${r.originalIdx}].question, ${qNum})">
+                    <button class="btn btn-ghost btn-sm" style="font-size:11px;color:var(--neutral-500);font-weight:700;" onclick="openQuestionReportModal(window._currentResults.questionResults[${r.originalIdx}].question, ${qNum})">
                       ⚠️ Report Question Issue
                     </button>
                   </div>
@@ -2495,16 +2950,19 @@ function renderResult(container, results) {
       </div>
 
       <!-- ================= 3. My Mistake Analysis ================= -->
-      <div class="result-section" id="mistake-analysis-section">
+      <div class="result-section section-mistakes" id="mistake-analysis-section">
         <div class="result-section-header">
           <div>
+            <div class="result-section-badge-step" style="background:#fef3c7;color:#92400e;border-color:#fde68a;">
+              <span>🔍 STEP 02</span> &middot; <span>ROOT CAUSE TRACKER</span>
+            </div>
             <div class="result-section-title">
-              <span>🔍 My Mistake Analysis</span>
-              <span class="badge badge-primary" style="font-size:11px;">Why did you lose marks?</span>
+              <span>My Mistake Analysis</span>
+              <span class="badge badge-primary" style="font-size:11px;font-weight:800;">Why did you lose marks?</span>
             </div>
             <div class="result-section-subtitle">
               ${incorrectCount > 0 
-                ? 'Tag your wrong questions below to reveal what causes your mark loss.' 
+                ? 'Tag your wrong questions to pinpoint exactly where you lose negative marks.' 
                 : 'Zero incorrect questions! No mistakes to analyze.'}
             </div>
           </div>
@@ -2512,7 +2970,7 @@ function renderResult(container, results) {
 
         ${incorrectCount > 0 ? `
           <div class="mistake-analysis-card">
-            <div style="margin-bottom:var(--sp-4);font-size:var(--text-xs);font-weight:700;color:var(--neutral-600);text-transform:uppercase;letter-spacing:0.5px;">
+            <div style="margin-bottom:var(--sp-4);font-size:var(--text-xs);font-weight:800;color:var(--neutral-700);text-transform:uppercase;letter-spacing:0.8px;">
               Mark Loss Distribution (${totalTaggedMistakes}/${incorrectCount} tagged)
             </div>
 
@@ -2529,49 +2987,52 @@ function renderResult(container, results) {
                   <div class="mistake-analysis-bar-wrap">
                     <div class="mistake-analysis-bar-fill" style="width:${barPct}%;"></div>
                   </div>
-                  <div class="mistake-analysis-count">
-                    ${count} Qs (${count > 0 ? `−${count}` : '0'})
+                  <div class="mistake-analysis-count" style="font-weight:800;">
+                    ${count} Qs (${count > 0 ? `−${count * 1}` : '0'})
                   </div>
                 </div>
               `;
             }).join('')}
 
             ${totalTaggedMistakes === 0 ? `
-              <div style="text-align:center;padding:var(--sp-3);background:var(--white);border-radius:var(--radius-md);border:1px dashed var(--neutral-300);font-size:var(--text-xs);color:var(--neutral-500);">
-                👉 Select reasons under the <strong>Question Review</strong> cards above to see your personalized mistake breakdown.
+              <div style="text-align:center;padding:var(--sp-4);background:var(--white);border-radius:var(--radius-md);border:1.5px dashed var(--neutral-300);font-size:var(--text-xs);color:var(--neutral-600);font-weight:600;">
+                👉 Select reasons under the <strong>Question Review</strong> cards above to populate your personalized mistake breakdown.
               </div>
             ` : ''}
 
             <!-- Actionable Insights Callout -->
-            <div class="actionable-insight-box">
+            <div class="actionable-insight-box" style="margin-top:var(--sp-5);">
               <div class="actionable-insight-title">
-                <span>💡 ${insightTitle}</span>
+                <strong>💡 ${insightTitle}</strong>
               </div>
-              <div class="actionable-insight-desc">
+              <div class="actionable-insight-desc" style="font-weight:500;">
                 ${insightDesc}
               </div>
               <div class="actionable-insight-recom">
-                ${insightRecom}
+                <strong>${insightRecom}</strong>
               </div>
             </div>
           </div>
         ` : `
-          <div style="text-align:center;padding:var(--sp-6);background:#ecfdf5;border-radius:var(--radius-md);border:1px solid #a7f3d0;">
-            <div style="font-size:32px;margin-bottom:var(--sp-2);">🏆</div>
-            <div style="font-weight:700;font-size:var(--text-base);color:#065f46;">Zero Mistakes! Perfect Execution.</div>
-            <p style="font-size:var(--text-xs);color:#047857;margin-top:4px;">You answered every attempted question correctly. Continue practicing full tests to maintain peak accuracy.</p>
+          <div style="text-align:center;padding:var(--sp-6);background:#ecfdf5;border-radius:var(--radius-lg);border:1.5px solid #a7f3d0;">
+            <div style="font-size:36px;margin-bottom:var(--sp-2);">🏆</div>
+            <div style="font-weight:800;font-size:var(--text-base);color:#065f46;">Zero Mistakes! Perfect Execution.</div>
+            <p style="font-size:var(--text-xs);color:#047857;margin-top:4px;font-weight:600;">You answered every attempted question correctly. Continue practicing full tests to maintain peak accuracy.</p>
           </div>
         `}
       </div>
 
       <!-- ================= 4. Performance Overview ================= -->
-      <div class="result-section">
+      <div class="result-section section-perf">
         <div class="result-section-header">
           <div>
-            <div class="result-section-title">
-              <span>📊 Performance Overview</span>
+            <div class="result-section-badge-step" style="background:#eff6ff;color:#1e40af;border-color:#bfdbfe;">
+              <span>📊 STEP 03</span> &middot; <span>ACCURACY &amp; TIME ANALYTICS</span>
             </div>
-            <div class="result-section-subtitle">Visual breakdown of your test accuracy, score distribution, and speed</div>
+            <div class="result-section-title">
+              <span>Performance Analytics</span>
+            </div>
+            <div class="result-section-subtitle">Visual breakdown of your test accuracy, score ratio, and time efficiency</div>
           </div>
         </div>
 
@@ -2579,10 +3040,10 @@ function renderResult(container, results) {
           <!-- Score Distribution -->
           <div class="result-perf-card">
             <div class="result-perf-card-title">
-              <span>🎯 Score Distribution</span>
+              <span>🎯 Score Ratio</span>
             </div>
             <div>
-              <div style="display:flex;justify-content:space-between;font-size:var(--text-xs);font-weight:700;margin-bottom:4px;">
+              <div style="display:flex;justify-content:space-between;font-size:var(--text-xs);font-weight:800;margin-bottom:6px;">
                 <span style="color:var(--success-600);">${correctCount} Correct</span>
                 <span style="color:var(--error-600);">${incorrectCount} Wrong</span>
                 <span style="color:var(--neutral-500);">${unattemptedCount} Skipped</span>
@@ -2593,8 +3054,8 @@ function renderResult(container, results) {
                 <div class="result-perf-ratio-seg unattempted" style="width:${Math.max(0, unattemptedPct)}%;"></div>
               </div>
               <div class="result-perf-legend">
-                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:var(--success-500);"></div> Correct (${correctPct}%)</div>
-                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:var(--error-500);"></div> Wrong (${incorrectPct}%)</div>
+                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:#10b981;"></div> Correct (${correctPct}%)</div>
+                <div class="result-perf-legend-item"><div class="result-perf-legend-dot" style="background:#ef4444;"></div> Wrong (${incorrectPct}%)</div>
               </div>
             </div>
           </div>
@@ -2605,13 +3066,13 @@ function renderResult(container, results) {
               <span>🎯 Accuracy Rating</span>
             </div>
             <div>
-              <div style="font-size:var(--text-2xl);font-weight:800;color:${accuracy >= 80 ? 'var(--success-600)' : accuracy >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
+              <div style="font-size:var(--text-3xl);font-weight:900;color:${accuracy >= 80 ? 'var(--success-600)' : accuracy >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
                 ${accuracy}%
               </div>
-              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-top:2px;">
-                ${accuracy >= 85 ? '🌟 Excellent NEET Readiness' : accuracy >= 65 ? '👍 Good Foundation, Refine Weak Spots' : '⚠️ Concept Revision Required'}
+              <div style="font-size:var(--text-xs);color:var(--neutral-700);margin-top:2px;font-weight:600;">
+                ${accuracy >= 85 ? '🌟 Excellent Exam Readiness' : accuracy >= 65 ? '👍 Good Foundation, Refine Weak Spots' : '⚠️ Concept Revision Required'}
               </div>
-              <div class="progress-bar" style="height:6px;margin-top:var(--sp-2);">
+              <div class="progress-bar" style="height:8px;margin-top:var(--sp-3);border-radius:var(--radius-full);">
                 <div class="progress-fill ${accuracy >= 80 ? 'success' : ''}" style="width:${accuracy}%;"></div>
               </div>
             </div>
@@ -2620,16 +3081,16 @@ function renderResult(container, results) {
           <!-- Time Efficiency -->
           <div class="result-perf-card">
             <div class="result-perf-card-title">
-              <span>⏱️ Speed & Efficiency</span>
+              <span>⏱️ Speed &amp; Efficiency</span>
             </div>
             <div>
-              <div style="font-size:var(--text-2xl);font-weight:800;color:var(--primary-600);">
-                ${avgSeconds}s <span style="font-size:var(--text-xs);font-weight:500;color:var(--neutral-500);">/ question</span>
+              <div style="font-size:var(--text-3xl);font-weight:900;color:var(--primary-600);">
+                ${avgSeconds}s <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);">/ question</span>
               </div>
-              <div style="font-size:var(--text-xs);color:var(--neutral-600);margin-top:2px;">
-                ${avgSeconds <= 50 ? '⚡ Fast & efficient pace' : avgSeconds <= 75 ? '⏱️ On target for NEET (~72s max)' : '🐢 High time per question'}
+              <div style="font-size:var(--text-xs);color:var(--neutral-700);margin-top:2px;font-weight:600;">
+                ${avgSeconds <= 50 ? '⚡ Fast & efficient pace' : avgSeconds <= 75 ? '⏱️ On target for exam' : '🐢 Needs speed improvement'}
               </div>
-              <div style="font-size:11px;color:var(--neutral-400);margin-top:var(--sp-2);">
+              <div style="font-size:11px;color:var(--neutral-500);margin-top:var(--sp-2);font-weight:700;">
                 Total time: ${timeStr}
               </div>
             </div>
@@ -2641,10 +3102,13 @@ function renderResult(container, results) {
       <div class="result-section">
         <div class="result-section-header">
           <div>
-            <div class="result-section-title">
-              <span>📚 Chapter-wise Breakdown</span>
+            <div class="result-section-badge-step" style="background:#f5f3ff;color:#6d28d9;border-color:#ddd6fe;">
+              <span>📚 STEP 04</span> &middot; <span>SYLLABUS BREAKDOWN</span>
             </div>
-            <div class="result-section-subtitle">Performance and mistake pattern across chapters in this test</div>
+            <div class="result-section-title">
+              <span>Chapter-wise Performance</span>
+            </div>
+            <div class="result-section-subtitle">Accuracy and mistake patterns across individual chapters in this test</div>
           </div>
         </div>
 
@@ -2653,35 +3117,35 @@ function renderResult(container, results) {
             const chAcc = ch.total > 0 ? Math.round((ch.correct / ch.total) * 100) : 0;
             const reasonEntries = Object.entries(ch.reasons);
             return `
-              <div class="result-chapter-card">
+              <div class="result-chapter-card" style="border:1.5px solid var(--neutral-200);border-radius:var(--radius-lg);padding:var(--sp-4);margin-bottom:var(--sp-3);">
                 <div class="result-chapter-header">
-                  <div class="result-chapter-name">
+                  <div class="result-chapter-name" style="font-size:var(--text-base);font-weight:800;">
                     <span>${ch.icon}</span>
                     <span>${escapeHtml(ch.name)}</span>
                   </div>
                   <div class="result-chapter-stats">
-                    <span style="font-weight:700;color:${chAcc >= 75 ? 'var(--success-600)' : chAcc >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
+                    <span style="font-weight:800;font-size:var(--text-sm);color:${chAcc >= 75 ? 'var(--success-600)' : chAcc >= 50 ? 'var(--warning-600)' : 'var(--error-600)'};">
                       ${chAcc}% Accuracy
                     </span>
-                    <span style="color:var(--neutral-400);">•</span>
-                    <span style="color:var(--success-600);font-weight:600;">${ch.correct} Correct</span>
-                    <span style="color:var(--neutral-400);">•</span>
-                    <span style="color:var(--error-600);font-weight:600;">${ch.incorrect} Wrong</span>
+                    <span style="color:var(--neutral-300);">•</span>
+                    <span style="color:var(--success-600);font-weight:700;">${ch.correct} Correct</span>
+                    <span style="color:var(--neutral-300);">•</span>
+                    <span style="color:var(--error-600);font-weight:700;">${ch.incorrect} Wrong</span>
                   </div>
                 </div>
 
-                <div class="progress-bar" style="height:5px;">
+                <div class="progress-bar" style="height:6px;border-radius:var(--radius-full);margin-top:var(--sp-2);">
                   <div class="progress-fill ${chAcc >= 80 ? 'success' : ''}" style="width:${chAcc}%;"></div>
                 </div>
 
                 ${reasonEntries.length > 0 ? `
-                  <div class="result-chapter-mistake-tags">
-                    <span style="font-size:11px;font-weight:700;color:var(--neutral-500);align-self:center;">Mistakes:</span>
+                  <div class="result-chapter-mistake-tags" style="margin-top:var(--sp-3);padding-top:var(--sp-2);">
+                    <span style="font-size:11px;font-weight:800;color:var(--neutral-600);align-self:center;">Chapter Mistakes:</span>
                     ${reasonEntries.map(([rid, cnt]) => {
                       const etObj = DB.errorTypes.find(e => e.id === rid);
                       return `
-                        <span class="result-chapter-mistake-pill">
-                          ${etObj ? etObj.icon : '⚠️'} ${etObj ? etObj.label : rid} — ${cnt}
+                        <span class="result-chapter-mistake-pill" style="font-weight:700;font-size:11px;">
+                          ${etObj ? etObj.icon : '⚠️'} ${etObj ? etObj.label : rid} &mdash; ${cnt}
                         </span>
                       `;
                     }).join('')}
@@ -2693,35 +3157,58 @@ function renderResult(container, results) {
         </div>
       </div>
 
-      <!-- ================= 6. Improvement Section & Actions ================= -->
-      <div class="result-section" style="background:#f0fdf4;border-color:#bbf7d0;">
-        <div class="result-section-header">
+      <!-- ================= 6. Redesigned Aesthetic "Improve Your Weak Areas" Action Banner ================= -->
+      <div class="result-weak-areas-banner">
+        <div class="result-weak-areas-header">
           <div>
-            <div class="result-section-title" style="color:#065f46;">
-              <span>🚀 Improve Your Weak Areas</span>
+            <div class="result-weak-badge-pill">
+              <span>🚀 STEP 05 &middot; ACTION PLAN &amp; RETEST</span>
             </div>
-            <div class="result-section-subtitle" style="color:#047857;">
-              Targeted practice loops to convert mistakes into guaranteed NEET marks
+            <h3 class="result-weak-title">✨ Improve Your Weak Areas</h3>
+            <p class="result-weak-subtitle">
+              Scientifically proven Spaced Repetition protocol to systematically convert your missed questions into guaranteed marks.
+            </p>
+          </div>
+        </div>
+
+        <!-- 3 Aesthetic Feature Highlight Cards -->
+        <div class="result-weak-feature-grid">
+          <div class="result-weak-feature-card">
+            <div class="result-weak-feature-icon">🔄</div>
+            <div class="result-weak-feature-text">
+              <strong>Spaced Retesting</strong>
+              <span>Wrong questions queued for Day 1 &rarr; Day 4 &rarr; Day 10 review</span>
+            </div>
+          </div>
+          <div class="result-weak-feature-card">
+            <div class="result-weak-feature-icon">🎯</div>
+            <div class="result-weak-feature-text">
+              <strong>Targeted Drills</strong>
+              <span>Focus on weak chapters &amp; high negative marking topics</span>
+            </div>
+          </div>
+          <div class="result-weak-feature-card">
+            <div class="result-weak-feature-icon">📈</div>
+            <div class="result-weak-feature-text">
+              <strong>Bio Rank Booster</strong>
+              <span>Eliminate careless mistakes to leapfrog in leaderboards</span>
             </div>
           </div>
         </div>
 
-        <p style="font-size:var(--text-xs);color:#166534;line-height:1.5;margin-bottom:var(--sp-4);">
-          All incorrect questions are automatically synced to your <strong>Improvement Book</strong> for Spaced Re-testing (Day 1 → Day 4 → Day 10).
-        </p>
-
-        <div class="result-v2-actions">
-          <button class="btn btn-primary" onclick="proceedToWeaknessAnalysis()">
-            Practice Weak Chapters →
+        <!-- Aesthetic Action Buttons Row -->
+        <div class="result-weak-actions-row">
+          <button class="result-weak-btn-primary" onclick="proceedToWeaknessAnalysis()">
+            <span>⚡ Practice Weak Chapters &rarr;</span>
           </button>
-          <button class="btn btn-secondary" onclick="setResultFilter('incorrect'); document.getElementById('question-review-section').scrollIntoView({ behavior: 'smooth' });">
-            Review Wrong Questions (${incorrectCount})
+          <button class="result-weak-btn-secondary" onclick="setResultFilter('incorrect'); document.getElementById('question-review-section').scrollIntoView({ behavior: 'smooth' });">
+            <span>🔍 Review Mistakes (${incorrectCount})</span>
           </button>
-          <button class="btn btn-outline" onclick="App.navigate('improvement-book')">
-            Open Improvement Book 📖
+          <button class="result-weak-btn-secondary" onclick="App.navigate('improvement-book')">
+            <span>📖 Open Improvement Book</span>
           </button>
-          <button class="btn btn-ghost" onclick="App.navigate('home')">
-            Back to Dashboard 🏠
+          <button class="result-weak-btn-secondary" style="background:transparent;border-color:rgba(255,255,255,0.2);" onclick="App.navigate('home')">
+            <span>🏠 Dashboard</span>
           </button>
         </div>
       </div>
@@ -3002,3 +3489,5 @@ window.reportQuestionDirectly = function (qId, text, chapter) {
 
 window.HomeSlider = HomeSlider;
 window.HomeReveal = HomeReveal;
+window.renderCuetPYQTest = renderCuetPYQTest;
+window.CuetPYQState = CuetPYQState;

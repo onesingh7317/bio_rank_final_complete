@@ -74,6 +74,13 @@ const DB = {
     { id: 'pyq2019', year: 2019, shifts: ['Shift 1'], questions: 90 },
   ],
 
+  /* ---- CUET PYQ Years (Official NTA CUET UG Biology Papers) ---- */
+  cuetPyqYears: [
+    { id: 'cuet2024', year: 2024, shifts: ['May 15 Slot 1', 'May 17 Slot 2', 'May 21 Slot 1'], questions: 50, exam: 'CUET UG 2024' },
+    { id: 'cuet2023', year: 2023, shifts: ['May 21 Slot 1', 'May 24 Slot 2', 'June 01 Slot 1'], questions: 50, exam: 'CUET UG 2023' },
+    { id: 'cuet2022', year: 2022, shifts: ['July 15 Slot 1', 'August 04 Slot 2'], questions: 50, exam: 'CUET UG 2022' },
+  ],
+
   /* ---- Sub-skills ---- */
   subSkills: [
     { id: 'ss01', name: 'Cell organelle functions',       chapter: 'ch08', bloomLevel: 'understand' },
@@ -1005,21 +1012,21 @@ const DB = {
     {
       id: 'flt_cuet_01',
       title: 'CUET UG Biology Mock Test 1',
-      description: 'NTA CUET (UG) official pattern: 50 Questions (Attempt 40), +5/−1 marking. 100% Class 12th NCERT Syllabus.',
+      description: 'NTA CUET (UG) official pattern: 50 Questions, +5/−1 marking (250 Marks). 100% Class 12th NCERT Syllabus.',
       numberOfQuestions: 50,
       durationMinutes: 45,
       examType: 'CUET',
-      maxMarks: 200,
+      maxMarks: 250,
       questions: []
     },
     {
       id: 'flt_cuet_02',
       title: 'CUET UG Biology Mock Test 2',
-      description: 'Comprehensive Class 12th NCERT CUET Mock with Case-Study & Assertion-Reason drills.',
+      description: 'Comprehensive Class 12th NCERT CUET Mock with Case-Study & Assertion-Reason drills (250 Marks).',
       numberOfQuestions: 50,
       durationMinutes: 45,
       examType: 'CUET',
-      maxMarks: 200,
+      maxMarks: 250,
       questions: []
     }
   ],
@@ -1237,6 +1244,439 @@ const DB = {
       isNcertFocus: true
     }
   ],
+
+  /* ---- CUET UG Biology PYQ Question Bank (100% Class 12th NCERT) ---- */
+  cuetQuestions: [
+    {
+      id: 'cuet_q01',
+      chapter: 'ch20',
+      subSkill: 'ss20',
+      year: 2024,
+      shift: 'May 15 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In an angiosperm embryo sac, the filiform apparatus is a characteristic cellular thickening present in:',
+      options: ['Synergids', 'Antipodal cells', 'Central cell', 'Egg cell'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'The synergids have special cellular thickenings at the micropylar tip called filiform apparatus, which play an important role in guiding the pollen tubes into the synergid.',
+      ncertReference: 'NCERT Class 12, Chapter 2 (Sexual Reproduction in Flowering Plants), Page 27',
+    },
+    {
+      id: 'cuet_q02',
+      chapter: 'ch21',
+      subSkill: 'ss17',
+      year: 2024,
+      shift: 'May 15 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which hormone is exclusively secreted during pregnancy in human females by the placenta?',
+      options: ['Estrogen', 'Progesterone', 'hCG and hPL', 'LH and FSH'],
+      correct: 2,
+      correctOption: 2,
+      explanation: 'Human chorionic gonadotropin (hCG), human placental lactogen (hPL), and relaxin (in later pregnancy) are produced in women only during pregnancy.',
+      ncertReference: 'NCERT Class 12, Chapter 3 (Human Reproduction), Page 53',
+    },
+    {
+      id: 'cuet_q03',
+      chapter: 'ch22',
+      subSkill: 'ss17',
+      year: 2024,
+      shift: 'May 17 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Saheli, a non-steroidal oral contraceptive pill for females developed by CDRI Lucknow, is taken:',
+      options: ['Daily without break', 'Once a week after an initial intake of twice a week for 3 months', 'Once a month', 'Only post-coitus within 72 hours'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Saheli is a novel non-steroidal pill (Centchroman) taken once a week after an initial 3-month schedule of twice a week. It has very few side effects and high contraceptive value.',
+      ncertReference: 'NCERT Class 12, Chapter 4 (Reproductive Health), Page 61',
+    },
+    {
+      id: 'cuet_q04',
+      chapter: 'ch23',
+      subSkill: 'ss13',
+      year: 2024,
+      shift: 'May 21 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In a dihybrid cross performed by T.H. Morgan on Drosophila with yellow body, white eyes crossed with brown body, red eyes, the parental type frequency was 98.7% and recombinant frequency was 1.3%. This demonstrated:',
+      options: ['Independent assortment of non-homologous chromosomes', 'Complete absence of crossing over', 'Tight linkage between genes on the X-chromosome', 'Polygenic inheritance'],
+      correct: 2,
+      correctOption: 2,
+      explanation: 'Morgan attributed the high parental proportion (98.7%) and low recombination (1.3%) to physical association or tight linkage of the two genes on the X chromosome.',
+      ncertReference: 'NCERT Class 12, Chapter 5 (Principles of Inheritance and Variation), Page 83',
+    },
+    {
+      id: 'cuet_q05',
+      chapter: 'ch24',
+      subSkill: 'ss12',
+      year: 2024,
+      shift: 'May 21 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'case_study',
+      caseStudyPassage: 'A molecular biology research team carried out DNA sequencing on a bacterial Lac operon mutant. They observed that beta-galactosidase was synthesized constitutively even in the absolute absence of lactose/allolactose in the growth medium. Sequencing revealed a point mutation in the operator sequence (Oᶜ) that prevented the lac repressor protein from binding.',
+      text: 'Based on the passage, the constitutive expression of the lac operon in this mutant occurs because:',
+      options: ['The repressor protein cannot bind the mutated operator (Oᶜ)', 'RNA polymerase cannot bind the promoter', 'Lactose is continuously synthesized inside the bacterium', 'The structural gene lacZ is deleted'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'In an operator-constitutive mutant (Oᶜ), the repressor protein fails to bind the altered operator sequence, allowing RNA polymerase uninhibited transcription of lacZ, Y, and A genes.',
+      ncertReference: 'NCERT Class 12, Chapter 6 (Molecular Basis of Inheritance), Page 116',
+    },
+    {
+      id: 'cuet_q06',
+      chapter: 'ch25',
+      subSkill: 'ss21',
+      year: 2023,
+      shift: 'May 21 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'According to the Hardy-Weinberg equilibrium, if the frequency of a recessive allele (q) in a population is 0.4, what will be the frequency of heterozygous individuals (2pq)?',
+      options: ['0.16', '0.48', '0.36', '0.24'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Given q = 0.4. Since p + q = 1, p = 1 - 0.4 = 0.6. Frequency of heterozygotes (2pq) = 2 × 0.6 × 0.4 = 0.48.',
+      ncertReference: 'NCERT Class 12, Chapter 7 (Evolution), Page 137',
+    },
+    {
+      id: 'cuet_q07',
+      chapter: 'ch26',
+      subSkill: 'ss16',
+      year: 2023,
+      shift: 'May 24 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which type of innate immunity barrier do interferons secreted by virus-infected cells represent?',
+      options: ['Physical barrier', 'Physiological barrier', 'Cellular barrier', 'Cytokine barrier'],
+      correct: 3,
+      correctOption: 3,
+      explanation: 'Virus-infected cells secrete proteins called interferons which protect non-infected cells from further viral infection. These constitute cytokine barriers.',
+      ncertReference: 'NCERT Class 12, Chapter 8 (Human Health and Disease), Page 151',
+    },
+    {
+      id: 'cuet_q08',
+      chapter: 'ch27',
+      subSkill: 'ss23',
+      year: 2023,
+      shift: 'June 01 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Statins, used as blood cholesterol lowering agents, are commercially produced from which yeast?',
+      options: ['Trichoderma polysporum', 'Monascus purpureus', 'Saccharomyces cerevisiae', 'Aspergillus niger'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Statins produced by the yeast Monascus purpureus act by competitively inhibiting the enzyme responsible for cholesterol synthesis (HMG-CoA reductase).',
+      ncertReference: 'NCERT Class 12, Chapter 10 (Microbes in Human Welfare), Page 183',
+    },
+    {
+      id: 'cuet_q09',
+      chapter: 'ch28',
+      subSkill: 'ss19',
+      year: 2023,
+      shift: 'June 01 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In recombinant DNA technology, the enzyme Taq polymerase obtained from Thermus aquaticus is used in PCR because:',
+      options: ['It cuts DNA at palindromic sequences', 'It remains active at high temperatures during denaturation', 'It joins Okazaki fragments', 'It synthesizes RNA primers'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Taq polymerase is a thermostable DNA polymerase isolated from bacterium Thermus aquaticus that remains active through the high-temperature denaturation steps (94°C) of PCR.',
+      ncertReference: 'NCERT Class 12, Chapter 11 (Biotechnology: Principles and Processes), Page 202',
+    },
+    {
+      id: 'cuet_q10',
+      chapter: 'ch29',
+      subSkill: 'ss19',
+      year: 2022,
+      shift: 'July 15 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In Bt cotton, the Bt toxin protein is produced in an inactive protoxin form. It is converted into an active toxin inside the insect gut due to:',
+      options: ['Acidic pH of the foregut', 'Alkaline pH of the midgut', 'High body temperature of insect', 'Action of salivary amylase'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'The inactive protoxin is converted into an active form of toxin due to the alkaline pH of the insect midgut which solubilises the crystals.',
+      ncertReference: 'NCERT Class 12, Chapter 12 (Biotechnology and its Applications), Page 208',
+    },
+    {
+      id: 'cuet_q11',
+      chapter: 'ch30',
+      subSkill: 'ss18',
+      year: 2022,
+      shift: 'July 15 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'The mathematical expression for Verhulst-Pearl Logistic Growth of a population is:',
+      options: ['dN/dt = rN', 'dN/dt = rN ((K - N) / K)', 'dN/dt = rN (K / (K - N))', 'Nt = N0 e^rt'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'The Verhulst-Pearl logistic growth equation is dN/dt = rN((K - N)/K), where N = population density, r = intrinsic rate of natural increase, and K = carrying capacity.',
+      ncertReference: 'NCERT Class 12, Chapter 13 (Organisms and Populations), Page 231',
+    },
+    {
+      id: 'cuet_q12',
+      chapter: 'ch31',
+      subSkill: 'ss18',
+      year: 2022,
+      shift: 'August 04 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which of the following ecological pyramids is always upright and can never be inverted in any ecosystem?',
+      options: ['Pyramid of biomass', 'Pyramid of numbers', 'Pyramid of energy', 'Pyramid of standing crop'],
+      correct: 2,
+      correctOption: 2,
+      explanation: 'Pyramid of energy is always upright, can never be inverted, because when energy flows from a particular trophic level to the next trophic level, some energy is always lost as heat at each step (10% law).',
+      ncertReference: 'NCERT Class 12, Chapter 14 (Ecosystem), Page 249',
+    },
+    {
+      id: 'cuet_q13',
+      chapter: 'ch32',
+      subSkill: 'ss18',
+      year: 2022,
+      shift: 'August 04 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which of the following represents an Ex-situ (off-site) strategy for biodiversity conservation?',
+      options: ['National Park', 'Biosphere Reserve', 'Sacred Groves', 'Cryopreservation of gametes & Botanical Gardens'],
+      correct: 3,
+      correctOption: 3,
+      explanation: 'Ex-situ conservation involves taking threatened animals and plants out from their natural habitat and placing them in special settings (Botanical Gardens, Zoological Parks, Wildlife Safari Parks, Seed banks, and Cryopreservation).',
+      ncertReference: 'NCERT Class 12, Chapter 15 (Biodiversity and Conservation), Page 267',
+    },
+    {
+      id: 'cuet_q14',
+      chapter: 'ch23',
+      subSkill: 'ss13',
+      year: 2024,
+      shift: 'May 17 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'case_study',
+      caseStudyPassage: 'Pedigree analysis in a human family revealed that an autosomal recessive metabolic disorder causes accumulation of phenylalanine in blood due to lack of the liver enzyme phenylalanine hydroxylase. This condition leads to severe mental retardation, reduction in hair, and skin pigmentation.',
+      text: 'Which genetic disorder is described in the case study passage above?',
+      options: ['Sickle cell anemia', 'Phenylketonuria (PKU)', 'Thalassemia major', 'Cystic fibrosis'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Phenylketonuria (PKU) is an inborn error of metabolism inherited as autosomal recessive trait, caused by mutation in the gene coding for phenylalanine hydroxylase enzyme.',
+      ncertReference: 'NCERT Class 12, Chapter 5 (Principles of Inheritance and Variation), Page 91',
+    },
+    {
+      id: 'cuet_q15',
+      chapter: 'ch29',
+      subSkill: 'ss19',
+      year: 2023,
+      shift: 'May 24 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'The first clinical gene therapy was given in 1990 to a 4-year-old girl with which enzyme deficiency?',
+      options: ['Adenosine deaminase (ADA)', 'Tyrosinase', 'Insulinase', 'Phenylalanine hydroxylase'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'The first clinical gene therapy was given in 1990 to a 4-year-old girl with adenosine deaminase (ADA) deficiency, which causes severe combined immunodeficiency (SCID).',
+      ncertReference: 'NCERT Class 12, Chapter 12 (Biotechnology and its Applications), Page 211',
+    },
+    {
+      id: 'cuet_q16',
+      chapter: 'ch20',
+      subSkill: 'ss20',
+      year: 2023,
+      shift: 'May 22 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'assertion_reason',
+      text: 'Assertion (A): Cleistogamous flowers produce assured seed-set even in the absence of pollinators.\nReason (R): Cleistogamous flowers do not open at all, ensuring complete autogamy.',
+      options: [
+        'Both (A) and (R) are true and (R) is the correct explanation of (A)',
+        'Both (A) and (R) are true but (R) is NOT the correct explanation of (A)',
+        '(A) is true but (R) is false',
+        '(A) is false but (R) is true'
+      ],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'Cleistogamous flowers remain closed, preventing cross-pollination. When pollen grains shed inside, autogamy occurs reliably without needing external pollinating agents.',
+      ncertReference: 'NCERT Class 12, Chapter 2 (Sexual Reproduction in Flowering Plants), Page 28',
+    },
+    {
+      id: 'cuet_q17',
+      chapter: 'ch21',
+      subSkill: 'ss17',
+      year: 2023,
+      shift: 'May 23 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which cells of the human testes synthesize and secrete androgens (testosterone) under LH stimulation?',
+      options: ['Sertoli cells', 'Leydig (interstitial) cells', 'Spermatogonia', 'Secondary spermatocytes'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Leydig cells (interstitial cells) present in the interstitial spaces between seminiferous tubules produce testicular hormones called androgens.',
+      ncertReference: 'NCERT Class 12, Chapter 3 (Human Reproduction), Page 44',
+    },
+    {
+      id: 'cuet_q18',
+      chapter: 'ch22',
+      subSkill: 'ss17',
+      year: 2022,
+      shift: 'August 06 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In Intra-Cytoplasmic Sperm Injection (ICSI), fertilization is assisted by:',
+      options: [
+        'Injecting a sperm directly into the ovum in vitro',
+        'Transferring embryo into the fallopian tube',
+        'Inseminating semen into the uterus',
+        'Transferring ovum into the fallopian tube'
+      ],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'ICSI is a specialized ART procedure where a single sperm is directly injected into the ovum under microscope in the laboratory.',
+      ncertReference: 'NCERT Class 12, Chapter 4 (Reproductive Health), Page 64',
+    },
+    {
+      id: 'cuet_q19',
+      chapter: 'ch24',
+      subSkill: 'ss12',
+      year: 2023,
+      shift: 'May 25 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'During DNA replication in E. coli, Okazaki fragments synthesized on the lagging strand are joined by:',
+      options: ['DNA polymerase I', 'DNA ligase', 'RNA primase', 'DNA helicase'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'DNA ligase facilitates the joining of DNA strands together by catalyzing the formation of phosphodiester bonds between discontinuous Okazaki fragments.',
+      ncertReference: 'NCERT Class 12, Chapter 6 (Molecular Basis of Inheritance), Page 107',
+    },
+    {
+      id: 'cuet_q20',
+      chapter: 'ch25',
+      subSkill: 'ss21',
+      year: 2024,
+      shift: 'May 16 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'The presence of homologous structures (such as forelimbs of whales, bats, cheetah, and humans) indicates:',
+      options: ['Convergent evolution', 'Divergent evolution / Common ancestry', 'Saltation', 'Adaptive convergence'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'Homologous organs have identical anatomical blueprint but perform different functions, representing divergent evolution resulting from adaptation to different environmental niches.',
+      ncertReference: 'NCERT Class 12, Chapter 7 (Evolution), Page 130',
+    },
+    {
+      id: 'cuet_q21',
+      chapter: 'ch26',
+      subSkill: 'ss16',
+      year: 2024,
+      shift: 'May 18 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'case_study',
+      caseStudyPassage: 'A patient presented with recurrent bouts of high fever with chills returning every 3–4 days. Blood smear confirmed the presence of Plasmodium vivax trophozoites within red blood cells.',
+      text: 'The toxic substance responsible for the characteristic chill and high fever recurring every 3 to 4 days in malaria is:',
+      options: ['Hemozoin released upon RBC rupture', 'Interferon alpha', 'Histamine from mast cells', 'Tetanospasmin'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'Rupture of erythrocytic schizonts releases toxic hemozoin crystals into bloodstream which stimulates macrophages to release pyrogens producing chills and fever.',
+      ncertReference: 'NCERT Class 12, Chapter 8 (Human Health and Disease), Page 147',
+    },
+    {
+      id: 'cuet_q22',
+      chapter: 'ch27',
+      subSkill: 'ss23',
+      year: 2024,
+      shift: 'May 19 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Cyclosporin A, an important immunosuppressive agent used in organ transplant patients, is produced by:',
+      options: ['Trichoderma polysporum fungus', 'Monascus purpureus', 'Clostridium butyricum', 'Streptococcus bacterium'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'Cyclosporin A is produced by the fungus Trichoderma polysporum and is used as an immunosuppressive agent in organ-transplant patients.',
+      ncertReference: 'NCERT Class 12, Chapter 10 (Microbes in Human Welfare), Page 183',
+    },
+    {
+      id: 'cuet_q23',
+      chapter: 'ch28',
+      subSkill: 'ss19',
+      year: 2024,
+      shift: 'May 22 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In agarose gel electrophoresis, DNA fragments move towards which electrode and are separated on the basis of:',
+      options: ['Anode (+ve); based on their size/length', 'Cathode (-ve); based on charge alone', 'Anode (+ve); based on GC content', 'Cathode (-ve); based on shape only'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'DNA fragments are negatively charged molecules, so they move towards the positive electrode (anode) and are separated by size (sieving effect of agarose).',
+      ncertReference: 'NCERT Class 12, Chapter 11 (Biotechnology: Principles and Processes), Page 198',
+    },
+    {
+      id: 'cuet_q24',
+      chapter: 'ch30',
+      subSkill: 'ss18',
+      year: 2023,
+      shift: 'May 28 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'The interaction between clown fish living among sea anemone tentacles without harming the anemone is an example of:',
+      options: ['Commensalism (+, 0)', 'Mutualism (+, +)', 'Parasitism (+, -)', 'Amensalism (-, 0)'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'In commensalism, one species benefits (clownfish gets protection from predators) while the host (sea anemone) is neither harmed nor benefited.',
+      ncertReference: 'NCERT Class 12, Chapter 13 (Organisms and Populations), Page 237',
+    },
+    {
+      id: 'cuet_q25',
+      chapter: 'ch31',
+      subSkill: 'ss18',
+      year: 2023,
+      shift: 'June 02 Slot 2',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'In an ecosystem, what percentage of the total energy available at a trophic level is transferred to the next higher level?',
+      options: ['1%', '10%', '50%', '90%'],
+      correct: 1,
+      correctOption: 1,
+      explanation: 'According to Lindeman’s 10 percent law, only about 10% of the energy stored as biomass in one trophic level is passed on to the next trophic level.',
+      ncertReference: 'NCERT Class 12, Chapter 14 (Ecosystem), Page 247',
+    },
+    {
+      id: 'cuet_q26',
+      chapter: 'ch32',
+      subSkill: 'ss18',
+      year: 2024,
+      shift: 'May 23 Slot 1',
+      examType: 'CUET',
+      isPyq: true,
+      questionType: 'mcq',
+      text: 'Which of the following is considered the most significant cause of animal and plant extinctions ("The Evil Quartet") globally?',
+      options: ['Habitat loss and fragmentation', 'Over-exploitation', 'Alien species invasions', 'Co-extinctions'],
+      correct: 0,
+      correctOption: 0,
+      explanation: 'Habitat loss and fragmentation is the most important cause driving animals and plants to extinction (e.g. Amazon rainforest deforestation).',
+      ncertReference: 'NCERT Class 12, Chapter 15 (Biodiversity and Conservation), Page 264',
+    }
+  ],
 };
 
 /* ---- Weakness Priority Calculation ----
@@ -1335,17 +1775,30 @@ function recordFLTAttempt(testId, results) {
   if (!state.fullLengthTests) state.fullLengthTests = {};
   const prog = state.fullLengthTests[testId] || { attempts: 0, bestScore: 0, bestTotal: 0, attemptHistory: [] };
 
+  const isCuet = testId === 'flt02' || (results && (results.examType === 'CUET' || (results.meta && results.meta.examType === 'CUET'))) || state.examMode === 'CUET';
+  const examMode = isCuet ? 'CUET' : 'NEET';
+
   prog.attempts += 1;
-  prog.attemptHistory.push({ attempt: prog.attempts, score: results.correct, total: results.totalQuestions, accuracy: results.accuracy });
-  // Update best score on the first-ever attempt (so bestTotal isn't left at
-  // 0) and on any later attempt that beats the current best. Best score
-  // never decreases.
+  prog.examMode = examMode;
+  prog.attemptHistory.push({
+    attempt: prog.attempts,
+    examMode,
+    score: results.correct,
+    total: results.totalQuestions,
+    accuracy: results.accuracy,
+    marks: results.score,
+    maxMarks: isCuet ? 250 : 360,
+    timeSpent: results.timeSpent,
+    createdAt: new Date().toISOString(),
+  });
+
   if (prog.attempts === 1 || results.correct > prog.bestScore) {
     prog.bestScore = results.correct;
     prog.bestTotal = results.totalQuestions;
   }
 
   state.fullLengthTests[testId] = prog;
+  computeRealTimePerformance(state);
   State.save(state);
   return prog;
 }
@@ -1357,6 +1810,9 @@ function recordChapterTestAttempt(results) {
   if (!state.performance) state.performance = {};
   const perf = state.performance;
 
+  const isCuet = (results.meta && (results.meta.examType === 'CUET' || results.meta.mode === 'cuet')) || results.examType === 'CUET' || results.mode === 'cuet' || state.examMode === 'CUET';
+  const examMode = isCuet ? 'CUET' : 'NEET';
+
   const qCount = results.totalQuestions || (results.questionResults ? results.questionResults.length : 0);
   const correctCount = results.correct || 0;
   const wrongCount = results.incorrect || 0;
@@ -1364,41 +1820,31 @@ function recordChapterTestAttempt(results) {
   const acc = results.accuracy !== undefined ? results.accuracy : (qCount > 0 ? Math.round((correctCount / qCount) * 100) : 0);
   const timeSpentSec = results.timeSpent || 45;
   const avgTimePerQ = Math.max(5, Math.round(timeSpentSec / Math.max(1, qCount)));
-
-  // Increment real-time counters
-  perf.testsAttempted = (perf.testsAttempted || 0) + 1;
-  perf.questionsAttempted = (perf.questionsAttempted || 0) + qCount;
-  perf.correctAnswers = (perf.correctAnswers || 0) + correctCount;
-  perf.incorrectAnswers = (perf.incorrectAnswers || 0) + wrongCount;
-  perf.unattempted = (perf.unattempted || 0) + unattemptedCount;
-  perf.lastAvgTimePerQuestion = avgTimePerQ;
+  const evaluatedMarks = isCuet ? (correctCount * 5 - wrongCount * 1) : (correctCount * 4 - wrongCount * 1);
+  const maxMarks = isCuet ? Math.min(250, qCount * 5) : (qCount * 4);
 
   // Chapter Test History
   if (!perf.chapterTestHistory) perf.chapterTestHistory = [];
   const hist = perf.chapterTestHistory;
-  const chapterName = (results.meta && (results.meta.chapterName || results.meta.title)) || (results.mode === 'ncert-focus' ? 'NCERT Bio Focus' : 'Practice Test');
+  const chapterName = (results.meta && (results.meta.chapterName || results.meta.title)) || (results.mode === 'ncert-focus' ? 'NCERT Bio Focus' : (isCuet ? 'CUET Practice Test' : 'Practice Test'));
 
   hist.push({
-    label: `Test ${hist.length + 1}`,
+    label: `${isCuet ? 'CUET ' : ''}Test ${hist.length + 1}`,
     chapterName,
+    examMode,
     score: correctCount,
     total: qCount,
     accuracy: acc,
+    marks: evaluatedMarks,
+    maxMarks: maxMarks,
     timeSpent: timeSpentSec,
     avgTimePerQuestion: avgTimePerQ,
+    createdAt: new Date().toISOString(),
   });
 
-  if (hist.length > 30) hist.shift();
+  if (hist.length > 50) hist.shift();
 
-  // Weekly Trend Update
-  if (!Array.isArray(perf.weeklyProgress) || perf.weeklyProgress.length === 0) {
-    perf.weeklyProgress = [acc];
-  } else {
-    perf.weeklyProgress.push(acc);
-    if (perf.weeklyProgress.length > 7) perf.weeklyProgress.shift();
-  }
-
-  // Re-calculate all real-time stats cleanly
+  // Re-calculate all real-time stats cleanly for active exam mode
   computeRealTimePerformance(state);
 
   State.save(state);
@@ -1406,24 +1852,30 @@ function recordChapterTestAttempt(results) {
 }
 
 /* ---- Helper: chronological Chapter-wise Test performance trend for
-   the Performance page graph. Returns real recorded attempts. ---- */
+   the Performance page graph. Returns real recorded attempts filtered by mode. ---- */
 function getChapterTestTrend(limit = 12) {
   const state = State.get();
+  const isCuet = state.examMode === 'CUET';
   const real = (state.performance && state.performance.chapterTestHistory) || [];
-  return real.slice(-limit);
+  const filtered = real.filter(h => isCuet ? h.examMode === 'CUET' : h.examMode !== 'CUET');
+  return filtered.slice(-limit);
 }
 
 /* ---- Helper: chronological Full-Length Test performance trend for
-   the Performance page graph. ---- */
+   the Performance page graph filtered by mode. ---- */
 function getFullLengthTestTrend() {
   const state = State.get();
+  const isCuet = state.examMode === 'CUET';
   const real = [];
   DB.fullLengthTests.forEach((t, i) => {
+    const isTestCuet = t.id === 'flt02' || (t.title && t.title.toLowerCase().includes('cuet'));
+    if (isCuet && !isTestCuet) return;
+    if (!isCuet && isTestCuet) return;
     const prog = (state.fullLengthTests && state.fullLengthTests[t.id]) || null;
     if (prog && prog.attemptHistory && prog.attemptHistory.length > 0) {
       const latest = prog.attemptHistory[prog.attemptHistory.length - 1];
       real.push({
-        label: `FLT ${i + 1}`,
+        label: isTestCuet ? `CUET Mock ${i + 1}` : `NEET FLT ${i + 1}`,
         title: t.title,
         score: latest.score,
         total: latest.total,
@@ -1465,62 +1917,105 @@ function updateDailyStreak(state) {
 
 /* ---- Real-Time Performance & Rank Computation Engine ----
    Computes actual stats dynamically from the student's real recorded history
-   so every single metric on the Performance/Rank page reflects actual data. ---- */
+   specifically according to the active exam mode (NEET vs CUET). ---- */
 function computeRealTimePerformance(state) {
   if (!state) state = State.get();
   if (!state.performance) state.performance = State.defaultState().performance;
+  const isCuet = (state.examMode === 'CUET');
   const perf = state.performance;
 
-  // 1. Aggregate from Chapter & Practice Test History
-  const chapterHistory = perf.chapterTestHistory || [];
-  let totalTests = chapterHistory.length;
+  // 1. Filter Chapter & Practice Test History based on active examMode
+  const allChapterHistory = perf.chapterTestHistory || [];
+  const modeChapterHistory = allChapterHistory.filter(h => {
+    if (isCuet) {
+      return h.examMode === 'CUET' || h.examType === 'CUET' || (h.chapterName && h.chapterName.includes('CUET'));
+    } else {
+      return h.examMode !== 'CUET' && h.examType !== 'CUET' && (!h.chapterName || !h.chapterName.includes('CUET'));
+    }
+  });
+
+  let totalTests = modeChapterHistory.length;
   let totalQuestions = 0;
   let totalCorrect = 0;
   let totalIncorrect = 0;
   let totalUnattempted = 0;
   let totalTimeSpent = 0;
+  let totalMarksScored = 0;
+  let maxPossibleMarks = 0;
   let hasPerfectScore = false;
   let hasSpeedDemon = false;
 
-  chapterHistory.forEach(h => {
+  modeChapterHistory.forEach(h => {
     const qCount = h.total || 0;
     const cCount = h.score || 0;
+    const wCount = (h.incorrect !== undefined) ? h.incorrect : Math.max(0, qCount - cCount);
+    const unCount = (h.unattempted !== undefined) ? h.unattempted : 0;
+    
     totalQuestions += qCount;
     totalCorrect += cCount;
-    const wCount = (h.incorrect !== undefined) ? h.incorrect : Math.max(0, qCount - cCount);
     totalIncorrect += wCount;
-    totalUnattempted += (h.unattempted || 0);
+    totalUnattempted += unCount;
+    
     const timeForTest = (h.timeSpent || (h.avgTimePerQuestion ? h.avgTimePerQuestion * qCount : 45 * qCount));
     totalTimeSpent += timeForTest;
+
+    const testMarks = (h.marks !== undefined) 
+      ? h.marks 
+      : (isCuet ? (cCount * 5 - wCount * 1) : (cCount * 4 - wCount * 1));
+    const testMaxMarks = (h.maxMarks !== undefined)
+      ? h.maxMarks
+      : (isCuet ? Math.min(250, qCount * 5) : (qCount * 4));
+    
+    totalMarksScored += testMarks;
+    maxPossibleMarks += testMaxMarks;
+
     if (h.accuracy === 100 && qCount >= 5) hasPerfectScore = true;
     if (h.avgTimePerQuestion && h.avgTimePerQuestion < 40 && h.accuracy >= 80) hasSpeedDemon = true;
   });
 
-  // 2. Aggregate from Full-Length Tests History
+  // 2. Aggregate from Full-Length Tests History based on active examMode
   if (state.fullLengthTests) {
-    Object.values(state.fullLengthTests).forEach(flt => {
+    Object.entries(state.fullLengthTests).forEach(([testId, flt]) => {
       if (flt && Array.isArray(flt.attemptHistory)) {
+        const isTestCuet = testId === 'flt02' || (flt.examMode === 'CUET') || (flt.examType === 'CUET');
+        if (isCuet && !isTestCuet) return;
+        if (!isCuet && isTestCuet) return;
+
         flt.attemptHistory.forEach(att => {
           totalTests += 1;
-          const qCount = att.total || 90;
+          const qCount = att.total || (isCuet ? 50 : 90);
           const cCount = att.score || 0;
+          const wCount = Math.max(0, qCount - cCount);
           totalQuestions += qCount;
           totalCorrect += cCount;
-          totalIncorrect += Math.max(0, qCount - cCount);
+          totalIncorrect += wCount;
           totalTimeSpent += (att.timeSpent || (45 * qCount));
+
+          const fltMarks = (att.marks !== undefined)
+            ? att.marks
+            : (isCuet ? (cCount * 5 - wCount * 1) : (cCount * 4 - wCount * 1));
+          const fltMaxMarks = isCuet ? 250 : 360;
+          totalMarksScored += fltMarks;
+          maxPossibleMarks += fltMaxMarks;
+
           if (att.accuracy === 100 && qCount >= 10) hasPerfectScore = true;
         });
       }
     });
   }
 
-  // 3. Update Exact Aggregated Counters
+  // 3. Update Exact Aggregated Counters for active examMode
   perf.testsAttempted = totalTests;
   perf.questionsAttempted = totalQuestions;
   perf.correctAnswers = totalCorrect;
   perf.incorrectAnswers = totalIncorrect;
   perf.unattempted = totalUnattempted;
   perf.overallAccuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+  perf.totalMarksScored = totalMarksScored;
+  perf.maxPossibleMarks = maxPossibleMarks;
+  perf.projectedScore = isCuet
+    ? Math.round((perf.overallAccuracy / 100) * 250)
+    : Math.round((perf.overallAccuracy / 100) * 360);
 
   // 4. Real-time Avg Speed Per Question (in seconds)
   const avgSpeed = totalQuestions > 0 ? Math.max(5, Math.round(totalTimeSpent / totalQuestions)) : null;
@@ -1533,11 +2028,9 @@ function computeRealTimePerformance(state) {
     perf.totalStudents = perf.totalStudents || 1;
     perf.longestStreak = perf.currentStreak || 1;
   } else {
-    // Exact dynamic active student count from backend or active sessions
     const activeStudentCount = perf.totalStudents || 1;
     perf.totalStudents = activeStudentCount;
     
-    // When only 1 student is testing, rank is #1
     if (activeStudentCount <= 1) {
       perf.rank = 1;
       perf.percentile = 100;
@@ -1575,10 +2068,10 @@ function computeRealTimePerformance(state) {
     });
   }
 
-  // 7. Real-time Weekly Accuracy Trend Array (7 Data points)
+  // 7. Real-time Weekly Accuracy Trend Array (7 Data points for active mode)
   const weeklyData = [];
-  if (chapterHistory.length > 0) {
-    const recent = chapterHistory.slice(-7);
+  if (modeChapterHistory.length > 0) {
+    const recent = modeChapterHistory.slice(-7);
     recent.forEach(h => weeklyData.push(h.accuracy || 0));
     while (weeklyData.length < 7) {
       weeklyData.unshift(0);
@@ -1724,6 +2217,39 @@ DB.rawBaseSubSkills = JSON.parse(JSON.stringify(DB.subSkills));
 DB.rawBaseQuestions = JSON.parse(JSON.stringify(DB.questions));
 DB.rawBaseFullLengthTests = JSON.parse(JSON.stringify(DB.fullLengthTests));
 DB.rawBaseNcertQuestions = Array.isArray(DB.ncertQuestions) ? JSON.parse(JSON.stringify(DB.ncertQuestions)) : [];
+DB.rawBaseCuetQuestions = Array.isArray(DB.cuetQuestions) ? JSON.parse(JSON.stringify(DB.cuetQuestions)) : [];
+
+/* ---- Helper: get NEET PYQ Questions strictly (NEET only) ---- */
+DB.getNeetPyqQuestions = function(filter = {}) {
+  let list = (DB.questions || []).filter(q => q.examType !== 'CUET' && !q.isCuet);
+  if (filter.year && filter.year !== 'all') {
+    list = list.filter(q => String(q.year) === String(filter.year));
+  }
+  if (filter.chapterId && filter.chapterId !== 'all') {
+    list = list.filter(q => q.chapter === filter.chapterId || q.chapterId === filter.chapterId);
+  }
+  if (filter.search) {
+    const s = filter.search.toLowerCase();
+    list = list.filter(q => (q.text && q.text.toLowerCase().includes(s)) || (q.explanation && q.explanation.toLowerCase().includes(s)));
+  }
+  return list;
+};
+
+/* ---- Helper: get CUET PYQ Questions strictly (CUET Class 12 only) ---- */
+DB.getCuetPyqQuestions = function(filter = {}) {
+  let list = (DB.cuetQuestions || []).filter(q => q.examType === 'CUET' || q.isPyq);
+  if (filter.year && filter.year !== 'all') {
+    list = list.filter(q => String(q.year) === String(filter.year));
+  }
+  if (filter.chapterId && filter.chapterId !== 'all') {
+    list = list.filter(q => q.chapter === filter.chapterId || q.chapterId === filter.chapterId);
+  }
+  if (filter.search) {
+    const s = filter.search.toLowerCase();
+    list = list.filter(q => (q.text && q.text.toLowerCase().includes(s)) || (q.explanation && q.explanation.toLowerCase().includes(s)) || (q.caseStudyPassage && q.caseStudyPassage.toLowerCase().includes(s)));
+  }
+  return list;
+};
 
 /* ---- Sync DB with in-browser Admin Mock Store if available ---- */
 DB.syncFromAdminStore = function() {
@@ -1867,6 +2393,39 @@ DB.syncFromAdminStore = function() {
         }
       });
       DB.ncertQuestions = Array.from(ncertMap.values());
+    }
+
+    // 6. CUET PYQ QUESTIONS
+    if (Array.isArray(mockData.cuetQuestions)) {
+      const cuetMap = new Map();
+      (DB.rawBaseCuetQuestions || []).forEach(q => {
+        cuetMap.set(q.id, { ...q });
+      });
+      mockData.cuetQuestions.forEach(q => {
+        const id = q._id || q.id;
+        if (q.active === false || q.isDeleted === true) {
+          cuetMap.delete(id);
+        } else {
+          cuetMap.set(id, {
+            id,
+            chapter: q.chapterId || q.chapter,
+            subSkill: q.subSkillId || q.subSkill,
+            year: Number(q.year) || 2024,
+            shift: q.shift || 'Official Slot',
+            examType: 'CUET',
+            isPyq: true,
+            questionType: q.questionType || q.type || 'mcq',
+            caseStudyPassage: q.caseStudyPassage || '',
+            text: q.text || '',
+            options: Array.isArray(q.options) ? q.options : ['A', 'B', 'C', 'D'],
+            correct: Number(q.correctOption ?? q.correct ?? 0),
+            correctOption: Number(q.correctOption ?? q.correct ?? 0),
+            explanation: q.explanation || '',
+            ncertReference: q.ncertReference || '',
+          });
+        }
+      });
+      DB.cuetQuestions = Array.from(cuetMap.values());
     }
   } catch (e) {
     console.warn('Could not sync DB from storage', e);

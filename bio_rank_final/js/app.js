@@ -158,6 +158,9 @@ const App = (() => {
     'admin-reports':        typeof renderAdminReports === 'function' ? renderAdminReports : null,
     'admin-auditlogs':      typeof renderAdminAuditLogs === 'function' ? renderAdminAuditLogs : null,
     'ncert-bio-focus':      typeof renderNcertBioFocus === 'function' ? renderNcertBioFocus : null,
+    'cuet-pyq':             typeof renderCuetPYQTest === 'function' ? renderCuetPYQTest : null,
+    'admin-cuet-pyqs':      typeof renderAdminCuetPyqs === 'function' ? renderAdminCuetPyqs : null,
+    'admin-cuet-pyq-form':  typeof renderAdminCuetPyqForm === 'function' ? renderAdminCuetPyqForm : null,
     'flashcards':           (c, d) => (typeof renderFlashcards === 'function' ? renderFlashcards(c, d) : (window.FlashcardsEngine && FlashcardsEngine.render(c, d))),
     'duel':                 (c, d) => (typeof renderDuel === 'function' ? renderDuel(c, d) : (window.DuelEngine && DuelEngine.renderLobby(c, d))),
   };

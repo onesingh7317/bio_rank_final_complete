@@ -110,6 +110,10 @@ const ApiClient = (() => {
         data.reports = [];
       }
 
+      if (!Array.isArray(data.cuetQuestions) || data.cuetQuestions.length === 0) {
+        data.cuetQuestions = initDefaults().cuetQuestions || [];
+      }
+
       return data;
     }
 
@@ -252,7 +256,25 @@ const ApiClient = (() => {
         isNcertFocus: true,
       }));
 
-      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs, reports, ncertQuestions };
+      const rawCuet = (window.DB && (window.DB.rawBaseCuetQuestions || window.DB.cuetQuestions)) || [];
+      const cuetQuestions = rawCuet.map((q, idx) => ({
+        _id: q.id || `cuet_${idx + 1}`,
+        chapterId: q.chapter || 'ch20',
+        subSkillId: q.subSkill || 'ss20',
+        year: q.year || 2024,
+        shift: q.shift || 'May 15 Slot 1',
+        examType: 'CUET',
+        isPyq: true,
+        questionType: q.questionType || 'mcq',
+        caseStudyPassage: q.caseStudyPassage || '',
+        text: q.text || '',
+        options: q.options || ['A', 'B', 'C', 'D'],
+        correctOption: q.correct ?? q.correctOption ?? 0,
+        explanation: q.explanation || '',
+        ncertReference: q.ncertReference || '',
+      }));
+
+      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs, reports, ncertQuestions, cuetQuestions };
       save(initial);
       return initial;
     }
@@ -808,6 +830,95 @@ const ApiClient = (() => {
         data.ncertQuestions.splice(qIdx, 1);
         MockStore.save(data);
         MockStore.addAuditLog('DELETE_NCERT_QUESTION', 'NcertQuestion', qId, `Deleted NCERT Question`);
+        return { ok: true };
+      }
+    }
+
+    // CUET PYQ Question Endpoints
+    if (cleanPath === '/cuet-pyqs' || cleanPath === '/admin/cuet-pyqs') {
+      if (method === 'GET') {
+        let cuetQs = data.cuetQuestions || [];
+        const chapterId = urlParams.get('chapterId');
+        const year = urlParams.get('year');
+        const questionType = urlParams.get('questionType');
+        const search = urlParams.get('search');
+
+        if (chapterId && chapterId !== 'all') cuetQs = cuetQs.filter((q) => q.chapterId === chapterId || q.chapter === chapterId);
+        if (year && year !== 'all') cuetQs = cuetQs.filter((q) => String(q.year) === String(year));
+        if (questionType && questionType !== 'all') cuetQs = cuetQs.filter((q) => (q.questionType || q.type) === questionType);
+        if (search) {
+          const s = search.toLowerCase();
+          cuetQs = cuetQs.filter(
+            (q) =>
+              (q.text && q.text.toLowerCase().includes(s)) ||
+              (q.explanation && q.explanation.toLowerCase().includes(s)) ||
+              (q.caseStudyPassage && q.caseStudyPassage.toLowerCase().includes(s))
+          );
+        }
+
+        const page = Number(urlParams.get('page')) || 1;
+        const limit = Number(urlParams.get('limit')) || 50;
+        const total = cuetQs.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const paginated = cuetQs.slice((page - 1) * limit, page * limit);
+
+        return {
+          questions: paginated,
+          cuetQuestions: paginated,
+          pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+        };
+      }
+
+      if (method === 'POST') {
+        const newQ = {
+          _id: `cuet_${Date.now()}`,
+          chapterId: body.chapterId || 'ch20',
+          subSkillId: body.subSkillId || 'ss20',
+          year: Number(body.year) || 2024,
+          shift: body.shift || 'Official Slot',
+          examType: 'CUET',
+          isPyq: true,
+          questionType: body.questionType || body.type || 'mcq',
+          caseStudyPassage: body.caseStudyPassage || '',
+          text: body.text,
+          options: body.options || ['A', 'B', 'C', 'D'],
+          correctOption: Number(body.correctOption) || 0,
+          explanation: body.explanation || '',
+          ncertReference: body.ncertReference || '',
+          createdAt: new Date().toISOString(),
+        };
+        if (!data.cuetQuestions) data.cuetQuestions = [];
+        data.cuetQuestions.unshift(newQ);
+        MockStore.save(data);
+        MockStore.addAuditLog(
+          'CREATE_CUET_QUESTION',
+          'CuetQuestion',
+          newQ._id,
+          `Created CUET PYQ Question (${newQ.year}): ${newQ.text.substring(0, 40)}`
+        );
+        return { ok: true, question: newQ };
+      }
+    }
+
+    if (cleanPath.startsWith('/cuet-pyqs/') || cleanPath.startsWith('/admin/cuet-pyqs/')) {
+      const parts = cleanPath.split('/');
+      const qId = parts[parts.length - 1];
+      const qIdx = (data.cuetQuestions || []).findIndex((q) => q._id === qId || q.id === qId);
+      if (qIdx === -1) throw new ApiError('CUET PYQ Question not found', 404);
+
+      if (method === 'GET') {
+        return { question: data.cuetQuestions[qIdx], cuetQuestion: data.cuetQuestions[qIdx] };
+      }
+      if (method === 'PUT' || method === 'PATCH') {
+        data.cuetQuestions[qIdx] = { ...data.cuetQuestions[qIdx], ...body };
+        MockStore.save(data);
+        MockStore.addAuditLog('UPDATE_CUET_QUESTION', 'CuetQuestion', qId, `Updated CUET PYQ Question`);
+        return { ok: true, question: data.cuetQuestions[qIdx] };
+      }
+      if (method === 'DELETE') {
+        data.cuetQuestions.splice(qIdx, 1);
+        MockStore.save(data);
+        MockStore.addAuditLog('DELETE_CUET_QUESTION', 'CuetQuestion', qId, `Deleted CUET PYQ Question`);
         return { ok: true };
       }
     }

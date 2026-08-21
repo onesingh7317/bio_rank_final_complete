@@ -191,6 +191,17 @@ exports.syncNcertProgress = async (req, res) => {
 /* ============================================================
    GET /api/user/ncert-progress
    ============================================================ */
+exports.getNcertProgress = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.userId).select('ncertProgress');
+    if (!user) return res.status(404).json({ ok: false, error: 'User not found' });
+    return res.json({ ok: true, ncertProgress: user.ncertProgress || {} });
+  } catch (error) {
+    console.error('[student.getNcertProgress]', error);
+    return res.status(500).json({ ok: false, error: 'Failed to fetch NCERT progress.' });
+  }
+};
+
 /* ============================================================
    GET /api/admin/students
    ============================================================ */

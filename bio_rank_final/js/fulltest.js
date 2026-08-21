@@ -34,7 +34,7 @@ function renderFullLengthTest(container) {
       <div class="flt-main-col">
         <div style="margin-bottom:var(--sp-4);">
           <div class="page-title">Full Length Mock Tests</div>
-          <div class="page-subtitle">Official pattern timed mock tests for NEET (360 Marks) and CUET UG (200 Marks).</div>
+          <div class="page-subtitle">Official pattern timed mock tests for NEET (360 Marks) and CUET UG (250 Marks).</div>
         </div>
 
         <!-- Exam Filter Selector -->
@@ -87,7 +87,7 @@ function setFLTExamFilter(exam) {
 function fltCardHtml(test, progress) {
   const attempted = progress.attempts > 0;
   const isCuet = test.examType === 'CUET';
-  const maxScore = isCuet ? 200 : 360;
+  const maxScore = isCuet ? 250 : 360;
   const recentHistory = progress.attemptHistory.slice(-5);
 
   return `
@@ -98,7 +98,7 @@ function fltCardHtml(test, progress) {
             <span class="badge ${isCuet ? 'badge-primary' : 'badge-neutral'}" style="font-size:10px;font-weight:700;">
               ${isCuet ? '🔵 CUET (UG)' : '🟢 NEET'}
             </span>
-            <span class="badge badge-neutral" style="font-size:10px;">${isCuet ? '200 Marks' : '360 Marks'}</span>
+            <span class="badge badge-neutral" style="font-size:10px;">${isCuet ? '250 Marks' : '360 Marks'}</span>
           </div>
           <div class="flt-card-title">${test.title}</div>
           <div class="flt-card-desc">${test.description}</div>
@@ -179,7 +179,7 @@ function renderFLTResult(container, results) {
   const progress = getFLTProgress(testId);
   const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
   const totalQ = results.totalQuestions || (isCuet ? 50 : 90);
-  const maxMarks = isCuet ? 200 : (totalQ * 4);
+  const maxMarks = isCuet ? 250 : (totalQ * 4);
   const finalScore = results.score !== undefined ? results.score : (results.neetScore !== undefined ? results.neetScore : (isCuet ? (results.correct * 5 - results.incorrect * 1) : (results.correct * 4 - results.incorrect * 1)));
   const percent = results.accuracy !== undefined ? results.accuracy : (totalQ > 0 ? Math.round((results.correct / totalQ) * 100) : 0);
 
