@@ -2005,22 +2005,28 @@ const State = {
       if (!state.performance) state.performance = this.defaultState().performance;
       if (!state.performance.chapterTestHistory) state.performance.chapterTestHistory = [];
 
-      // Auto-sanitize legacy mock values (e.g. 100 students, 85 rank, 9 streak from old templates)
+      // Auto-sanitize legacy mock values (e.g. old mock seeds from previous sessions)
       if (state.performance) {
         if (!state.performance.testsAttempted || state.performance.testsAttempted === 0) {
           state.performance.rank = null;
           state.performance.percentile = 0;
           state.performance.totalStudents = 1;
-          state.performance.longestStreak = state.performance.currentStreak || 1;
+          state.performance.currentStreak = state.performance.currentStreak || 0;
+          state.performance.longestStreak = state.performance.currentStreak || 0;
+          state.performance.chapterProgress = state.performance.chapterProgress || {};
+          state.performance.chapterTestHistory = [];
+          state.weaknessMap = [];
+          state.spacedRetests = [];
+          // Purge legacy seed pool if tests have never been attempted
+          if (Array.isArray(state.spacedReviewPool) && state.spacedReviewPool.length > 0 && !state.lastTestResult) {
+            state.spacedReviewPool = [];
+          }
         } else {
-          // If in local/single testing mode, reset to exact 1 active student
+          // If in local/single testing mode, calculate clean live rank
           if (!window._liveTotalStudents && (state.performance.totalStudents >= 10 || state.performance.rank > 10)) {
             state.performance.totalStudents = 1;
             state.performance.rank = 1;
             state.performance.percentile = 100;
-          }
-          if (state.performance.longestStreak === 9 || state.performance.longestStreak > 30) {
-            state.performance.longestStreak = state.performance.currentStreak || 1;
           }
         }
       }

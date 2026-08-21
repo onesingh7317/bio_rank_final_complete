@@ -86,16 +86,16 @@ function renderProfile(container) {
             </div>
             <div>
               <div style="font-size:var(--text-sm);font-weight:700;color:var(--neutral-900);">
-                ${escapeHtml(student.email || `${username}@gmail.com`)}
+                ${student.email ? escapeHtml(student.email) : 'No account linked yet'}
               </div>
-              <div style="font-size:11px;color:var(--success-600);font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
-                <span>●</span> Connected with Google
+              <div style="font-size:11px;color:${student.email ? 'var(--success-600)' : 'var(--neutral-500)'};font-weight:600;display:flex;align-items:center;gap:4px;margin-top:2px;">
+                <span>●</span> ${student.email ? 'Connected' : 'Sign in to sync account across devices'}
               </div>
             </div>
           </div>
 
           <button class="btn btn-outline btn-sm" onclick="Profile.connectGoogle()" style="display:inline-flex;align-items:center;gap:var(--sp-2);background:#ffffff;">
-            <span>🔄 Switch Google Account</span>
+            <span>${student.email ? '🔄 Switch Account' : '🔗 Link Google Account'}</span>
           </button>
         </div>
 
