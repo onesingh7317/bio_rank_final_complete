@@ -257,7 +257,7 @@ const App = (() => {
       State.setExamMode(valid);
     }
     updateExamToggleUI(valid);
-    showToast(`Switched to ${valid === 'CUET' ? '🔵 CUET (UG)' : '🟢 NEET'} Mode`);
+    showToast(`Switched to ${valid === 'CUET' ? '🟢 CUET (UG)' : '🟢 NEET'} Mode`);
 
     // Re-render current screen to immediately adapt curriculum and tests
     if (current.screen && !['config', 'foundation', 'test'].includes(current.screen)) {

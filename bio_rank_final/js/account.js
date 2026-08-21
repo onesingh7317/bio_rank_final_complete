@@ -593,9 +593,9 @@ function renderContact(container) {
         <h3 class="contact-cta-heading">We'd love to hear from you.</h3>
         <p class="contact-cta-text">Your feedback helps us make Bio Rank better.</p>
         <div class="contact-cta-actions">
-          <a href="mailto:biorankofficial@gmail.com" class="btn btn-primary">✉️ Send an Email</a>
+          <a href="mailto:biorankofficial@gmail.com" class="btn btn-primary" style="box-shadow:0 4px 12px rgba(6,78,59,0.2);">✉️ Send an Email</a>
+          <button class="btn" style="background:linear-gradient(135deg, #059669 0%, #10b981 100%);color:#ffffff;font-weight:800;border:none;box-shadow:0 4px 14px rgba(16,185,129,0.35);transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
-          <button class="btn btn-ghost" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
         </div>
       </div>
 
