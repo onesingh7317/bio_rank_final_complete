@@ -7185,4 +7185,262 @@ body.drawer-open {
   }
 }
 
+/* ============================================================
+   MOBILE RESPONSIVENESS & TOUCH OPTIMIZATION (< 768px & < 480px)
+   ============================================================ */
+
+/* 1. Global Touch & Viewport Protection */
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* 2. Responsive Inputs (Prevent iOS Safari auto-zoom) */
+@media (max-width: 768px) {
+  .form-input,
+  .form-select,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px !important; /* Prevents auto-zoom on mobile */
+    min-height: 44px;
+  }
+
+  /* Grid Layouts collapse on mobile */
+  .grid-2 {
+    grid-template-columns: 1fr !important;
+    gap: var(--sp-3) !important;
+  }
+  
+  .grid-3 {
+    grid-template-columns: 1fr !important;
+    gap: var(--sp-3) !important;
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--sp-3) !important;
+  }
+}
+
+/* 3. Student Setup & Authentication Screen (< 600px) */
+@media (max-width: 600px) {
+  .config-screen-wrap {
+    padding: var(--sp-2) var(--sp-3) var(--sp-8) !important;
+    overflow-x: hidden;
+    width: 100%;
+  }
+
+  .config-screen {
+    padding-top: var(--sp-3) !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  .config-logo {
+    margin-bottom: var(--sp-4) !important;
+  }
+
+  .config-logo-img {
+    width: 64px !important;
+    height: 64px !important;
+    margin-bottom: var(--sp-2) !important;
+  }
+
+  .config-logo h1 {
+    font-size: 1.6rem !important;
+    line-height: 1.25 !important;
+  }
+
+  .config-logo p {
+    font-size: 12.5px !important;
+    padding: 0 var(--sp-2);
+  }
+
+  .config-screen .card {
+    padding: var(--sp-5) var(--sp-4) !important;
+    border-radius: var(--radius-lg) !important;
+  }
+
+  /* Auth Tab Switcher on mobile */
+  .auth-tab-bar {
+    margin-bottom: var(--sp-4) !important;
+    padding: 3px !important;
+  }
+
+  .auth-tab-btn {
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+    gap: 4px !important;
+    letter-spacing: -0.2px;
+  }
+
+  /* Target Exam Switcher Buttons on Setup Screen */
+  #cfg-exam-mode {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    gap: 6px !important;
+  }
+
+  #cfg-exam-mode button {
+    flex: 1 1 calc(50% - 6px) !important;
+    min-width: 110px !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 8px 6px !important;
+    font-size: 12px !important;
+  }
+
+  #cfg-exam-mode button:last-child {
+    flex: 1 1 100% !important;
+  }
+
+  /* Confidence buttons on setup */
+  #cfg-confidence {
+    display: flex !important;
+    gap: 6px !important;
+  }
+
+  #cfg-confidence button {
+    flex: 1 !important;
+    text-align: center !important;
+    justify-content: center !important;
+    padding: 8px 4px !important;
+    font-size: 11.5px !important;
+  }
+
+  .bio-rain-container .pill-tag {
+    display: none; /* Hide heavy pill rain tags on mobile to avoid horizontal scroll */
+  }
+}
+
+/* 4. Top Header & Toggle Pill (< 600px) */
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 var(--sp-3) !important;
+    height: 56px !important;
+  }
+
+  .topbar-brand {
+    gap: 6px !important;
+    max-width: calc(100% - 110px);
+  }
+
+  .brand-logo-img.small {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .brand-name {
+    font-size: 14px !important;
+    font-weight: 800 !important;
+  }
+
+  .exam-toggle-pill {
+    padding: 2px !important;
+    margin-left: 4px !important;
+  }
+
+  .exam-pill-btn {
+    padding: 3px 7px !important;
+    font-size: 10px !important;
+    gap: 2px !important;
+  }
+
+  .streak-badge {
+    padding: 3px 8px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Very Small Phones (< 380px, e.g. iPhone SE) */
+@media (max-width: 380px) {
+  .brand-name {
+    display: none; /* Hide 'Bio Rank' text on tiny screens to let Logo + NEET/CUET toggle pill shine */
+  }
+
+  .auth-tab-btn {
+    font-size: 11px !important;
+    padding: 7px 4px !important;
+  }
+}
+
+/* 5. Test Screen Layout & Navigation on Mobile */
+@media (max-width: 860px) {
+  .test-layout {
+    grid-template-columns: 1fr !important;
+    gap: var(--sp-4) !important;
+  }
+
+  .question-card {
+    padding: var(--sp-4) !important;
+  }
+
+  .question-text {
+    font-size: 14.5px !important;
+    line-height: 1.5 !important;
+  }
+
+  .option-item {
+    padding: 10px 12px !important;
+    font-size: 13.5px !important;
+    margin-bottom: 8px !important;
+  }
+
+  .test-nav {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    gap: 6px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .test-nav .btn {
+    flex: 1 1 auto !important;
+    min-height: 40px !important;
+    padding: 8px 12px !important;
+    font-size: 13px !important;
+  }
+
+  .palette-grid {
+    grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .palette-btn {
+    height: 36px !important;
+    font-size: 12px !important;
+  }
+}
+
+/* 6. Dashboard & Quick Access Cards on Mobile */
+@media (max-width: 640px) {
+  .screen-container {
+    padding: var(--sp-3) var(--sp-3) calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 12px) + var(--sp-4)) !important;
+  }
+
+  .quick-access-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--sp-3) !important;
+  }
+
+  .perf-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: var(--sp-3) !important;
+  }
+
+  .flt-result-actions {
+    flex-direction: column !important;
+  }
+
+  .flt-result-actions .btn {
+    width: 100% !important;
+  }
+}
+
+
 
