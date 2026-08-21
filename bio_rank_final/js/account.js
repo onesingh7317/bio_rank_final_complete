@@ -593,8 +593,8 @@ function renderContact(container) {
         <h3 class="contact-cta-heading">We'd love to hear from you.</h3>
         <p class="contact-cta-text">Your feedback helps us make Bio Rank better.</p>
         <div class="contact-cta-actions">
-          <a href="mailto:biorankofficial@gmail.com" class="btn btn-primary" style="box-shadow:0 4px 12px rgba(6,78,59,0.2);">✉️ Send an Email</a>
-          <button class="btn" style="background:linear-gradient(135deg, #059669 0%, #10b981 100%);color:#ffffff;font-weight:800;border:none;box-shadow:0 4px 14px rgba(16,185,129,0.35);transition:all 0.2s cubic-bezier(0.34,1.56,0.64,1);" onmouseover="this.style.transform='translateY(-2px) scale(1.02)'" onmouseout="this.style.transform='translateY(0) scale(1)'" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
+          <a href="mailto:biorankofficial@gmail.com" class="btn btn-primary">✉️ Send an Email</a>
+          <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
       </div>
@@ -1253,6 +1253,7 @@ function renderPrivacyPolicy(container) {
         <p class="about-cta-desc">Reach out to our Grievance Officer and Support Team at biorankofficial@gmail.com.</p>
         <div class="about-cta-buttons">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Support ✉️</button>
+          <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('terms')">Terms &amp; Conditions 📜</button>
           <button class="btn btn-ghost" onclick="App.navigate('home')">Return to Dashboard 🏠</button>
         </div>
@@ -1520,8 +1521,8 @@ function renderTerms(container) {
         <p class="terms-cta-text">If you have questions or concerns about these Terms &amp; Conditions, please contact us at <a href="mailto:biorankofficial@gmail.com" style="color:var(--primary-400);text-decoration:underline;">biorankofficial@gmail.com</a>.</p>
         <div class="terms-cta-actions">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Us ✉️</button>
+          <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
-          <button class="btn btn-ghost" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
         </div>
       </section>
 
@@ -1708,8 +1709,8 @@ function renderDisclaimer(container) {
         <p class="disclaimer-cta-text">If you have questions or concerns about this Disclaimer, please contact us.</p>
         <div class="disclaimer-cta-actions">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Us ✉️</button>
+          <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
-          <button class="btn btn-ghost" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
         </div>
       </section>
 
