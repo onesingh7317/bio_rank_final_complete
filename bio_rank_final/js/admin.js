@@ -1297,13 +1297,24 @@ const Admin = {
 
     try {
       const res = await ApiClient.get(`/admin/cuet-pyqs?${params.toString()}`);
-      const qs = res.questions || res.cuetQuestions || [];
+      const qs = (res && (res.questions || res.cuetQuestions)) || [];
       listEl.innerHTML = qs.length
         ? qs.map(adminCuetRow).join('')
         : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No CUET PYQ questions found for this filter. Click <strong>+ Add CUET PYQ Question</strong> to add one!</p>';
-      renderAdminPagination('admin-cuet-pagination', res.pagination, (p) => Admin.loadCuetQuestions(p));
+      renderAdminPagination('admin-cuet-pagination', res && res.pagination, (p) => Admin.loadCuetQuestions(p));
     } catch (err) {
-      listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+      console.warn('API error on CUET questions, falling back to local store:', err);
+      let localQs = (window.DB && window.DB.cuetQuestions) || [];
+      if (chapterId) localQs = localQs.filter(q => (q.chapterId === chapterId || q.chapter === chapterId));
+      if (year) localQs = localQs.filter(q => String(q.year) === String(year));
+      if (questionType) localQs = localQs.filter(q => q.questionType === questionType);
+      if (search) {
+        const s = search.toLowerCase();
+        localQs = localQs.filter(q => (q.text && q.text.toLowerCase().includes(s)) || (q.explanation && q.explanation.toLowerCase().includes(s)));
+      }
+      listEl.innerHTML = localQs.length
+        ? localQs.map(adminCuetRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No CUET PYQ questions found. Click <strong>+ Add CUET PYQ Question</strong> to add one!</p>';
     }
   },
 

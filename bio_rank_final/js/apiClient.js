@@ -952,6 +952,11 @@ const ApiClient = (() => {
       throw new ApiError((data && data.error) || 'Session expired.', 401, data);
     }
 
+    if (res.status === 404) {
+      // Backend route is not deployed on server yet — seamlessly fallback to full mock store
+      return await handleMockRequest(path, method, body);
+    }
+
     if (!res.ok) {
       const message =
         (data && data.error) ||
