@@ -7186,6 +7186,46 @@ body.drawer-open {
 }
 
 /* ============================================================
+   SOCIAL MEDIA ICONS (Instagram & YouTube)
+   ============================================================ */
+.social-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.social-icon-btn.insta {
+  background: linear-gradient(135deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(220, 39, 67, 0.28);
+}
+
+.social-icon-btn.insta:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(220, 39, 67, 0.45);
+  color: #ffffff;
+}
+
+.social-icon-btn.yt {
+  background: #ff0000;
+  color: #ffffff;
+  box-shadow: 0 2px 10px rgba(255, 0, 0, 0.28);
+}
+
+.social-icon-btn.yt:hover {
+  transform: translateY(-2px) scale(1.05);
+  box-shadow: 0 4px 16px rgba(255, 0, 0, 0.45);
+  color: #ffffff;
+}
+
+/* ============================================================
    MOBILE RESPONSIVENESS & TOUCH OPTIMIZATION (< 768px & < 480px)
    ============================================================ */
 
