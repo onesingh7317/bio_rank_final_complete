@@ -153,7 +153,7 @@ function renderProfile(container) {
       <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;align-items:center;justify-content:space-between;margin-top:var(--sp-6);">
         <div style="display:flex;gap:var(--sp-3);flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="App.navigate('performance')">View Full Performance →</button>
-          <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
+          <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
         <button class="btn btn-outline" style="color:var(--error-600);border-color:var(--error-200);" onclick="App.logout(true)">
           🚪 Log Out
@@ -350,7 +350,7 @@ function renderSettings(container) {
         <button class="btn btn-block" style="background:var(--error-100);color:var(--error-600);" onclick="Settings.resetProgress()">Reset All Progress</button>
       </div>
 
-      <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home</button>
+      <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
     </div>
   `;
 }
@@ -463,7 +463,7 @@ function renderHelp(container) {
         <p class="about-cta-desc">Reach out to our student support team and we will be happy to assist you.</p>
         <div class="about-cta-buttons">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Support ✉️</button>
-          <button class="btn btn-secondary" onclick="App.navigate('home')">Return to Dashboard 🏠</button>
+          <button class="btn btn-vibrant-dashboard" onclick="App.navigate('home')">Return to Dashboard 🏠</button>
         </div>
       </div>
 
@@ -595,7 +595,7 @@ function renderContact(container) {
         <div class="contact-cta-actions">
           <a href="mailto:biorankofficial@gmail.com" class="btn btn-primary">✉️ Send an Email</a>
           <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
-          <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
+          <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
       </div>
 
@@ -893,7 +893,7 @@ function renderAbout(container) {
         <div class="about-cta-buttons">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Us ✉️</button>
           <button class="btn btn-secondary" onclick="App.navigate('chapter-test')">Start Chapter Practice →</button>
-          <button class="btn btn-ghost" onclick="App.navigate('home')">Back to Dashboard 🏠</button>
+          <button class="btn btn-vibrant-dashboard" onclick="App.navigate('home')">Back to Dashboard 🏠</button>
         </div>
       </div>
 
@@ -1255,7 +1255,7 @@ function renderPrivacyPolicy(container) {
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Support ✉️</button>
           <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
           <button class="btn btn-secondary" onclick="App.navigate('terms')">Terms &amp; Conditions 📜</button>
-          <button class="btn btn-ghost" onclick="App.navigate('home')">Return to Dashboard 🏠</button>
+          <button class="btn btn-vibrant-dashboard" onclick="App.navigate('home')">Return to Dashboard 🏠</button>
         </div>
       </div>
 
@@ -1522,7 +1522,7 @@ function renderTerms(container) {
         <div class="terms-cta-actions">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Us ✉️</button>
           <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
-          <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
+          <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
       </section>
 
@@ -1710,7 +1710,7 @@ function renderDisclaimer(container) {
         <div class="disclaimer-cta-actions">
           <button class="btn btn-primary" onclick="App.navigate('contact')">Contact Us ✉️</button>
           <button class="btn btn-about-biorank" onclick="App.navigate('about')">About Bio Rank ℹ️</button>
-          <button class="btn btn-secondary" onclick="App.navigate('home')">Back to Home 🏠</button>
+          <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
       </section>
 

@@ -283,7 +283,7 @@ const FlashcardsEngine = (() => {
 
         <div style="display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-outline" onclick="FlashcardsEngine.init(); FlashcardsEngine.render();">🔄 Replay Today's Deck</button>
-          <button class="btn btn-primary" onclick="App.navigate('home')">Back to Dashboard →</button>
+          <button class="btn btn-vibrant-dashboard" onclick="App.navigate('home')">Back to Dashboard 🏠</button>
         </div>
       </div>
     `;

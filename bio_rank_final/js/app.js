@@ -284,7 +284,7 @@ const App = (() => {
         <div style="font-size:48px;margin-bottom:var(--sp-4);">⚠️</div>
         <h2 style="font-size:var(--text-xl);font-weight:700;color:var(--neutral-900);margin-bottom:var(--sp-2);">Something went wrong</h2>
         <p style="color:var(--neutral-500);margin-bottom:var(--sp-5);">An error occurred while loading this screen. Please try again.</p>
-        <button class="btn btn-primary" onclick="App.navigate('home')">Back to Home</button>
+        <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
       </div>
     `;
   }

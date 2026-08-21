@@ -84,7 +84,7 @@ const DuelEngine = (() => {
         </div>
 
         <div style="text-align:center;">
-          <button class="btn btn-ghost btn-sm" onclick="App.navigate('home')">← Back to Dashboard</button>
+          <button class="btn btn-vibrant-dashboard btn-sm" onclick="App.navigate('home')">← Back to Dashboard 🏠</button>
         </div>
       </div>
     `;
@@ -270,7 +270,7 @@ const DuelEngine = (() => {
         <div style="display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
           <button class="btn btn-primary" onclick="DuelEngine.startBattle()">⚔️ Rematch Now</button>
           <button class="btn btn-outline" onclick="DuelEngine.renderLobby()">📲 Challenge Another Friend</button>
-          <button class="btn btn-ghost" onclick="App.navigate('home')">Back to Home</button>
+          <button class="btn btn-white-home" onclick="App.navigate('home')">Back to Home 🏠</button>
         </div>
       </div>
     `;
