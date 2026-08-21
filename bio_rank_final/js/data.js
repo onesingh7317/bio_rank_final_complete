@@ -801,64 +801,11 @@ const DB = {
     { id: 'time_pressure', label: 'Rushed answer', icon: '⏱️', description: 'Answered too quickly under time pressure' },
   ],
 
-  /* ---- Mock Weakness Map (Chapter-wise) ---- */
-  weaknessMap: [
-    {
-      chapterId: 'ch11', chapterName: 'Photosynthesis in Plants', icon: '☀️', classLevel: '11',
-      severity: 0.85, weightage: 8, priority: 0, performance: 25, daysToExam: 120, questionsWrong: 6
-    },
-    {
-      chapterId: 'ch24', chapterName: 'Molecular Basis of Inheritance', icon: '🔗', classLevel: '12',
-      severity: 0.80, weightage: 9, priority: 0, performance: 30, daysToExam: 120, questionsWrong: 5
-    },
-    {
-      chapterId: 'ch23', chapterName: 'Principles of Inheritance and Variation', icon: '🧩', classLevel: '12',
-      severity: 0.75, weightage: 9, priority: 0, performance: 38, daysToExam: 120, questionsWrong: 5
-    },
-    {
-      chapterId: 'ch18', chapterName: 'Neural Control and Coordination', icon: '🧠', classLevel: '11',
-      severity: 0.70, weightage: 8, priority: 0, performance: 40, daysToExam: 120, questionsWrong: 4
-    },
-    {
-      chapterId: 'ch19', chapterName: 'Chemical Coordination and Integration', icon: '⚗️', classLevel: '11',
-      severity: 0.65, weightage: 7, priority: 0, performance: 45, daysToExam: 120, questionsWrong: 4
-    },
-    {
-      chapterId: 'ch12', chapterName: 'Respiration in Plants', icon: '💨', classLevel: '11',
-      severity: 0.60, weightage: 6, priority: 0, performance: 50, daysToExam: 120, questionsWrong: 3
-    },
-  ],
+  /* ---- Initial Weakness Map (computed dynamically on student test attempts) ---- */
+  weaknessMap: [],
 
-  /* ---- Spaced Retest Schedule ---- */
-  spacedRetestSchedule: [
-    {
-      subSkillId: 'ss05', subSkillName: 'Light reaction steps (Z-scheme)',
-      chapterName: 'Photosynthesis in Plants',
-      checkpoints: [
-        { day: 1,  status: 'completed', date: null, score: 70 },
-        { day: 4,  status: 'due',       date: null, score: null },
-        { day: 10, status: 'upcoming',  date: null, score: null },
-      ]
-    },
-    {
-      subSkillId: 'ss11', subSkillName: 'DNA replication enzymes',
-      chapterName: 'Molecular Basis of Inheritance',
-      checkpoints: [
-        { day: 1,  status: 'completed', date: null, score: 65 },
-        { day: 4,  status: 'due',       date: null, score: null },
-        { day: 10, status: 'upcoming',  date: null, score: null },
-      ]
-    },
-    {
-      subSkillId: 'ss10', subSkillName: 'Mendelian genetics problems',
-      chapterName: 'Principles of Inheritance and Variation',
-      checkpoints: [
-        { day: 1,  status: 'completed', date: null, score: 60 },
-        { day: 4,  status: 'completed', date: null, score: 80 },
-        { day: 10, status: 'due',       date: null, score: null },
-      ]
-    },
-  ],
+  /* ---- Initial Spaced Retest Schedule (populated dynamically on test review) ---- */
+  spacedRetestSchedule: [],
 
   /* ---- Initial Student Performance Template --- */
   performance: {
@@ -869,11 +816,11 @@ const DB = {
     correctAnswers: 0,
     incorrectAnswers: 0,
     unattempted: 0,
-    currentStreak: 1,
-    longestStreak: 1,
-    rank: 1,
+    currentStreak: 0,
+    longestStreak: 0,
+    rank: null,
     totalStudents: 1,
-    percentile: 100,
+    percentile: 0,
     weeklyProgress: [0],
     badges: [
       { id: 'b01', name: '7-Day Streak',   icon: '🔥', earned: false },
@@ -883,55 +830,13 @@ const DB = {
       { id: 'b05', name: 'Speed Demon',    icon: '⚡', earned: false },
       { id: 'b06', name: 'Consistent',     icon: '📈', earned: false },
     ],
-    chapterProgress: {
-      'ch24': 72, 'ch23': 65, 'ch11': 48, 'ch18': 55, 'ch19': 61,
-      'ch09': 70, 'ch10': 58, 'ch02': 75, 'ch03': 63, 'ch12': 52,
-    },
-    /* ---- Demo seed for the Chapter-wise Test performance graph on the
-       Rank/Performance page. Only used as a fallback when the student
-       hasn't recorded any real chapter-test attempts yet (see
-       getChapterTestTrend()), same "not empty on first visit" idea as
-       spacedReviewSeed above. ---- */
-    chapterTestHistorySeed: [
-      { label: 'Test 1', chapterName: 'Cell: The Unit of Life',        score: 21, total: 35, accuracy: 60 },
-      { label: 'Test 2', chapterName: 'Photosynthesis in Plants',      score: 26, total: 40, accuracy: 65 },
-      { label: 'Test 3', chapterName: 'Respiration in Plants',         score: 20, total: 30, accuracy: 67 },
-      { label: 'Test 4', chapterName: 'Neural Control and Coordination', score: 24, total: 40, accuracy: 60 },
-      { label: 'Test 5', chapterName: 'Principles of Inheritance and Variation', score: 30, total: 44, accuracy: 68 },
-      { label: 'Test 6', chapterName: 'Molecular Basis of Inheritance',score: 33, total: 46, accuracy: 72 },
-      { label: 'Test 7', chapterName: 'Human Health and Disease',      score: 27, total: 38, accuracy: 71 },
-      { label: 'Test 8', chapterName: 'Ecosystem',                     score: 24, total: 32, accuracy: 75 },
-    ],
-    /* ---- Demo seed for the Full-Length Test performance graph. Same
-       fallback role as chapterTestHistorySeed, used when
-       state.fullLengthTests has no recorded attempts yet. ---- */
-    fullLengthHistorySeed: [
-      { label: 'FLT 1', title: 'Full Length Test 1', score: 52, total: 90, accuracy: 58 },
-      { label: 'FLT 2', title: 'Full Length Test 2', score: 58, total: 90, accuracy: 64 },
-      { label: 'FLT 3', title: 'Full Length Test 3', score: 61, total: 90, accuracy: 68 },
-      { label: 'FLT 4', title: 'Full Length Test 4', score: 65, total: 90, accuracy: 72 },
-    ],
+    chapterProgress: {},
+    chapterTestHistorySeed: [],
+    fullLengthHistorySeed: [],
   },
 
-  /* ---- Spaced Review Pool (question-level, Day 1 → 4 → 10) ----
-     Seed data so the Improvement Book demo isn't empty on first visit.
-     Real entries get added automatically when the student gets a
-     question wrong in a Chapter Test or Create Your Own Test — see
-     `processTestResultForSpacedReview()` in dashboard.js. */
-  spacedReviewSeed: [
-    { questionId: 'q001', chapter: 'ch19', reviewStage: 'day1',  successfulRetests: 0 },
-    { questionId: 'q009', chapter: 'ch19', reviewStage: 'day1',  successfulRetests: 0 },
-    { questionId: 'q020', chapter: 'ch19', reviewStage: 'day1',  successfulRetests: 1 },
-    { questionId: 'q002', chapter: 'ch04', reviewStage: 'day1',  successfulRetests: 0 },
-    { questionId: 'q012', chapter: 'ch04', reviewStage: 'day4',  successfulRetests: 1 },
-    { questionId: 'q003', chapter: 'ch18', reviewStage: 'day4',  successfulRetests: 0 },
-    { questionId: 'q013', chapter: 'ch18', reviewStage: 'day4',  successfulRetests: 1 },
-    { questionId: 'q004', chapter: 'ch12', reviewStage: 'day4',  successfulRetests: 0 },
-    { questionId: 'q021', chapter: 'ch12', reviewStage: 'day10', successfulRetests: 1 },
-    { questionId: 'q010', chapter: 'ch13', reviewStage: 'day10', successfulRetests: 1 },
-    { questionId: 'q022', chapter: 'ch13', reviewStage: 'day10', successfulRetests: 0 },
-    { questionId: 'q007', chapter: 'ch10', reviewStage: 'day1',  successfulRetests: 0 },
-  ],
+  /* ---- Spaced Review Pool (populated dynamically on test mistakes) ---- */
+  spacedReviewSeed: [],
 
   /* ---- Homepage Slides ---- */
   homeSlides: [

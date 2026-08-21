@@ -214,26 +214,7 @@ const ApiClient = (() => {
         questions: Array.isArray(t.questions) ? t.questions : (idx === 0 ? ['q_01', 'q_02'] : ['q_03']),
       }));
 
-      const auditLogs = [
-        {
-          _id: 'log_01',
-          action: 'LOGIN',
-          targetType: 'User',
-          targetId: 'admin_01',
-          performedBy: { name: 'Admin', username: 'admin' },
-          details: 'Admin user logged in via Web Interface (Demo Mode)',
-          createdAt: new Date().toISOString(),
-        },
-        {
-          _id: 'log_02',
-          action: 'SEED',
-          targetType: 'System',
-          targetId: 'sys_01',
-          performedBy: { name: 'System', username: 'system' },
-          details: 'Initialized default NEET Biology curriculum and question bank',
-            createdAt: new Date(Date.now() - 3600000).toISOString(),
-        },
-      ];
+      const auditLogs = [];
       const reports = [];
 
       const ncertQuestions = (window.DB && window.DB.ncertQuestions ? [...window.DB.ncertQuestions] : []).map((q, idx) => ({

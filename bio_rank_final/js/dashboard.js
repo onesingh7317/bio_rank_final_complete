@@ -532,39 +532,52 @@ function renderWeaknessMap(container) {
 
       <div class="meme-banner">Chapter diagnostic complete. Here is your chapter-by-chapter priority breakdown.</div>
 
-      <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
-        ${items.map((w, i) => `
-          <div class="weakness-item">
-            <div class="weakness-header" style="align-items:center;">
-              <div style="display:flex;align-items:center;gap:var(--sp-3);">
-                <div style="font-size:28px;">${w.icon || '📖'}</div>
-                <div>
-                  <div style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);text-transform:uppercase;letter-spacing:0.5px;">#${i + 1} Priority Chapter</div>
-                  <div class="weakness-name" style="font-size:var(--text-md);">${escapeHtml(w.chapterName)}</div>
-                  <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">
-                    ${w.classLevel ? `Class ${w.classLevel}` : 'NEET Syllabus'}
+      ${items.length === 0 ? `
+        <div class="card" style="text-align:center;padding:var(--sp-8);background:var(--white);border:1.5px dashed var(--neutral-300);border-radius:var(--radius-lg);margin-bottom:var(--sp-4);">
+          <div style="font-size:44px;margin-bottom:var(--sp-2);">🎯</div>
+          <div style="font-weight:700;font-size:var(--text-lg);color:var(--neutral-800);margin-bottom:var(--sp-1);">No Weak Areas Identified Yet</div>
+          <p style="font-size:var(--text-sm);color:var(--neutral-500);max-width:480px;margin:0 auto var(--sp-4);line-height:1.5;">
+            Attempt a Chapter Test or NEET/CUET PYQ paper to automatically diagnose your priority chapters and focus topics.
+          </p>
+          <button class="btn btn-primary" onclick="App.navigate('chapter-test')">
+            Start Chapter Practice →
+          </button>
+        </div>
+      ` : `
+        <div style="display:flex;flex-direction:column;gap:var(--sp-3);">
+          ${items.map((w, i) => `
+            <div class="weakness-item">
+              <div class="weakness-header" style="align-items:center;">
+                <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                  <div style="font-size:28px;">${w.icon || '📖'}</div>
+                  <div>
+                    <div style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-500);text-transform:uppercase;letter-spacing:0.5px;">#${i + 1} Priority Chapter</div>
+                    <div class="weakness-name" style="font-size:var(--text-md);">${escapeHtml(w.chapterName)}</div>
+                    <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">
+                      ${w.classLevel ? `Class ${w.classLevel}` : 'NEET Syllabus'}
+                    </div>
                   </div>
                 </div>
-              </div>
-              <div class="weakness-meta" style="align-items:flex-end;">
-                <span class="badge badge-${severityColor(w.severity)}">${severityLabel(w.severity)}</span>
-                <button class="btn btn-outline btn-sm" onclick="App.navigate('chapter-test')">
-                  Practice Chapter →
-                </button>
-              </div>
-            </div>
-            <div>
-              <div class="weakness-bar-row">
-                <span class="weakness-bar-label">Chapter Mastery</span>
-                <div class="weakness-bar-track">
-                  <div class="weakness-bar-fill" style="width:${w.performance}%;background:${barColor(w.severity)};border-radius:var(--radius-full);height:100%;"></div>
+                <div class="weakness-meta" style="align-items:flex-end;">
+                  <span class="badge badge-${severityColor(w.severity)}">${severityLabel(w.severity)}</span>
+                  <button class="btn btn-outline btn-sm" onclick="App.navigate('chapter-test')">
+                    Practice Chapter →
+                  </button>
                 </div>
-                <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-700);min-width:36px;text-align:right;">${w.performance}%</span>
+              </div>
+              <div>
+                <div class="weakness-bar-row">
+                  <span class="weakness-bar-label">Chapter Mastery</span>
+                  <div class="weakness-bar-track">
+                    <div class="weakness-bar-fill" style="width:${w.performance}%;background:${barColor(w.severity)};border-radius:var(--radius-full);height:100%;"></div>
+                  </div>
+                  <span style="font-size:var(--text-xs);font-weight:700;color:var(--neutral-700);min-width:36px;text-align:right;">${w.performance}%</span>
+                </div>
               </div>
             </div>
-          </div>
-        `).join('')}
-      </div>
+          `).join('')}
+        </div>
+      `}
 
       <div style="margin-top:var(--sp-6);display:flex;gap:var(--sp-3);justify-content:center;flex-wrap:wrap;">
         <button class="btn btn-primary btn-lg" onclick="App.navigate('home')">
@@ -878,20 +891,23 @@ function renderHome(container) {
 
       </div>
 
-      <!-- RIGHT: Advertisement Area -->
+      <!-- RIGHT: Study Insights & Prep Strategies -->
       <aside class="home-ad-sidebar" id="ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Ad Banner<br><span>Your ad here</span></div>
+        <div class="ad-header">High-Yield Prep Tips</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid #a7f3d0;">
+          <div style="font-size:22px;margin-bottom:6px;">🧬</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#065f46;">NCERT Line-by-Line</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Over 95% of NEET &amp; CUET Biology questions directly reference NCERT text, tables, and summary diagrams.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Ad Banner<br><span>Your ad here</span></div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #eff6ff, #fff);border:1.5px solid #93c5fd;">
+          <div style="font-size:22px;margin-bottom:6px;">⏱️</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#1e40af;">Target Speed: 40s/Q</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Aim to solve Biology questions in under 45 seconds to save maximum time for Physics and Chemistry numericals.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="3">
-          <div class="ad-placeholder-icon">💡</div>
-          <div class="ad-placeholder-text">Ad Banner<br><span>Your ad here</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #fdf4ff, #fff);border:1.5px solid #e9d5ff;">
+          <div style="font-size:22px;margin-bottom:6px;">🔁</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#6b21a8;">Spaced Retest Rule</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Review mistakes at Day 1, Day 4, and Day 10 in your Improvement Book to permanently lock concepts into memory.</p>
         </div>
       </aside>
     </div>
@@ -1089,14 +1105,16 @@ function renderPYQTest(container) {
       </div>
 
       <aside class="pyq-ad-sidebar" id="pyq-ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="ad-header">PYQ Insights</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid #a7f3d0;">
+          <div style="font-size:22px;margin-bottom:6px;">🎯</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#065f46;">High-Repeat Topics</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Genetics, Biotech, and Human Physiology repeat core concepts every single year across both NEET and CUET.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #eff6ff, #fff);border:1.5px solid #93c5fd;">
+          <div style="font-size:22px;margin-bottom:6px;">⚖️</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#1e40af;">Negative Marking Alert</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Avoid blind guessing. A single incorrect answer costs −1 mark, which can shift your national rank significantly.</p>
         </div>
       </aside>
     </div>
@@ -1388,14 +1406,16 @@ function renderChapterTest(container) {
       </div>
 
       <aside class="chtest-ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="ad-header">Study Strategy</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid #a7f3d0;">
+          <div style="font-size:22px;margin-bottom:6px;">📖</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#065f46;">Pre-Test Warmup</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Quickly skim the summary points at the end of each NCERT chapter before starting timed practice.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #eff6ff, #fff);border:1.5px solid #93c5fd;">
+          <div style="font-size:22px;margin-bottom:6px;">🧠</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#1e40af;">Assertion-Reason Drill</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Always verify if Reason is the true scientific explanation of Assertion by connecting them with 'because'.</p>
         </div>
       </aside>
     </div>
@@ -1866,14 +1886,16 @@ function renderImprovementBook(container) {
       </div>
 
       <aside class="impbook-ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="ad-header">Mistake Mastery</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #fefce8, #fff);border:1.5px solid #fde047;">
+          <div style="font-size:22px;margin-bottom:6px;">💡</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#854d0e;">Identify Error Types</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Categorize mistakes into Conceptual Gaps, Silly Errors, or Time Pressure to track true focus areas.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid #a7f3d0;">
+          <div style="font-size:22px;margin-bottom:6px;">🏆</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#065f46;">Mastered Retention</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Clear a question across all 3 review cycles (Day 1, 4 &amp; 10) to graduate it into your Mastered Pool.</p>
         </div>
       </aside>
     </div>
@@ -2538,16 +2560,18 @@ function renderPerformance(container) {
         </div>
       </div>
 
-      <!-- Advertisement Sidebar -->
+      <!-- Study Insights Sidebar -->
       <aside class="perf-ad-sidebar" id="perf-ad-sidebar">
-        <div class="ad-header">Sponsored</div>
-        <div class="ad-card ad-placeholder" data-ad-slot="1">
-          <div class="ad-placeholder-icon">📢</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="ad-header">Exam Readiness</div>
+        <div class="card" style="padding:var(--sp-4);margin-bottom:var(--sp-3);background:linear-gradient(135deg, #eff6ff, #fff);border:1.5px solid #93c5fd;">
+          <div style="font-size:22px;margin-bottom:6px;">📊</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#1e40af;">Accuracy Threshold</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Top 1% rankers maintain 85%+ accuracy on chapter tests and 90%+ on full-length mock papers.</p>
         </div>
-        <div class="ad-card ad-placeholder" data-ad-slot="2">
-          <div class="ad-placeholder-icon">🎯</div>
-          <div class="ad-placeholder-text">Advertisement<br><span>300 × 250</span></div>
+        <div class="card" style="padding:var(--sp-4);background:linear-gradient(135deg, #f0fdf4, #fff);border:1.5px solid #a7f3d0;">
+          <div style="font-size:22px;margin-bottom:6px;">🔥</div>
+          <div style="font-weight:700;font-size:var(--text-sm);margin-bottom:4px;color:#065f46;">Consistent Daily Practice</div>
+          <p style="font-size:var(--text-xs);color:var(--neutral-600);margin:0;line-height:1.45;">Solving 45 questions daily builds exam stamina and minimizes exam-day anxiety.</p>
         </div>
       </aside>
     </div>
