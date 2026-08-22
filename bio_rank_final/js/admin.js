@@ -693,14 +693,14 @@ const Admin = {
     }
 
     if (!Array.isArray(t.questions)) t.questions = [];
-    if (!Array.isArray(t.populatedQuestions) || t.populatedQuestions.length === 0) {
-      t.populatedQuestions = t.questions.map((qId) => {
-        if (typeof qId === 'object' && qId !== null && qId.text) return qId;
-        const rawId = typeof qId === 'object' ? qId._id : qId;
-        return (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === rawId || q._id === rawId))
-          || { _id: rawId, text: 'Question ' + rawId, options: ['Option A', 'Option B', 'Option C', 'Option D'], correctOption: 0 };
-      }).filter(Boolean);
-    }
+    t.populatedQuestions = t.questions.map((qId) => {
+      if (typeof qId === 'object' && qId !== null && qId.text) return qId;
+      const rawId = typeof qId === 'object' ? (qId._id || qId.id) : qId;
+      return (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === rawId || q._id === rawId))
+        || (window.DB && window.DB.cuetQuestions && window.DB.cuetQuestions.find((q) => q.id === rawId || q._id === rawId))
+        || (window.DB && window.DB.ncertQuestions && window.DB.ncertQuestions.find((q) => q.id === rawId || q._id === rawId))
+        || { _id: rawId, id: rawId, text: 'Question ' + rawId, options: ['Option A', 'Option B', 'Option C', 'Option D'], correctOption: 0 };
+    }).filter(Boolean);
 
     AdminState.activeFLT = t;
 
@@ -749,6 +749,19 @@ const Admin = {
 
   renderFLTAssignedTab(container) {
     const t = AdminState.activeFLT;
+    if (!t) return;
+
+    if (!Array.isArray(t.populatedQuestions) || t.populatedQuestions.length !== (t.questions || []).length) {
+      t.populatedQuestions = (t.questions || []).map((qId) => {
+        if (typeof qId === 'object' && qId !== null && qId.text) return qId;
+        const rawId = typeof qId === 'object' ? (qId._id || qId.id) : qId;
+        return (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === rawId || q._id === rawId))
+          || (window.DB && window.DB.cuetQuestions && window.DB.cuetQuestions.find((q) => q.id === rawId || q._id === rawId))
+          || (window.DB && window.DB.ncertQuestions && window.DB.ncertQuestions.find((q) => q.id === rawId || q._id === rawId))
+          || { _id: rawId, id: rawId, text: 'Question ' + rawId, options: ['Option A', 'Option B', 'Option C', 'Option D'], correctOption: 0 };
+      }).filter(Boolean);
+    }
+
     const questions = t.populatedQuestions || [];
     const target = t.numberOfQuestions || 90;
 
@@ -890,8 +903,14 @@ const Admin = {
         questions = questions.filter((q) => (q.text || '').toLowerCase().includes(s));
       }
 
-      if (!questions.length && window.DB && window.DB.questions) {
-        let localQs = [...window.DB.questions];
+      const allQuestionsPool = [
+        ...((window.DB && window.DB.questions) || []),
+        ...((window.DB && window.DB.cuetQuestions) || []),
+        ...((window.DB && window.DB.ncertQuestions) || [])
+      ];
+
+      if (!questions.length && allQuestionsPool.length) {
+        let localQs = [...allQuestionsPool];
         if (f.chapterId) {
           localQs = localQs.filter(q => (
             q.chapterId === f.chapterId ||
