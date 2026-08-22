@@ -999,6 +999,7 @@ const Admin = {
     try {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionId: validId });
       App.showToast('✅ Question added to test!');
+      if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
       alert('Failed to add question: ' + err.message);
@@ -1015,6 +1016,7 @@ const Admin = {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionIds: qIds });
       App.showToast(`✅ ${qIds.length} question(s) added to test!`);
       AdminState.fltSelectedBankQuestionIds.clear();
+      if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
       alert('Failed to add questions: ' + err.message);
@@ -1030,6 +1032,7 @@ const Admin = {
     try {
       await ApiClient.del(`/admin/full-length-tests/${testId}/questions/${qId}`);
       App.showToast('Question removed from test.');
+      if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
       alert('Failed to remove question: ' + err.message);
