@@ -21,6 +21,7 @@ const App = (() => {
     'admin', 'admin-login', 'admin-students', 'admin-chapters', 'admin-subskills',
     'admin-questions', 'admin-question-form', 'admin-ncert-focus', 'admin-ncert-form', 'admin-csv-import',
     'admin-fulltests', 'admin-flt-questions', 'admin-reports', 'admin-auditlogs',
+    'admin-neet-pyqs', 'admin-neet-pyq-form',
     'admin-cuet-pyqs', 'admin-cuet-pyq-form', 'cuet-pyq',
     'ncert-bio-focus', 'flashcards', 'duel',
   ];
@@ -160,6 +161,8 @@ const App = (() => {
     'admin-auditlogs':      typeof renderAdminAuditLogs === 'function' ? renderAdminAuditLogs : null,
     'ncert-bio-focus':      typeof renderNcertBioFocus === 'function' ? renderNcertBioFocus : null,
     'cuet-pyq':             typeof renderCuetPYQTest === 'function' ? renderCuetPYQTest : null,
+    'admin-neet-pyqs':      (c, d) => (typeof renderAdminNeetPyqs === 'function' ? renderAdminNeetPyqs(c, d) : window.renderAdminNeetPyqs && window.renderAdminNeetPyqs(c, d)),
+    'admin-neet-pyq-form':  (c, d) => (typeof renderAdminNeetPyqForm === 'function' ? renderAdminNeetPyqForm(c, d) : window.renderAdminNeetPyqForm && window.renderAdminNeetPyqForm(c, d)),
     'admin-cuet-pyqs':      (c, d) => (typeof renderAdminCuetPyqs === 'function' ? renderAdminCuetPyqs(c, d) : window.renderAdminCuetPyqs && window.renderAdminCuetPyqs(c, d)),
     'admin-cuet-pyq-form':  (c, d) => (typeof renderAdminCuetPyqForm === 'function' ? renderAdminCuetPyqForm(c, d) : window.renderAdminCuetPyqForm && window.renderAdminCuetPyqForm(c, d)),
     'flashcards':           (c, d) => (typeof renderFlashcards === 'function' ? renderFlashcards(c, d) : (window.FlashcardsEngine && FlashcardsEngine.render(c, d))),

@@ -27,6 +27,8 @@ const AdminState = {
   editingNcertQuestionId: null,
   cuetFilters: { year: '', chapterId: '', questionType: '', search: '', page: 1 },
   editingCuetQuestionId: null,
+  neetFilters: { year: '', chapterId: '', class: '', questionType: '', shift: '', search: '', page: 1 },
+  editingNeetQuestionId: null,
   subSkillChapterFilter: '',
   importPreview: null, // last /preview response, held until confirm
   cachedChapters: [],  // used to populate dropdowns without refetching every render
@@ -1424,6 +1426,150 @@ const Admin = {
       alert('Failed to delete CUET question: ' + err.message);
     }
   },
+
+  /* ---- NEET PYQ Methods ---- */
+  async loadNeetQuestions(page = 1) {
+    const listEl = document.getElementById('admin-neet-list');
+    if (!listEl) return;
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading NEET (UG) PYQ questions…</p>';
+
+    const { chapterId, year, class: classFilter, questionType, shift, search } = AdminState.neetFilters;
+    const params = new URLSearchParams({ page: String(page), limit: '20' });
+    if (chapterId) params.set('chapterId', chapterId);
+    if (year) params.set('year', year);
+    if (classFilter) params.set('class', classFilter);
+    if (questionType) params.set('questionType', questionType);
+    if (shift) params.set('shift', shift);
+    if (search) params.set('search', search);
+
+    try {
+      const res = await ApiClient.get(`/admin/neet-pyqs?${params.toString()}`);
+      const qs = (res && (res.questions || res.neetQuestions)) || [];
+      listEl.innerHTML = qs.length
+        ? qs.map(adminNeetRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No NEET PYQ questions found for this filter. Click <strong>+ Add NEET PYQ Question</strong> to add one!</p>';
+      renderAdminPagination('admin-neet-pagination', res && res.pagination, (p) => Admin.loadNeetQuestions(p));
+    } catch (err) {
+      console.warn('API error on NEET PYQ questions, falling back to local store:', err);
+      let localQs = (window.DB && (window.DB.rawBaseQuestions || window.DB.questions) || []).filter(q => q.isPyq || (q.year && q.examType !== 'CUET'));
+      if (chapterId) localQs = localQs.filter(q => (q.chapterId === chapterId || q.chapter === chapterId));
+      if (year) localQs = localQs.filter(q => String(q.year) === String(year));
+      if (questionType) localQs = localQs.filter(q => (q.questionType || q.type) === questionType);
+      if (shift) localQs = localQs.filter(q => (q.shift || '').toLowerCase().includes(shift.toLowerCase()));
+      if (search) {
+        const s = search.toLowerCase();
+        localQs = localQs.filter(q => (q.text && q.text.toLowerCase().includes(s)) || (q.explanation && q.explanation.toLowerCase().includes(s)) || (q.ncertReference && q.ncertReference.toLowerCase().includes(s)));
+      }
+      listEl.innerHTML = localQs.length
+        ? localQs.map(adminNeetRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No NEET PYQ questions found. Click <strong>+ Add NEET PYQ Question</strong> to add one!</p>';
+    }
+  },
+
+  onNeetFilterChange(key, value) {
+    AdminState.neetFilters[key] = value;
+    Admin.loadNeetQuestions(1);
+  },
+
+  startCreateNeetQuestion() {
+    AdminState.editingNeetQuestionId = null;
+    App.navigate('admin-neet-pyq-form', null);
+  },
+
+  async startEditNeetQuestion(id) {
+    AdminState.editingNeetQuestionId = id;
+    try {
+      const res = await ApiClient.get(`/admin/neet-pyqs/${id}`);
+      const q = res.question || res.neetQuestion;
+      App.navigate('admin-neet-pyq-form', q);
+    } catch (err) {
+      alert('Could not fetch NEET question for editing: ' + err.message);
+    }
+  },
+
+  onNeetTypeChangeInForm(type) {
+    const diagBlock = document.getElementById('neet-diag-block');
+    if (diagBlock) diagBlock.style.display = type === 'diagram' ? 'block' : 'none';
+  },
+
+  async saveNeetQuestion(e) {
+    if (e) e.preventDefault();
+    const id = AdminState.editingNeetQuestionId;
+    const errorEl = document.getElementById('admin-neet-form-error');
+    if (errorEl) errorEl.style.display = 'none';
+
+    const year = Number(document.getElementById('neet-q-year')?.value) || 2024;
+    const shift = document.getElementById('neet-q-shift')?.value?.trim() || 'Official NEET';
+    const chapterId = document.getElementById('neet-q-chapter')?.value;
+    const questionType = document.getElementById('neet-q-type')?.value || 'mcq';
+    const diagramUrl = document.getElementById('neet-q-diag-url')?.value?.trim() || '';
+    const text = document.getElementById('neet-q-text')?.value?.trim() || '';
+    const explanation = document.getElementById('neet-q-explanation')?.value?.trim() || '';
+    const ncertReference = document.getElementById('neet-q-ref')?.value?.trim() || '';
+
+    const options = [
+      document.getElementById('neet-opt-0')?.value?.trim() || '',
+      document.getElementById('neet-opt-1')?.value?.trim() || '',
+      document.getElementById('neet-opt-2')?.value?.trim() || '',
+      document.getElementById('neet-opt-3')?.value?.trim() || '',
+    ];
+
+    const correctRadio = document.querySelector('input[name="neet-correct-opt"]:checked');
+    const correctOption = correctRadio ? Number(correctRadio.value) : 0;
+
+    if (!text) {
+      if (errorEl) {
+        errorEl.textContent = 'Question statement is required.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
+
+    const payload = {
+      year,
+      shift,
+      chapterId,
+      questionType,
+      diagramUrl,
+      text,
+      options,
+      correctOption,
+      explanation,
+      ncertReference,
+      examType: 'NEET',
+      isPyq: true,
+      markingScheme: { correct: 4, incorrect: -1 }
+    };
+
+    try {
+      if (id) {
+        await ApiClient.put(`/admin/neet-pyqs/${id}`, payload);
+        App.showToast('✅ NEET PYQ Question updated successfully.');
+      } else {
+        await ApiClient.post('/admin/neet-pyqs', payload);
+        App.showToast('✅ NEET PYQ Question created successfully.');
+      }
+      App.navigate('admin-neet-pyqs');
+    } catch (err) {
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Failed to save NEET PYQ question.';
+        errorEl.style.display = 'block';
+      } else {
+        alert(err.message);
+      }
+    }
+  },
+
+  async deleteNeetQuestion(id, name) {
+    if (!confirm(`Delete this NEET PYQ Question? "${name || id}"`)) return;
+    try {
+      await ApiClient.del(`/admin/neet-pyqs/${id}`);
+      App.showToast('NEET Question deleted.');
+      Admin.loadNeetQuestions();
+    } catch (err) {
+      alert('Failed to delete NEET question: ' + err.message);
+    }
+  },
 };
 
 /* ============================================================
@@ -1710,6 +1856,73 @@ function adminCuetRow(q) {
   `;
 }
 
+function adminNeetRow(q) {
+  const chapter = AdminState.cachedChapters.find((c) => c._id === q.chapterId || c._id === q.chapter || c.id === q.chapterId || c.id === q.chapter);
+  const chapterName = q.chapterId?.name || (chapter && chapter.name) || q.chapter || 'NCERT Biology Chapter';
+  const chapterClass = (chapter && chapter.class) || '11/12';
+
+  const typeLabelMap = {
+    mcq: '<span class="badge badge-success" style="font-size:10px;font-weight:700;">MCQ (+4/−1)</span>',
+    assertion_reason: '<span class="badge badge-warning" style="font-size:10px;font-weight:700;">Assertion &amp; Reason</span>',
+    statement: '<span class="badge badge-primary" style="font-size:10px;font-weight:700;">Statement I &amp; II</span>',
+    match: '<span class="badge badge-neutral" style="font-size:10px;font-weight:700;">Match Matrix</span>',
+    diagram: '<span class="badge badge-accent" style="font-size:10px;font-weight:700;">Diagram Based</span>',
+  };
+  const typeBadge = typeLabelMap[q.questionType] || '<span class="badge badge-success" style="font-size:10px;font-weight:700;">MCQ (+4/−1)</span>';
+
+  return `
+    <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid #059669;box-shadow:var(--shadow-sm);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:var(--sp-3);margin-bottom:var(--sp-2);flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;">
+          <span class="badge badge-success" style="font-size:11px;font-weight:800;background:linear-gradient(135deg, #059669 0%, #10b981 100%);color:#fff;">🧬 NEET ${q.year || 2024}</span>
+          <span class="badge badge-neutral" style="font-size:10px;font-weight:700;">Class ${chapterClass}: ${escapeHtml(chapterName)}</span>
+          ${typeBadge}
+          ${q.shift ? `<span style="font-size:11px;color:var(--neutral-500);font-weight:600;">&bull; ${escapeHtml(q.shift)}</span>` : ''}
+          ${q.isFoundation ? `<span class="badge badge-warning" style="font-size:10px;">⭐ Foundation</span>` : ''}
+        </div>
+        <div style="display:flex;gap:var(--sp-1);">
+          <button class="btn btn-outline btn-sm" onclick="Admin.startEditNeetQuestion('${q._id || q.id}')">Edit</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteNeetQuestion('${q._id || q.id}', '${escapeHtml(q.text).replace(/'/g, "\\'")}')">Delete</button>
+        </div>
+      </div>
+
+      ${q.diagramUrl ? `
+        <div style="margin-bottom:var(--sp-3);text-align:center;background:#f8fafc;padding:var(--sp-2);border-radius:var(--radius-sm);border:1px solid #e2e8f0;">
+          <img src="${escapeHtml(q.diagramUrl)}" alt="Question Diagram" style="max-height:160px;max-width:100%;object-fit:contain;border-radius:var(--radius-sm);" onerror="this.style.display='none'" />
+        </div>
+      ` : ''}
+
+      <div style="font-weight:600;font-size:var(--text-sm);line-height:1.45;margin-bottom:var(--sp-2);color:#0f172a;">
+        ${escapeHtml(q.text)}
+      </div>
+
+      <!-- Options Grid -->
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:6px;margin-bottom:var(--sp-2);">
+        ${(q.options || []).map((opt, optIdx) => {
+          const isCorrect = optIdx === (q.correctOption ?? q.correct ?? 0);
+          return `
+            <div style="font-size:var(--text-xs);padding:6px 10px;border-radius:var(--radius-sm);border:1px solid ${isCorrect ? '#10b981' : '#e2e8f0'};background:${isCorrect ? '#ecfdf5' : '#ffffff'};color:${isCorrect ? '#065f46' : '#334155'};font-weight:${isCorrect ? '700' : '500'};">
+              <strong>${String.fromCharCode(65 + optIdx)}.</strong> ${escapeHtml(opt)} ${isCorrect ? '✅' : ''}
+            </div>
+          `;
+        }).join('')}
+      </div>
+
+      ${q.explanation ? `
+        <div style="font-size:11px;color:var(--neutral-600);background:#f8fafc;padding:6px 10px;border-radius:var(--radius-sm);margin-top:var(--sp-1);border-left:2px solid #10b981;">
+          💡 <strong>Explanation:</strong> ${escapeHtml(q.explanation)}
+        </div>
+      ` : ''}
+
+      ${q.ncertReference ? `
+        <div style="font-size:11px;color:var(--success-700);font-weight:700;margin-top:var(--sp-1);">
+          📖 NCERT Ref: ${escapeHtml(q.ncertReference)}
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
 function adminReportRow(r) {
   const dateStr = r.createdAt ? new Date(r.createdAt).toLocaleString() : 'Recently';
   const isPending = (r.status || 'pending') === 'pending';
@@ -1856,9 +2069,13 @@ function renderAdminPagination(elementId, pagination, onPageClick) {
    ============================================================ */
 
 function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = String(str ?? '');
-  return div.innerHTML;
+  if (str === null || str === undefined) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 }
 
 function truncate(str, len) {
@@ -2739,6 +2956,211 @@ function renderAdminCuetPyqForm(container, questionData) {
 }
 
 /* ============================================================
+   Screen: admin-neet-pyqs (NEET PYQ Question Bank)
+   ============================================================ */
+function renderAdminNeetPyqs(container) {
+  const { chapterId, year, class: classFilter, questionType, shift, search } = AdminState.neetFilters;
+
+  container.innerHTML = adminShell('neet-pyqs', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-3);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">🧬 NEET (UG) PYQ Question Bank</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Manage authentic NEET &amp; AIPMT previous year questions (1998–2024) across Class 11th &amp; 12th Biology (+4/−1 marking).</p>
+      </div>
+      <button class="btn btn-primary" onclick="Admin.startCreateNeetQuestion()">
+        + Add NEET PYQ Question
+      </button>
+    </div>
+
+    <!-- Filters -->
+    <div class="card" style="margin-bottom:var(--sp-4);padding:var(--sp-3);">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));gap:var(--sp-2);align-items:center;">
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Year</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onNeetFilterChange('year', this.value)">
+            <option value="" ${!year ? 'selected' : ''}>All Years</option>
+            <option value="2024" ${year === '2024' ? 'selected' : ''}>2024 Paper</option>
+            <option value="2023" ${year === '2023' ? 'selected' : ''}>2023 Paper</option>
+            <option value="2022" ${year === '2022' ? 'selected' : ''}>2022 Paper</option>
+            <option value="2021" ${year === '2021' ? 'selected' : ''}>2021 Paper</option>
+            <option value="2020" ${year === '2020' ? 'selected' : ''}>2020 Paper</option>
+            <option value="2019" ${year === '2019' ? 'selected' : ''}>2019 Paper</option>
+            <option value="2018" ${year === '2018' ? 'selected' : ''}>2018 Paper</option>
+            <option value="2017" ${year === '2017' ? 'selected' : ''}>2017 Paper</option>
+            <option value="2016" ${year === '2016' ? 'selected' : ''}>2016 Paper</option>
+            <option value="2015" ${year === '2015' ? 'selected' : ''}>2015 / AIPMT</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Class</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onNeetFilterChange('class', this.value); populateChapterDropdown('admin-neet-filter-chapter', '', 'All Chapters', this.value || null);">
+            <option value="" ${!classFilter ? 'selected' : ''}>All Classes</option>
+            <option value="11" ${classFilter === '11' ? 'selected' : ''}>Class 11th</option>
+            <option value="12" ${classFilter === '12' ? 'selected' : ''}>Class 12th</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Chapter</label>
+          <select class="form-select form-select-sm" id="admin-neet-filter-chapter" style="width:100%;" onchange="Admin.onNeetFilterChange('chapterId', this.value)">
+            <option value="">All Chapters</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Question Type</label>
+          <select class="form-select form-select-sm" style="width:100%;" onchange="Admin.onNeetFilterChange('questionType', this.value)">
+            <option value="" ${!questionType ? 'selected' : ''}>All Types</option>
+            <option value="mcq" ${questionType === 'mcq' ? 'selected' : ''}>MCQ (+4/−1)</option>
+            <option value="assertion_reason" ${questionType === 'assertion_reason' ? 'selected' : ''}>Assertion &amp; Reason</option>
+            <option value="statement" ${questionType === 'statement' ? 'selected' : ''}>Statement I &amp; II</option>
+            <option value="match" ${questionType === 'match' ? 'selected' : ''}>Match Matrix</option>
+            <option value="diagram" ${questionType === 'diagram' ? 'selected' : ''}>Diagram Based</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="form-label" style="font-size:11px;margin-bottom:2px;">Search Text / Ref</label>
+          <input type="text" class="form-input form-input-sm" placeholder="Search NEET questions…" value="${escapeHtml(search)}" oninput="Admin.onNeetFilterChange('search', this.value)" style="width:100%;" />
+        </div>
+      </div>
+    </div>
+
+    <div id="admin-neet-list"></div>
+    <div id="admin-neet-pagination"></div>
+  `);
+
+  populateChapterDropdown('admin-neet-filter-chapter', chapterId || '', 'All Chapters', classFilter || null);
+  Admin.loadNeetQuestions();
+}
+
+/* ============================================================
+   Screen: admin-neet-pyq-form (Add/Edit NEET PYQ Question)
+   ============================================================ */
+function renderAdminNeetPyqForm(container, questionData) {
+  const isEdit = !!questionData;
+  const q = questionData || {};
+  AdminState.editingNeetQuestionId = q._id || q.id || null;
+
+  const currentYear = q.year || 2024;
+  const currentType = q.questionType || q.type || 'mcq';
+  const correctOpt = q.correctOption ?? q.correct ?? 0;
+
+  container.innerHTML = adminShell('neet-pyqs', `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">
+          ${isEdit ? '✏️ Edit' : '➕ Add'} NEET (UG) PYQ Question
+        </div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">
+          Add authentic Class 11th &amp; 12th Biology questions from official NTA NEET / AIPMT examination papers (+4/−1).
+        </p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="App.navigate('admin-neet-pyqs')">← Back to List</button>
+    </div>
+
+    <div class="card" style="padding:var(--sp-5);">
+      <form onsubmit="Admin.saveNeetQuestion(event)">
+        <div id="admin-neet-form-error" style="color:var(--error-600);background:var(--error-50);border-left:3px solid var(--error-600);padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);margin-bottom:var(--sp-4);display:none;"></div>
+
+        <!-- Section 1: Exam & Chapter Meta -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#059669;">
+          1. NEET Paper &amp; Chapter Details (Class 11 &amp; 12)
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="neet-q-year">Exam Year *</label>
+            <select class="form-select" id="neet-q-year" required>
+              ${[2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005].map(yr => `
+                <option value="${yr}" ${Number(currentYear) === yr ? 'selected' : ''}>NEET ${yr}</option>
+              `).join('')}
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="neet-q-shift">Paper Phase / Shift (e.g. Main May 5 Slot / Re-NEET)</label>
+            <input class="form-input" id="neet-q-shift" type="text" placeholder="e.g. Official NEET (Phase 1)" value="${escapeHtml(q.shift || 'Official NEET (Phase 1)')}" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="neet-q-chapter">Biology Chapter *</label>
+            <select class="form-select" id="neet-q-chapter" required></select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="neet-q-type">Question Type *</label>
+            <select class="form-select" id="neet-q-type" required onchange="Admin.onNeetTypeChangeInForm(this.value)">
+              <option value="mcq" ${currentType === 'mcq' ? 'selected' : ''}>Single Choice MCQ (+4/−1)</option>
+              <option value="assertion_reason" ${currentType === 'assertion_reason' ? 'selected' : ''}>Assertion &amp; Reason</option>
+              <option value="statement" ${currentType === 'statement' ? 'selected' : ''}>Statement I &amp; II Based</option>
+              <option value="match" ${currentType === 'match' ? 'selected' : ''}>Match Matrix</option>
+              <option value="diagram" ${currentType === 'diagram' ? 'selected' : ''}>Diagram / Image Based</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Diagram URL Block -->
+        <div id="neet-diag-block" style="display:${currentType === 'diagram' ? 'block' : 'none'};margin-bottom:var(--sp-4);background:#f0fdf4;border:1.5px dashed #86efac;padding:var(--sp-3);border-radius:var(--radius-md);">
+          <label class="form-label" for="neet-q-diag-url" style="color:#065f46;font-weight:700;">🖼️ Diagram Image URL (Optional)</label>
+          <input class="form-input" id="neet-q-diag-url" type="url" placeholder="https://... or diagram image URL" value="${escapeHtml(q.diagramUrl || '')}" />
+        </div>
+
+        <!-- Section 2: Question & Options -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#059669;">
+          2. Question Statement &amp; Options (+4 Correct / −1 Incorrect)
+        </div>
+
+        <div class="form-group" style="margin-bottom:var(--sp-4);">
+          <label class="form-label" for="neet-q-text">Question Statement *</label>
+          <textarea class="form-textarea" id="neet-q-text" rows="3" required placeholder="Enter the exact NEET Biology question text…">${escapeHtml(q.text || '')}</textarea>
+        </div>
+
+        <div style="margin-bottom:var(--sp-4);">
+          <label class="form-label">Options &amp; Correct Answer (Select the radio of correct option) *</label>
+          <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+            ${[0, 1, 2, 3].map(idx => `
+              <div style="display:flex;align-items:center;gap:var(--sp-3);">
+                <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;font-weight:700;font-size:var(--text-xs);width:85px;flex-shrink:0;">
+                  <input type="radio" name="neet-correct-opt" value="${idx}" ${correctOpt === idx ? 'checked' : ''} />
+                  Option ${String.fromCharCode(65 + idx)}
+                </label>
+                <input class="form-input" id="neet-opt-${idx}" type="text" placeholder="Option ${String.fromCharCode(65 + idx)} text" required value="${escapeHtml((q.options || [])[idx] || '')}" style="flex:1;" />
+              </div>
+            `).join('')}
+          </div>
+        </div>
+
+        <!-- Section 3: Explanation & NCERT Reference -->
+        <div style="font-weight:700;font-size:var(--text-sm);border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-2);margin-bottom:var(--sp-3);color:#059669;">
+          3. Explanation &amp; NCERT Reference
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr;gap:var(--sp-3);margin-bottom:var(--sp-4);">
+          <div class="form-group">
+            <label class="form-label" for="neet-q-explanation">Step-by-step NCERT Explanation</label>
+            <textarea class="form-textarea" id="neet-q-explanation" rows="2" placeholder="Explain why this option is correct based on NCERT Biology…">${escapeHtml(q.explanation || '')}</textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="neet-q-ref">NCERT Reference Line / Page</label>
+            <input class="form-input" id="neet-q-ref" type="text" placeholder="e.g. NCERT Class 11 Biology, Chapter 8 (Cell), Page 132" value="${escapeHtml(q.ncertReference || '')}" />
+          </div>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:var(--sp-2);border-top:1px solid var(--neutral-100);padding-top:var(--sp-4);">
+          <button type="button" class="btn btn-secondary" onclick="App.navigate('admin-neet-pyqs')">Cancel</button>
+          <button type="submit" class="btn btn-primary">${isEdit ? 'Save Changes' : 'Create NEET PYQ Question'}</button>
+        </div>
+      </form>
+    </div>
+  `);
+
+  populateChapterDropdown('neet-q-chapter', q.chapterId || q.chapter || '', 'Select Biology Chapter');
+}
+
+/* ============================================================
    Shared admin shell — simple tab nav across admin screens.
    Reuses existing .card/.btn classes rather than introducing a
    parallel style system, per the Stage 8 instruction.
@@ -2748,8 +3170,9 @@ function adminShell(activeTab, innerHtml) {
     ['students', 'admin-students', '👨‍🎓 Students'],
     ['chapters', 'admin-chapters', 'Chapters'],
     ['questions', 'admin-questions', 'Questions'],
-    ['ncertfocus', 'admin-ncert-focus', '🌿 NCERT Focus'],
+    ['neet-pyqs', 'admin-neet-pyqs', '🧬 NEET PYQs'],
     ['cuet-pyqs', 'admin-cuet-pyqs', '🎯 CUET PYQs'],
+    ['ncertfocus', 'admin-ncert-focus', '🌿 NCERT Focus'],
     ['csv-import', 'admin-csv-import', 'CSV Import'],
     ['fulltests', 'admin-fulltests', 'Full-Length Tests'],
     ['reports', 'admin-reports', '🚩 Reports'],
@@ -2758,8 +3181,11 @@ function adminShell(activeTab, innerHtml) {
   return `
     <div style="max-width:960px;margin:0 auto;">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-5);flex-wrap:wrap;gap:var(--sp-3);">
-        <div class="page-title" style="margin:0;">Admin Panel</div>
-        <button class="btn btn-ghost btn-sm" onclick="Admin.logout()">Log Out</button>
+        <div class="page-title" style="margin:0;">🛡️ Admin Dashboard</div>
+        <div style="display:flex;gap:var(--sp-2);align-items:center;">
+          <button class="btn btn-outline btn-sm" style="background:#fff;font-weight:700;" onclick="App.navigate('home')">← Student App 🏠</button>
+          <button class="btn btn-ghost btn-sm" onclick="Admin.logout()">Log Out</button>
+        </div>
       </div>
       <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-5);flex-wrap:wrap;border-bottom:1px solid var(--neutral-100);padding-bottom:var(--sp-3);">
         ${tabs.map(([key, screen, label]) => `
@@ -2783,6 +3209,8 @@ window.renderAdminQuestions = renderAdminQuestions;
 window.renderAdminQuestionForm = renderAdminQuestionForm;
 window.renderAdminNcertFocus = renderAdminNcertFocus;
 window.renderAdminNcertForm = renderAdminNcertForm;
+window.renderAdminNeetPyqs = renderAdminNeetPyqs;
+window.renderAdminNeetPyqForm = renderAdminNeetPyqForm;
 window.renderAdminCuetPyqs = renderAdminCuetPyqs;
 window.renderAdminCuetPyqForm = renderAdminCuetPyqForm;
 window.renderAdminCsvImport = renderAdminCsvImport;

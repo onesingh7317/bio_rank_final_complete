@@ -2338,6 +2338,38 @@ DB.syncFromAdminStore = function() {
       });
       DB.cuetQuestions = Array.from(cuetMap.values());
     }
+
+    // 7. NEET PYQ QUESTIONS
+    if (Array.isArray(mockData.neetPyqs)) {
+      const qMap = new Map();
+      (DB.questions || []).forEach(q => qMap.set(q.id, q));
+      mockData.neetPyqs.forEach(q => {
+        const id = q._id || q.id;
+        if (q.active === false || q.isDeleted === true) {
+          qMap.delete(id);
+        } else {
+          qMap.set(id, {
+            id,
+            chapter: q.chapterId || q.chapter,
+            subSkill: q.subSkillId || q.subSkill,
+            year: Number(q.year) || 2024,
+            shift: q.shift || 'Official NEET',
+            examType: 'NEET',
+            isPyq: true,
+            questionType: q.questionType || q.type || 'mcq',
+            diagramUrl: q.diagramUrl || '',
+            text: q.text || '',
+            options: Array.isArray(q.options) ? q.options : ['A', 'B', 'C', 'D'],
+            correct: Number(q.correctOption ?? q.correct ?? 0),
+            correctOption: Number(q.correctOption ?? q.correct ?? 0),
+            explanation: q.explanation || '',
+            ncertReference: q.ncertReference || '',
+            isFoundation: !!q.isFoundation,
+          });
+        }
+      });
+      DB.questions = Array.from(qMap.values());
+    }
   } catch (e) {
     console.warn('Could not sync DB from storage', e);
   }

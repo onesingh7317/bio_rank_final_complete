@@ -114,6 +114,10 @@ const ApiClient = (() => {
         data.cuetQuestions = initDefaults().cuetQuestions || [];
       }
 
+      if (!Array.isArray(data.neetPyqs) || data.neetPyqs.length === 0) {
+        data.neetPyqs = initDefaults().neetPyqs || [];
+      }
+
       return data;
     }
 
@@ -255,7 +259,28 @@ const ApiClient = (() => {
         ncertReference: q.ncertReference || '',
       }));
 
-      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs, reports, ncertQuestions, cuetQuestions };
+      const rawNeetSource = (window.DB && (window.DB.rawBaseQuestions || window.DB.questions)) || [];
+      const neetPyqs = rawNeetSource
+        .filter((q) => q.isPyq || (q.year && q.examType !== 'CUET'))
+        .map((q, idx) => ({
+          _id: q.id || `neet_pyq_${idx + 1}`,
+          chapterId: q.chapter || q.chapterId || 'ch1',
+          subSkillId: q.subSkill || q.subSkillId || 'ss1',
+          year: Number(q.year) || 2024,
+          shift: q.shift || q.slot || 'Official NEET',
+          examType: 'NEET',
+          isPyq: true,
+          questionType: q.questionType || q.type || 'mcq',
+          diagramUrl: q.diagramUrl || '',
+          text: q.text || '',
+          options: Array.isArray(q.options) ? q.options : ['A', 'B', 'C', 'D'],
+          correctOption: q.correct ?? q.correctOption ?? 0,
+          explanation: q.explanation || '',
+          ncertReference: q.ncertReference || '',
+          isFoundation: !!q.isFoundation,
+        }));
+
+      const initial = { chapters, subSkills, questions, fullLengthTests, auditLogs, reports, ncertQuestions, cuetQuestions, neetPyqs };
       save(initial);
       return initial;
     }
@@ -900,6 +925,115 @@ const ApiClient = (() => {
         data.cuetQuestions.splice(qIdx, 1);
         MockStore.save(data);
         MockStore.addAuditLog('DELETE_CUET_QUESTION', 'CuetQuestion', qId, `Deleted CUET PYQ Question`);
+        return { ok: true };
+      }
+    }
+
+    // NEET PYQ Question Endpoints
+    if (cleanPath === '/neet-pyqs' || cleanPath === '/admin/neet-pyqs') {
+      if (method === 'GET') {
+        let neetQs = data.neetPyqs || [];
+        const chapterId = urlParams.get('chapterId');
+        const year = urlParams.get('year');
+        const classFilter = urlParams.get('class');
+        const questionType = urlParams.get('questionType');
+        const shift = urlParams.get('shift');
+        const search = urlParams.get('search');
+
+        if (chapterId && chapterId !== 'all') neetQs = neetQs.filter((q) => q.chapterId === chapterId || q.chapter === chapterId);
+        if (year && year !== 'all') neetQs = neetQs.filter((q) => String(q.year) === String(year));
+        if (classFilter && classFilter !== 'all') {
+          neetQs = neetQs.filter((q) => {
+            const ch = (data.chapters || []).find((c) => (c._id || c.id) === (q.chapterId || q.chapter));
+            return ch && String(ch.class) === String(classFilter);
+          });
+        }
+        if (questionType && questionType !== 'all') neetQs = neetQs.filter((q) => (q.questionType || q.type) === questionType);
+        if (shift && shift !== 'all') neetQs = neetQs.filter((q) => (q.shift || '').toLowerCase().includes(shift.toLowerCase()));
+        if (search) {
+          const s = search.toLowerCase();
+          neetQs = neetQs.filter(
+            (q) =>
+              (q.text && q.text.toLowerCase().includes(s)) ||
+              (q.explanation && q.explanation.toLowerCase().includes(s)) ||
+              (q.ncertReference && q.ncertReference.toLowerCase().includes(s))
+          );
+        }
+
+        const page = Number(urlParams.get('page')) || 1;
+        const limit = Number(urlParams.get('limit')) || 50;
+        const total = neetQs.length;
+        const totalPages = Math.max(1, Math.ceil(total / limit));
+        const paginated = neetQs.slice((page - 1) * limit, page * limit);
+
+        return {
+          questions: paginated,
+          neetQuestions: paginated,
+          pagination: { page, limit, total, totalPages, hasNext: page < totalPages, hasPrev: page > 1 },
+        };
+      }
+
+      if (method === 'POST') {
+        const newQ = {
+          _id: `neet_pyq_${Date.now()}`,
+          chapterId: body.chapterId || 'ch1',
+          subSkillId: body.subSkillId || 'ss1',
+          year: Number(body.year) || 2024,
+          shift: body.shift || 'Official NEET',
+          examType: 'NEET',
+          isPyq: true,
+          questionType: body.questionType || body.type || 'mcq',
+          diagramUrl: body.diagramUrl || '',
+          text: body.text,
+          options: body.options || ['A', 'B', 'C', 'D'],
+          correctOption: Number(body.correctOption) || 0,
+          explanation: body.explanation || '',
+          ncertReference: body.ncertReference || '',
+          isFoundation: !!body.isFoundation,
+          createdAt: new Date().toISOString(),
+        };
+        if (!data.neetPyqs) data.neetPyqs = [];
+        data.neetPyqs.unshift(newQ);
+        if (!data.questions) data.questions = [];
+        data.questions.unshift(newQ);
+        MockStore.save(data);
+        MockStore.addAuditLog(
+          'CREATE_NEET_PYQ_QUESTION',
+          'NeetQuestion',
+          newQ._id,
+          `Created NEET PYQ Question (${newQ.year}): ${newQ.text.substring(0, 40)}`
+        );
+        return { ok: true, question: newQ };
+      }
+    }
+
+    if (cleanPath.startsWith('/neet-pyqs/') || cleanPath.startsWith('/admin/neet-pyqs/')) {
+      const parts = cleanPath.split('/');
+      const qId = parts[parts.length - 1];
+      const qIdx = (data.neetPyqs || []).findIndex((q) => q._id === qId || q.id === qId);
+      if (qIdx === -1) throw new ApiError('NEET PYQ Question not found', 404);
+
+      if (method === 'GET') {
+        return { question: data.neetPyqs[qIdx], neetQuestion: data.neetPyqs[qIdx] };
+      }
+      if (method === 'PUT' || method === 'PATCH') {
+        data.neetPyqs[qIdx] = { ...data.neetPyqs[qIdx], ...body };
+        const qMainIdx = (data.questions || []).findIndex((q) => q._id === qId || q.id === qId);
+        if (qMainIdx !== -1) {
+          data.questions[qMainIdx] = { ...data.questions[qMainIdx], ...body };
+        }
+        MockStore.save(data);
+        MockStore.addAuditLog('UPDATE_NEET_PYQ_QUESTION', 'NeetQuestion', qId, `Updated NEET PYQ Question`);
+        return { ok: true, question: data.neetPyqs[qIdx] };
+      }
+      if (method === 'DELETE') {
+        data.neetPyqs.splice(qIdx, 1);
+        const qMainIdx = (data.questions || []).findIndex((q) => q._id === qId || q.id === qId);
+        if (qMainIdx !== -1) {
+          data.questions.splice(qMainIdx, 1);
+        }
+        MockStore.save(data);
+        MockStore.addAuditLog('DELETE_NEET_PYQ_QUESTION', 'NeetQuestion', qId, `Deleted NEET PYQ Question`);
         return { ok: true };
       }
     }
