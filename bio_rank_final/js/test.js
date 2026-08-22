@@ -328,7 +328,13 @@ const TestEngine = (() => {
           <!-- Palette -->
           <div>
             <div class="question-palette">
-              <div class="palette-title">Question Palette</div>
+              <div class="palette-header">
+                <div class="palette-title">Question Palette</div>
+                <button class="btn btn-submit-palette" onclick="TestEngine.confirmSubmit()" title="Submit your test">
+                  <span>✅</span> <span>Submit Test</span>
+                </button>
+              </div>
+
               <div class="palette-grid">
                 ${state.questions.map((_, i) => {
                   let cls = '';
@@ -344,14 +350,10 @@ const TestEngine = (() => {
                 <div class="legend-item"><div class="legend-dot current"></div> Current</div>
               </div>
 
-              <!-- Submit Test Button in Question Palette -->
-              <div style="margin-top:var(--sp-4);padding-top:var(--sp-4);border-top:1px solid var(--neutral-200);">
-                <button class="btn btn-primary btn-block" style="font-weight:800;font-size:var(--text-sm);padding:11px 16px;box-shadow:0 4px 14px rgba(16,185,129,0.25);display:flex;align-items:center;justify-content:center;gap:6px;" onclick="TestEngine.confirmSubmit()">
-                  <span>✅</span> <span>Submit Test</span>
-                </button>
-                <div style="font-size:11px;color:var(--neutral-500);text-align:center;margin-top:6px;font-weight:600;">
-                  ${answeredCount} of ${totalQ} Attempted
-                </div>
+              <!-- Attempt Summary at bottom of palette -->
+              <div style="margin-top:var(--sp-3);padding-top:var(--sp-2);border-top:1px dashed var(--neutral-200);display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--neutral-500);font-weight:600;">
+                <span>Attempt Progress:</span>
+                <span style="color:var(--primary-700);font-weight:800;">${answeredCount} / ${totalQ} Done</span>
               </div>
             </div>
 
