@@ -87,24 +87,55 @@ const ApiClient = (() => {
         data.fullLengthTests = initDefaults().fullLengthTests;
       }
 
-      const dbTests = (window.DB && (window.DB.rawBaseFullLengthTests || window.DB.fullLengthTests)) || [];
-      dbTests.forEach((dt, idx) => {
-        const found = data.fullLengthTests.find((t) => t._id === dt.id || t.id === dt.id);
-        if (!found) {
-          const isCuet = dt.examType === 'CUET' || (dt.title && dt.title.toLowerCase().includes('cuet'));
-          data.fullLengthTests.push({
-            _id: dt.id || `flt_${idx + 1}`,
-            id: dt.id || `flt_${idx + 1}`,
-            title: dt.title,
+      // Reconcile and synchronize all default NEET and CUET full length tests
+      const baseFLTs = (window.DB && (window.DB.rawBaseFullLengthTests || window.DB.fullLengthTests)) || [];
+      const fltMap = new Map();
+
+      // 1. Initialize with all base FLTs (5 NEET + 5 CUET)
+      baseFLTs.forEach((baseTest) => {
+        const isCuet = baseTest.examType === 'CUET' || (baseTest.title && baseTest.title.toLowerCase().includes('cuet'));
+        const normalized = {
+          _id: baseTest.id || baseTest._id,
+          id: baseTest.id || baseTest._id,
+          title: baseTest.title,
+          examType: isCuet ? 'CUET' : 'NEET',
+          markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
+          description: baseTest.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
+          numberOfQuestions: Number(baseTest.numberOfQuestions) || (isCuet ? 50 : 90),
+          durationMinutes: Number(baseTest.durationMinutes) || (isCuet ? 45 : 90),
+          questions: Array.isArray(baseTest.questions) ? [...baseTest.questions] : [],
+        };
+        fltMap.set(normalized._id, normalized);
+      });
+
+      // 2. Overlay existing stored tests / custom tests created by admin
+      (data.fullLengthTests || []).forEach((storedTest) => {
+        const id = storedTest._id || storedTest.id;
+        if (!id) return;
+        const isCuet = storedTest.examType === 'CUET' || (storedTest.title && storedTest.title.toLowerCase().includes('cuet'));
+
+        if (fltMap.has(id)) {
+          const existing = fltMap.get(id);
+          fltMap.set(id, {
+            ...existing,
+            ...storedTest,
+            _id: id,
+            id: id,
             examType: isCuet ? 'CUET' : 'NEET',
-            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
-            description: dt.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
-            numberOfQuestions: Number(dt.numberOfQuestions) || (isCuet ? 50 : 90),
-            durationMinutes: Number(dt.durationMinutes) || (isCuet ? 45 : 90),
-            questions: Array.isArray(dt.questions) ? [...dt.questions] : [],
+            questions: Array.isArray(storedTest.questions) ? storedTest.questions : existing.questions,
+          });
+        } else {
+          fltMap.set(id, {
+            ...storedTest,
+            _id: id,
+            id: id,
+            examType: isCuet ? 'CUET' : 'NEET',
+            questions: Array.isArray(storedTest.questions) ? storedTest.questions : [],
           });
         }
       });
+
+      data.fullLengthTests = Array.from(fltMap.values());
 
       data.fullLengthTests.forEach((t) => {
         if (!Array.isArray(t.questions)) t.questions = [];
