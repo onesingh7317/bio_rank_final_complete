@@ -87,59 +87,24 @@ const ApiClient = (() => {
         data.fullLengthTests = initDefaults().fullLengthTests;
       }
 
-      // Reconcile and synchronize all default NEET and CUET full length tests
-      const baseFLTs = (window.DB && (window.DB.rawBaseFullLengthTests || window.DB.fullLengthTests)) || [];
-      const fltMap = new Map();
-
-      // 1. Initialize with all base FLTs (5 NEET + 5 CUET)
-      baseFLTs.forEach((baseTest) => {
-        const isCuet = baseTest.examType === 'CUET' || (baseTest.title && baseTest.title.toLowerCase().includes('cuet'));
-        const normalized = {
-          _id: baseTest.id || baseTest._id,
-          id: baseTest.id || baseTest._id,
-          title: baseTest.title,
-          examType: isCuet ? 'CUET' : 'NEET',
-          markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
-          description: baseTest.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
-          numberOfQuestions: Number(baseTest.numberOfQuestions) || (isCuet ? 50 : 90),
-          durationMinutes: Number(baseTest.durationMinutes) || (isCuet ? 45 : 90),
-          questions: Array.isArray(baseTest.questions) ? [...baseTest.questions] : [],
-        };
-        fltMap.set(normalized._id, normalized);
-      });
-
-      // 2. Overlay existing stored tests / custom tests created by admin
-      (data.fullLengthTests || []).forEach((storedTest) => {
-        const id = storedTest._id || storedTest.id;
-        if (!id) return;
-        const isCuet = storedTest.examType === 'CUET' || (storedTest.title && storedTest.title.toLowerCase().includes('cuet'));
-
-        if (fltMap.has(id)) {
-          const existing = fltMap.get(id);
-          fltMap.set(id, {
-            ...existing,
-            ...storedTest,
+      // Cleanly normalize existing tests in data.fullLengthTests strictly as created/managed by Admin
+      data.fullLengthTests = data.fullLengthTests
+        .filter(t => t && t.active !== false && !t.isDeleted)
+        .map((t, idx) => {
+          const id = t._id || t.id || `flt_${idx + 1}`;
+          const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
+          const qCount = Array.isArray(t.questions) && t.questions.length > 0 ? t.questions.length : (Number(t.numberOfQuestions) || (isCuet ? 50 : 90));
+          return {
+            ...t,
             _id: id,
             id: id,
             examType: isCuet ? 'CUET' : 'NEET',
-            questions: Array.isArray(storedTest.questions) ? storedTest.questions : existing.questions,
-          });
-        } else {
-          fltMap.set(id, {
-            ...storedTest,
-            _id: id,
-            id: id,
-            examType: isCuet ? 'CUET' : 'NEET',
-            questions: Array.isArray(storedTest.questions) ? storedTest.questions : [],
-          });
-        }
-      });
-
-      data.fullLengthTests = Array.from(fltMap.values());
-
-      data.fullLengthTests.forEach((t) => {
-        if (!Array.isArray(t.questions)) t.questions = [];
-      });
+            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: qCount * 5 } : { correct: 4, incorrect: -1, maxMarks: qCount * 4 },
+            numberOfQuestions: qCount,
+            durationMinutes: Number(t.durationMinutes) || (isCuet ? 45 : 90),
+            questions: Array.isArray(t.questions) ? t.questions : [],
+          };
+        });
 
       if (!Array.isArray(data.reports)) {
         data.reports = [];

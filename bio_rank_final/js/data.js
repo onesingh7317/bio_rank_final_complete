@@ -1663,22 +1663,30 @@ function getQuestionsBySubSkill(subSkillId, limit = 5) {
 }
 
 /* ---- Helper: build the question set for a Full Length Test.
-   If specific questions have been added by the admin to this test,
-   those questions are loaded first. Otherwise, the question pool is used. ---- */
+   Strictly loads ONLY the exact questions assigned by the Admin.
+   No extra/unassigned questions are injected into the test. ---- */
 function getFullLengthTestQuestions(test) {
   if (typeof DB.syncFromAdminStore === 'function') {
     DB.syncFromAdminStore();
   }
 
-  // 1. Check if test has specific assigned questions
-  if (test && Array.isArray(test.questions) && test.questions.length > 0) {
+  if (!test) return [];
+
+  // If specific questions have been added by the admin to this test, return strictly those questions
+  if (Array.isArray(test.questions) && test.questions.length > 0) {
     const resolved = test.questions.map((q) => {
       if (typeof q === 'object' && q !== null && q.text) return q;
       const qId = typeof q === 'object' ? (q._id || q.id) : q;
       let found = (DB.questions || []).find((dq) => dq.id === qId || dq._id === qId);
+      if (!found && Array.isArray(DB.cuetQuestions)) {
+        found = DB.cuetQuestions.find((dq) => dq.id === qId || dq._id === qId);
+      }
+      if (!found && Array.isArray(DB.ncertQuestions)) {
+        found = DB.ncertQuestions.find((dq) => dq.id === qId || dq._id === qId);
+      }
       if (!found) {
         try {
-          const raw = localStorage.getItem('mock_portal_data');
+          const raw = localStorage.getItem('biorank_admin_mock_v2') || localStorage.getItem('mock_portal_data');
           if (raw) {
             const d = JSON.parse(raw);
             found = (d.questions || []).find(mq => mq._id === qId || mq.id === qId);
@@ -1688,41 +1696,10 @@ function getFullLengthTestQuestions(test) {
       return found || (typeof q === 'object' ? q : null);
     }).filter(Boolean);
 
-    if (resolved.length > 0) {
-      const targetCount = Number(test.numberOfQuestions) || resolved.length;
-      if (resolved.length >= targetCount) {
-        return resolved.slice(0, targetCount);
-      }
-      // Combine assigned questions with pool questions so test has target count and assigned questions appear first
-      const pool = (DB.questions || []).filter(pq => !resolved.some(rq => (rq.id || rq._id) === (pq.id || pq._id)));
-      const shuffled = [...pool];
-      for (let i = shuffled.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-      }
-      const combined = [...resolved];
-      let poolIdx = 0;
-      while (combined.length < targetCount && poolIdx < shuffled.length) {
-        combined.push(shuffled[poolIdx++]);
-      }
-      return combined;
-    }
+    return resolved;
   }
 
-  // 2. Fallback to pool if no specific questions are assigned
-  const pool = DB.questions;
-  if (pool.length === 0) return [];
-  const shuffled = [...pool];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  const qs = [];
-  const count = Number(test && test.numberOfQuestions) || 90;
-  for (let i = 0; i < count; i++) {
-    qs.push(shuffled[i % shuffled.length]);
-  }
-  return qs;
+  return [];
 }
 
 /* ---- Helper: read a Full Length Test's saved progress (attempts,
@@ -2317,44 +2294,24 @@ DB.syncFromAdminStore = function() {
 
     // 4. FULL LENGTH TESTS
     if (Array.isArray(mockData.fullLengthTests)) {
-      const fltMap = new Map();
-      (DB.rawBaseFullLengthTests || []).forEach(t => {
-        fltMap.set(t.id, { ...t });
-      });
-      mockData.fullLengthTests.forEach(t => {
-        const id = t._id || t.id;
-        const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
-
-        let canonicalId = id;
-        for (const baseId of fltMap.keys()) {
-          if (baseId === id || (id && baseId && String(baseId).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0)) {
-            canonicalId = baseId;
-            break;
-          }
-        }
-
-        if (t.active === false || t.isDeleted === true) {
-          fltMap.delete(canonicalId);
-          fltMap.delete(id);
-        } else {
-          const testObj = {
-            id: canonicalId,
-            _id: canonicalId,
+      DB.fullLengthTests = mockData.fullLengthTests
+        .filter(t => t && t.active !== false && !t.isDeleted)
+        .map(t => {
+          const id = t._id || t.id;
+          const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
+          const qCount = Array.isArray(t.questions) && t.questions.length > 0 ? t.questions.length : (Number(t.numberOfQuestions) || (isCuet ? 50 : 90));
+          return {
+            id,
+            _id: id,
             title: t.title,
             examType: isCuet ? 'CUET' : 'NEET',
-            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
-            description: t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Complete Biology Mock Test'),
-            numberOfQuestions: Number(t.numberOfQuestions) || (isCuet ? 50 : 90),
-            durationMinutes: Number(t.durationMinutes) || (isCuet ? 60 : 90),
+            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: qCount * 5 } : { correct: 4, incorrect: -1, maxMarks: qCount * 4 },
+            description: t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
+            numberOfQuestions: qCount,
+            durationMinutes: Number(t.durationMinutes) || (isCuet ? 45 : 90),
             questions: Array.isArray(t.questions) ? [...t.questions] : [],
           };
-          fltMap.set(canonicalId, testObj);
-          if (canonicalId !== id) {
-            fltMap.set(id, testObj);
-          }
-        }
-      });
-      DB.fullLengthTests = Array.from(new Set(fltMap.values()));
+        });
     }
 
     // 5. NCERT QUESTIONS
