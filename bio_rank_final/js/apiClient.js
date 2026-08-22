@@ -693,21 +693,29 @@ const ApiClient = (() => {
             MockStore.addAuditLog('ADD_FLT_QUESTIONS', 'FullLengthTest', id, `Added ${body.questionIds.length} question(s) to test "${test.title}"`);
             return { ok: true, fullLengthTest: test };
           } else if (body?.text) {
+            const newQId = `q_${Date.now()}`;
             const newQuestion = {
-              _id: `q_${Date.now()}`,
-              chapterId: body.chapterId || (data.chapters[0] && data.chapters[0]._id) || 'ch_1',
-              subSkillId: body.subSkillId || (data.subSkills[0] && data.subSkills[0]._id) || 'ss_01',
+              _id: newQId,
+              id: newQId,
+              chapterId: body.chapterId || (data.chapters[0] && (data.chapters[0]._id || data.chapters[0].id)) || 'ch01',
+              subSkillId: body.subSkillId || (data.subSkills[0] && (data.subSkills[0]._id || data.subSkills[0].id)) || 'ss_01',
               bloomLevel: body.bloomLevel || 'remember',
               weightage: Number(body.weightage) || 4,
               year: body.year ? Number(body.year) : undefined,
+              targetExam: body.targetExam || 'BOTH',
+              examType: body.examType || (test.examType === 'CUET' ? 'CUET' : 'NEET'),
               text: body.text,
-              options: body.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+              options: Array.isArray(body.options) ? body.options : ['Option A', 'Option B', 'Option C', 'Option D'],
               correctOption: Number(body.correctOption) || 0,
+              correct: Number(body.correctOption) || 0,
               explanation: body.explanation || '',
               isFoundation: !!body.isFoundation,
             };
-            data.questions.push(newQuestion);
-            test.questions.push(newQuestion._id);
+            data.questions.unshift(newQuestion);
+            if (!test.questions.includes(newQuestion._id)) {
+              test.questions.push(newQuestion._id);
+            }
+            data.fullLengthTests[idx] = test;
             MockStore.save(data);
             MockStore.addAuditLog('CREATE_AND_ADD_FLT_QUESTION', 'FullLengthTest', id, `Created & added new question to test "${test.title}"`);
             return { ok: true, question: newQuestion, fullLengthTest: test };
@@ -719,10 +727,11 @@ const ApiClient = (() => {
       if (method === 'GET') {
         const populatedQuestions = test.questions
           .map((qId) => {
-            if (typeof qId === 'object' && qId !== null) return qId;
+            if (typeof qId === 'object' && qId !== null && qId.text) return qId;
+            const targetId = typeof qId === 'object' ? (qId._id || qId.id) : qId;
             return (
-              data.questions.find((q) => q._id === qId || q.id === qId) ||
-              (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === qId || q._id === qId)) ||
+              data.questions.find((q) => q._id === targetId || q.id === targetId) ||
+              (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === targetId || q._id === targetId)) ||
               null
             );
           })
@@ -1153,17 +1162,9 @@ const ApiClient = (() => {
       data = await res.json();
     } catch {}
 
-    if (res.status === 401 || res.status === 403 || res.status === 404 || res.status >= 500) {
-      // Backend route is not deployed, server offline, or unauthenticated — seamlessly fallback to local store
-      return await handleMockRequest(path, method, body);
-    }
-
     if (!res.ok) {
-      const message =
-        (data && data.error) ||
-        (data && data.errors && data.errors.join(' ')) ||
-        `Request failed (${res.status}).`;
-      throw new ApiError(message, res.status, data);
+      console.warn(`[ApiClient] Backend returned ${res.status}, using resilient offline store fallback.`);
+      return await handleMockRequest(path, method, body);
     }
 
     return data;

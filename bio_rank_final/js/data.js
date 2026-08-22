@@ -1624,24 +1624,48 @@ function getQuestionsBySubSkill(subSkillId, limit = 5) {
 
 /* ---- Helper: build the question set for a Full Length Test.
    If specific questions have been added by the admin to this test,
-   those questions are loaded. Otherwise, the question pool is used. ---- */
+   those questions are loaded first. Otherwise, the question pool is used. ---- */
 function getFullLengthTestQuestions(test) {
+  if (typeof DB.syncFromAdminStore === 'function') {
+    DB.syncFromAdminStore();
+  }
+
   // 1. Check if test has specific assigned questions
   if (test && Array.isArray(test.questions) && test.questions.length > 0) {
     const resolved = test.questions.map((q) => {
       if (typeof q === 'object' && q !== null && q.text) return q;
-      const qId = typeof q === 'object' ? q._id : q;
-      const found = (DB.questions || []).find((dq) => dq.id === qId || dq._id === qId);
+      const qId = typeof q === 'object' ? (q._id || q.id) : q;
+      let found = (DB.questions || []).find((dq) => dq.id === qId || dq._id === qId);
+      if (!found) {
+        try {
+          const raw = localStorage.getItem('mock_portal_data');
+          if (raw) {
+            const d = JSON.parse(raw);
+            found = (d.questions || []).find(mq => mq._id === qId || mq.id === qId);
+          }
+        } catch (e) {}
+      }
       return found || (typeof q === 'object' ? q : null);
     }).filter(Boolean);
 
     if (resolved.length > 0) {
-      // If target numberOfQuestions is greater than assigned questions, cycle or return assigned
-      const targetCount = test.numberOfQuestions || resolved.length;
+      const targetCount = Number(test.numberOfQuestions) || resolved.length;
       if (resolved.length >= targetCount) {
         return resolved.slice(0, targetCount);
       }
-      return resolved;
+      // Combine assigned questions with pool questions so test has target count and assigned questions appear first
+      const pool = (DB.questions || []).filter(pq => !resolved.some(rq => (rq.id || rq._id) === (pq.id || pq._id)));
+      const shuffled = [...pool];
+      for (let i = shuffled.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+      }
+      const combined = [...resolved];
+      let poolIdx = 0;
+      while (combined.length < targetCount && poolIdx < shuffled.length) {
+        combined.push(shuffled[poolIdx++]);
+      }
+      return combined;
     }
   }
 
@@ -1654,7 +1678,7 @@ function getFullLengthTestQuestions(test) {
     [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
   }
   const qs = [];
-  const count = test.numberOfQuestions || 90;
+  const count = Number(test && test.numberOfQuestions) || 90;
   for (let i = 0; i < count; i++) {
     qs.push(shuffled[i % shuffled.length]);
   }
@@ -2260,22 +2284,37 @@ DB.syncFromAdminStore = function() {
       mockData.fullLengthTests.forEach(t => {
         const id = t._id || t.id;
         const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
+
+        let canonicalId = id;
+        for (const baseId of fltMap.keys()) {
+          if (baseId === id || (id && baseId && String(baseId).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0)) {
+            canonicalId = baseId;
+            break;
+          }
+        }
+
         if (t.active === false || t.isDeleted === true) {
+          fltMap.delete(canonicalId);
           fltMap.delete(id);
         } else {
-          fltMap.set(id, {
-            id,
+          const testObj = {
+            id: canonicalId,
+            _id: canonicalId,
             title: t.title,
             examType: isCuet ? 'CUET' : 'NEET',
             markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
             description: t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Complete Biology Mock Test'),
-            numberOfQuestions: t.numberOfQuestions || (isCuet ? 50 : 90),
-            durationMinutes: t.durationMinutes || (isCuet ? 60 : 90),
-            questions: Array.isArray(t.questions) ? t.questions : [],
-          });
+            numberOfQuestions: Number(t.numberOfQuestions) || (isCuet ? 50 : 90),
+            durationMinutes: Number(t.durationMinutes) || (isCuet ? 60 : 90),
+            questions: Array.isArray(t.questions) ? [...t.questions] : [],
+          };
+          fltMap.set(canonicalId, testObj);
+          if (canonicalId !== id) {
+            fltMap.set(id, testObj);
+          }
         }
       });
-      DB.fullLengthTests = Array.from(fltMap.values());
+      DB.fullLengthTests = Array.from(new Set(fltMap.values()));
     }
 
     // 5. NCERT QUESTIONS

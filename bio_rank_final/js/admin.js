@@ -1081,8 +1081,12 @@ const Admin = {
     try {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, payload);
       App.showToast('✅ New question created and added to test!');
-      Admin.switchFLTTab('assigned');
+      if (typeof DB.syncFromAdminStore === 'function') {
+        DB.syncFromAdminStore();
+      }
+      AdminState.fltActiveTab = 'assigned';
       await Admin.loadFLTQuestionsView(testId);
+      Admin.switchFLTTab('assigned');
     } catch (err) {
       if (errorEl) {
         errorEl.textContent = err.message || 'Failed to save question to test.';
@@ -1808,7 +1812,8 @@ function adminFLTRow(t) {
 
 function adminFLTAssignedQuestionCard(q, idx, testId) {
   const qId = q._id || q.id;
-  const chapterName = q.chapterId?.name || q.chapterName || (AdminState.cachedChapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
+  const chapters = Array.isArray(AdminState.cachedChapters) && AdminState.cachedChapters.length ? AdminState.cachedChapters : (window.DB && (window.DB.chapters || window.DB.rawBaseChapters)) || [];
+  const chapterName = q.chapterId?.name || q.chapterName || (chapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
 
   return `
     <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid var(--primary-500);">
@@ -1849,7 +1854,8 @@ function adminFLTAssignedQuestionCard(q, idx, testId) {
 
 function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
   const qId = q._id || q.id;
-  const chapterName = q.chapterId?.name || (AdminState.cachedChapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
+  const chapters = Array.isArray(AdminState.cachedChapters) && AdminState.cachedChapters.length ? AdminState.cachedChapters : (window.DB && (window.DB.chapters || window.DB.rawBaseChapters)) || [];
+  const chapterName = q.chapterId?.name || (chapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
 
   return `
     <div class="card" style="margin-bottom:var(--sp-2);padding:var(--sp-3);display:flex;align-items:flex-start;gap:var(--sp-3);${isAlreadyAdded ? 'opacity:0.75;background:var(--neutral-50);' : ''}">
