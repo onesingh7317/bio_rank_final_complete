@@ -238,14 +238,20 @@ function renderFLTResult(container, results) {
 /* ---- Full Length Test review-answers page ---- */
 function renderFLTReview(container, results) {
   if (!results) { App.navigate('full-length-test'); return; }
-  const testId = results.meta.testId;
+  const testId = results.meta && results.meta.testId;
   const test = (DB.fullLengthTests || []).find(t => t.id === testId);
+  const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
 
   container.innerHTML = `
     <div style="max-width:760px;">
       <div style="margin-bottom:var(--sp-5);">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span class="badge ${isCuet ? 'badge-primary' : 'badge-neutral'}" style="font-size:11px;font-weight:700;">
+            ${isCuet ? '🔵 CUET (UG)' : '🟢 NEET'}
+          </span>
+        </div>
         <div class="page-title">Review Answers</div>
-        <div class="page-subtitle">${(test && test.title) || results.meta.title || 'Full Length Test'}</div>
+        <div class="page-subtitle">${(test && test.title) || results.meta.title || (isCuet ? 'CUET Full Mock Test' : 'Full Length Test')}</div>
       </div>
 
       <div class="card">
@@ -266,7 +272,7 @@ function renderFLTReview(container, results) {
               </div>
               <div style="display:flex;flex-direction:column;align-items:flex-end;gap:var(--sp-1);margin-left:var(--sp-2);">
                 <span class="badge badge-${r.status === 'correct' ? 'success' : r.status === 'incorrect' ? 'error' : 'neutral'}">
-                  ${r.status === 'correct' ? '+4' : r.status === 'incorrect' ? '−1' : '0'}
+                  ${r.status === 'correct' ? (isCuet ? '+5' : '+4') : r.status === 'incorrect' ? '−1' : '0'}
                 </span>
                 <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:2px 6px;color:var(--neutral-400);height:auto;" onclick="openQuestionReportModal(window._fltLastResults.questionResults[${i}].question, ${i + 1})" title="Report error in this question">
                   ⚠️ Report
@@ -284,3 +290,8 @@ function renderFLTReview(container, results) {
     </div>
   `;
 }
+
+/* ---- Export to global window scope ---- */
+window.renderFullLengthTest = renderFullLengthTest;
+window.renderFLTResult = renderFLTResult;
+window.renderFLTReview = renderFLTReview;

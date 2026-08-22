@@ -19,6 +19,7 @@ const AdminState = {
   activeFLTId: null,
   activeFLT: null,
   fltActiveTab: 'assigned', // 'assigned' | 'add-bank' | 'add-new'
+  fltExamFilter: 'all', // 'all' | 'NEET' | 'CUET'
   fltBankFilters: { chapterId: '', search: '', page: 1 },
   fltSelectedBankQuestionIds: new Set(),
   questionFilters: { chapterId: '', page: 1 },
@@ -488,15 +489,69 @@ const Admin = {
   async loadFullLengthTests() {
     const listEl = document.getElementById('admin-flt-list');
     if (!listEl) return;
-    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading…</p>';
+    listEl.innerHTML = '<p style="color:var(--neutral-500);">Loading full-length tests…</p>';
+
+    const examFilter = AdminState.fltExamFilter || 'all';
     try {
-      const res = await ApiClient.get('/admin/full-length-tests');
-      AdminState.cachedFLTs = res.fullLengthTests;
-      listEl.innerHTML = res.fullLengthTests.length
-        ? res.fullLengthTests.map(adminFLTRow).join('')
-        : '<p style="color:var(--neutral-500);">No full-length tests yet.</p>';
+      const res = await ApiClient.get(`/admin/full-length-tests?examType=${examFilter}`);
+      let flts = res.fullLengthTests || [];
+      AdminState.cachedFLTs = flts;
+
+      if (examFilter === 'NEET') flts = flts.filter(t => (t.examType || 'NEET') === 'NEET');
+      if (examFilter === 'CUET') flts = flts.filter(t => t.examType === 'CUET');
+
+      listEl.innerHTML = flts.length
+        ? flts.map(adminFLTRow).join('')
+        : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-6);">No tests found in this category. Click <strong>+ Add Test</strong> to create one!</p>';
     } catch (err) {
       listEl.innerHTML = `<p style="color:var(--error-600);">${escapeHtml(err.message)}</p>`;
+    }
+  },
+
+  onFLTExamFilterChange(filter) {
+    AdminState.fltExamFilter = filter;
+    const btns = document.querySelectorAll('.flt-filter-btn');
+    btns.forEach(b => {
+      if (b.dataset.filter === filter) {
+        b.className = 'btn btn-primary btn-sm flt-filter-btn';
+      } else {
+        b.className = 'btn btn-ghost btn-sm flt-filter-btn';
+      }
+    });
+    Admin.loadFullLengthTests();
+  },
+
+  onFLTExamCategoryChange(category) {
+    const isCuet = category === 'CUET';
+    const numQEl = document.getElementById('admin-flt-numquestions');
+    const durEl = document.getElementById('admin-flt-duration');
+    const infoEl = document.getElementById('admin-flt-exam-pattern-info');
+
+    if (!AdminState.editingFLTId) {
+      if (numQEl) numQEl.value = isCuet ? 50 : 90;
+      if (durEl) durEl.value = isCuet ? 60 : 90;
+    }
+
+    if (infoEl) {
+      if (isCuet) {
+        infoEl.style.display = 'block';
+        infoEl.style.background = 'var(--primary-50)';
+        infoEl.style.borderColor = 'var(--primary-200)';
+        infoEl.style.color = 'var(--primary-800)';
+        infoEl.innerHTML = `
+          <strong>🔵 CUET (UG) Exam Pattern:</strong> 50 Questions &middot; 45–60 Mins &middot; <strong>+5 / −1 Marking (Max 250 Marks)</strong>.
+          <div style="font-size:11px;margin-top:2px;">Syllabus: Class 12th NCERT Biology only.</div>
+        `;
+      } else {
+        infoEl.style.display = 'block';
+        infoEl.style.background = '#f0fdf4';
+        infoEl.style.borderColor = '#86efac';
+        infoEl.style.color = '#065f46';
+        infoEl.innerHTML = `
+          <strong>🟢 NEET (UG) Exam Pattern:</strong> 90 Questions &middot; 90 Mins &middot; <strong>+4 / −1 Marking (Max 360 Marks)</strong>.
+          <div style="font-size:11px;margin-top:2px;">Syllabus: Class 11th &amp; 12th Full Biology.</div>
+        `;
+      }
     }
   },
 
@@ -504,20 +559,32 @@ const Admin = {
     AdminState.editingFLTId = null;
     const form = document.getElementById('admin-flt-form');
     form.reset();
-    document.getElementById('admin-flt-form-title').textContent = 'Add Full-Length Test';
+    document.getElementById('admin-flt-form-title').textContent = '➕ Add Full-Length Test';
+    const examSelect = document.getElementById('admin-flt-examtype');
+    if (examSelect) {
+      examSelect.value = AdminState.fltExamFilter !== 'all' ? AdminState.fltExamFilter : 'NEET';
+      Admin.onFLTExamCategoryChange(examSelect.value);
+    }
     form.style.display = 'block';
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
   },
 
   startEditFLT(id) {
-    const t = (AdminState.cachedFLTs || []).find((x) => x._id === id);
+    const t = (AdminState.cachedFLTs || []).find((x) => (x._id === id || x.id === id));
     if (!t) return;
     AdminState.editingFLTId = id;
-    document.getElementById('admin-flt-form-title').textContent = 'Edit Full-Length Test';
+    document.getElementById('admin-flt-form-title').textContent = '✏️ Edit Full-Length Test';
     document.getElementById('admin-flt-title').value = t.title;
     document.getElementById('admin-flt-description').value = t.description || '';
     document.getElementById('admin-flt-numquestions').value = t.numberOfQuestions;
     document.getElementById('admin-flt-duration').value = t.durationMinutes;
+
+    const examSelect = document.getElementById('admin-flt-examtype');
+    if (examSelect) {
+      examSelect.value = t.examType || (t.title && t.title.toLowerCase().includes('cuet') ? 'CUET' : 'NEET');
+      Admin.onFLTExamCategoryChange(examSelect.value);
+    }
+
     const form = document.getElementById('admin-flt-form');
     form.style.display = 'block';
     form.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -529,8 +596,12 @@ const Admin = {
   },
 
   async saveFLT() {
+    const examType = document.getElementById('admin-flt-examtype')?.value || 'NEET';
+    const isCuet = examType === 'CUET';
     const payload = {
       title: document.getElementById('admin-flt-title').value.trim(),
+      examType,
+      markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
       description: document.getElementById('admin-flt-description').value.trim(),
       numberOfQuestions: Number(document.getElementById('admin-flt-numquestions').value),
       durationMinutes: Number(document.getElementById('admin-flt-duration').value),
@@ -538,10 +609,10 @@ const Admin = {
     try {
       if (AdminState.editingFLTId) {
         await ApiClient.put(`/admin/full-length-tests/${AdminState.editingFLTId}`, payload);
-        App.showToast('Test updated.');
+        App.showToast('✅ Test updated successfully.');
       } else {
         await ApiClient.post('/admin/full-length-tests', payload);
-        App.showToast('Test created.');
+        App.showToast(`✅ [${examType}] Full-Length Test created successfully.`);
       }
       Admin.cancelFLTForm();
       Admin.loadFullLengthTests();
@@ -1629,28 +1700,32 @@ function adminQuestionRow(q) {
 
 function adminFLTRow(t) {
   const qCount = Array.isArray(t.questions) ? t.questions.length : (t.questionsCount || 0);
-  const target = t.numberOfQuestions || 90;
+  const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
+  const target = t.numberOfQuestions || (isCuet ? 50 : 90);
   const isComplete = qCount >= target;
 
   return `
-    <div class="card" style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);flex-wrap:wrap;">
+    <div class="card" style="display:flex;align-items:center;gap:var(--sp-3);margin-bottom:var(--sp-3);flex-wrap:wrap;border-left:4px solid ${isCuet ? '#2563eb' : '#059669'};box-shadow:var(--shadow-sm);">
       <div style="flex:1;min-width:220px;">
         <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1);">
-          <span style="font-weight:700;font-size:var(--text-base);">${escapeHtml(t.title)}</span>
-          <span class="badge ${isComplete ? 'badge-success' : 'badge-primary'}" style="font-size:11px;">
+          <span class="badge ${isCuet ? 'badge-primary' : 'badge-success'}" style="font-size:11px;font-weight:800;background:${isCuet ? 'linear-gradient(135deg, #2563eb, #3b82f6)' : 'linear-gradient(135deg, #059669, #10b981)'};color:#fff;">
+            ${isCuet ? '🔵 CUET (UG)' : '🟢 NEET'}
+          </span>
+          <span style="font-weight:700;font-size:var(--text-base);color:#0f172a;">${escapeHtml(t.title)}</span>
+          <span class="badge ${isComplete ? 'badge-success' : 'badge-neutral'}" style="font-size:11px;">
             ${qCount} / ${target} Questions
           </span>
         </div>
-        <div style="font-size:var(--text-xs);color:var(--neutral-500);">
-          ${escapeHtml(t.description || 'Full syllabus mock test')} &middot; ⏱️ ${t.durationMinutes} min
+        <div style="font-size:var(--text-xs);color:var(--neutral-500);margin-top:2px;">
+          ${escapeHtml(t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'))} &middot; ⏱️ ${t.durationMinutes} min &middot; 🏆 Max: <strong>${isCuet ? '250 Marks (+5/−1)' : '360 Marks (+4/−1)'}</strong>
         </div>
       </div>
       <div style="display:flex;gap:var(--sp-2);align-items:center;flex-wrap:wrap;">
-        <button class="btn btn-primary btn-sm" onclick="Admin.openFLTQuestions('${t._id}')">
+        <button class="btn btn-primary btn-sm" onclick="Admin.openFLTQuestions('${t._id || t.id}')">
           📝 Manage Questions (${qCount})
         </button>
-        <button class="btn btn-outline btn-sm" onclick="Admin.startEditFLT('${t._id}')">Edit</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteFLT('${t._id}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')">Delete</button>
+        <button class="btn btn-outline btn-sm" onclick="Admin.startEditFLT('${t._id || t.id}')">Edit</button>
+        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);" onclick="Admin.deleteFLT('${t._id || t.id}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')">Delete</button>
       </div>
     </div>
   `;
@@ -1714,9 +1789,10 @@ function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
 
       <div style="flex:1;min-width:0;">
         <div style="display:flex;align-items:center;gap:var(--sp-2);flex-wrap:wrap;margin-bottom:var(--sp-1);">
+          ${q.examType === 'CUET' ? '<span class="badge badge-primary" style="font-size:10px;font-weight:700;">🔵 CUET</span>' : '<span class="badge badge-success" style="font-size:10px;font-weight:700;">🟢 NEET</span>'}
           <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(chapterName)}</span>
           ${q.year ? `<span class="badge badge-neutral" style="font-size:10px;">PYQ ${q.year}</span>` : ''}
-          ${q.isFoundation ? `<span class="badge badge-primary" style="font-size:10px;">Foundation</span>` : ''}
+          ${q.isFoundation ? `<span class="badge badge-warning" style="font-size:10px;">Foundation</span>` : ''}
         </div>
 
         <div style="font-weight:600;font-size:var(--text-sm);line-height:1.4;margin-bottom:var(--sp-2);">
@@ -2368,22 +2444,58 @@ function renderAdminCsvImport(container) {
    Screen: admin-fulltests
    ============================================================ */
 function renderAdminFullLengthTests(container) {
+  const currentFilter = AdminState.fltExamFilter || 'all';
+
   container.innerHTML = adminShell('fulltests', `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);">
-      <div class="section-title" style="margin:0;">Full-Length Tests</div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">🏆 Full-Length Mock Tests</div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">Create &amp; manage authentic full syllabus tests for NEET (360M) and CUET (250M).</p>
+      </div>
       <button class="btn btn-primary btn-sm" onclick="Admin.startCreateFLT()">+ Add Test</button>
     </div>
 
-    <form id="admin-flt-form" style="display:none;margin-bottom:var(--sp-5);" class="card card-lg" onsubmit="event.preventDefault(); Admin.saveFLT();">
-      <div class="section-title" id="admin-flt-form-title" style="font-size:var(--text-base);">Add Full-Length Test</div>
-      <div class="form-group"><label class="form-label">Title</label><input class="form-input" id="admin-flt-title" required /></div>
-      <div class="form-group"><label class="form-label">Description</label><textarea class="form-input" id="admin-flt-description" rows="2"></textarea></div>
-      <div class="grid-2" style="gap:var(--sp-4);">
-        <div class="form-group"><label class="form-label">Number of Questions</label><input class="form-input" type="number" min="1" id="admin-flt-numquestions" required /></div>
-        <div class="form-group"><label class="form-label">Duration (minutes)</label><input class="form-input" type="number" min="1" id="admin-flt-duration" required /></div>
+    <!-- Category Filter Tabs -->
+    <div style="display:flex;gap:var(--sp-2);margin-bottom:var(--sp-4);flex-wrap:wrap;">
+      <button class="btn ${currentFilter === 'all' ? 'btn-primary' : 'btn-ghost'} btn-sm flt-filter-btn" data-filter="all" onclick="Admin.onFLTExamFilterChange('all')">
+        All Categories
+      </button>
+      <button class="btn ${currentFilter === 'NEET' ? 'btn-primary' : 'btn-ghost'} btn-sm flt-filter-btn" data-filter="NEET" onclick="Admin.onFLTExamFilterChange('NEET')">
+        🟢 NEET Mocks (90 Qs &middot; +4/−1)
+      </button>
+      <button class="btn ${currentFilter === 'CUET' ? 'btn-primary' : 'btn-ghost'} btn-sm flt-filter-btn" data-filter="CUET" onclick="Admin.onFLTExamFilterChange('CUET')">
+        🔵 CUET (UG) Mocks (50 Qs &middot; +5/−1)
+      </button>
+    </div>
+
+    <!-- Add/Edit FLT Form -->
+    <form id="admin-flt-form" style="display:none;margin-bottom:var(--sp-5);border-top:3px solid var(--primary-600);" class="card card-lg" onsubmit="event.preventDefault(); Admin.saveFLT();">
+      <div class="section-title" id="admin-flt-form-title" style="font-size:var(--text-base);margin-bottom:var(--sp-3);">Add Full-Length Test</div>
+      
+      <!-- Category Selection -->
+      <div class="form-group" style="margin-bottom:var(--sp-3);">
+        <label class="form-label" style="font-weight:700;">Target Exam Category *</label>
+        <select class="form-select" id="admin-flt-examtype" required onchange="Admin.onFLTExamCategoryChange(this.value)">
+          <option value="NEET">🟢 NEET (UG) Full Mock Test (90 Qs &middot; 90 Mins &middot; +4/−1 Marking &middot; Max 360M)</option>
+          <option value="CUET">🔵 CUET (UG) Biology Mock Test (50 Qs &middot; 60 Mins &middot; +5/−1 Marking &middot; Max 250M)</option>
+        </select>
       </div>
-      <div style="display:flex;gap:var(--sp-3);">
-        <button class="btn btn-primary" type="submit">Save</button>
+
+      <!-- Exam Pattern Alert Box -->
+      <div id="admin-flt-exam-pattern-info" style="display:block;background:#f0fdf4;border:1px solid #86efac;color:#065f46;padding:var(--sp-2) var(--sp-3);border-radius:var(--radius-sm);font-size:var(--text-xs);margin-bottom:var(--sp-3);">
+        <strong>🟢 NEET (UG) Exam Pattern:</strong> 90 Questions &middot; 90 Mins &middot; <strong>+4 / −1 Marking (Max 360 Marks)</strong>.
+        <div style="font-size:11px;margin-top:2px;">Syllabus: Class 11th &amp; 12th Full Biology.</div>
+      </div>
+
+      <div class="form-group"><label class="form-label">Test Title *</label><input class="form-input" id="admin-flt-title" placeholder="e.g. NEET Full Syllabus Mock Test #1" required /></div>
+      <div class="form-group"><label class="form-label">Description / Instructions</label><textarea class="form-input" id="admin-flt-description" rows="2" placeholder="Brief description of this mock test…"></textarea></div>
+      
+      <div class="grid-2" style="gap:var(--sp-4);">
+        <div class="form-group"><label class="form-label">Number of Questions *</label><input class="form-input" type="number" min="1" id="admin-flt-numquestions" value="90" required /></div>
+        <div class="form-group"><label class="form-label">Duration (minutes) *</label><input class="form-input" type="number" min="1" id="admin-flt-duration" value="90" required /></div>
+      </div>
+      <div style="display:flex;gap:var(--sp-3);margin-top:var(--sp-3);border-top:1px solid var(--neutral-100);padding-top:var(--sp-3);">
+        <button class="btn btn-primary" type="submit">💾 Save Test</button>
         <button class="btn btn-outline" type="button" onclick="Admin.cancelFLTForm()">Cancel</button>
       </div>
     </form>

@@ -209,14 +209,19 @@ const ApiClient = (() => {
         { id: 'flt03', title: 'Full Length Test 3', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
         { id: 'flt04', title: 'Full Length Test 4', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
         { id: 'flt05', title: 'Full Length Test 5', description: 'Complete Biology Mock Test', numberOfQuestions: 90, durationMinutes: 90 },
-      ]).map((t, idx) => ({
-        _id: t.id || `flt_${idx + 1}`,
-        title: t.title,
-        description: t.description || 'Full syllabus mock test',
-        numberOfQuestions: t.numberOfQuestions || 90,
-        durationMinutes: t.durationMinutes || 90,
-        questions: Array.isArray(t.questions) ? t.questions : (idx === 0 ? ['q_01', 'q_02'] : ['q_03']),
-      }));
+      ]).map((t, idx) => {
+        const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
+        return {
+          _id: t.id || `flt_${idx + 1}`,
+          title: t.title,
+          examType: isCuet ? 'CUET' : 'NEET',
+          markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
+          description: t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
+          numberOfQuestions: t.numberOfQuestions || (isCuet ? 50 : 90),
+          durationMinutes: t.durationMinutes || (isCuet ? 60 : 90),
+          questions: Array.isArray(t.questions) ? t.questions : (idx === 0 ? ['q_01', 'q_02'] : ['q_03']),
+        };
+      });
 
       const auditLogs = [];
       const reports = [];
@@ -552,24 +557,32 @@ const ApiClient = (() => {
     // Full Length Tests
     if (cleanPath === '/admin/full-length-tests') {
       if (method === 'GET') {
-        const tests = data.fullLengthTests.map((t) => ({
+        const examType = urlParams.get('examType');
+        let tests = data.fullLengthTests.map((t) => ({
           ...t,
+          examType: t.examType || (t.title && t.title.toLowerCase().includes('cuet') ? 'CUET' : 'NEET'),
           questions: Array.isArray(t.questions) ? t.questions : [],
         }));
+        if (examType && examType !== 'all') {
+          tests = tests.filter((t) => (t.examType || 'NEET') === examType);
+        }
         return { fullLengthTests: tests };
       }
       if (method === 'POST') {
+        const isCuet = body.examType === 'CUET' || (body.title && body.title.toLowerCase().includes('cuet'));
         const newFLT = {
           _id: `flt_${Date.now()}`,
           title: body.title,
+          examType: isCuet ? 'CUET' : 'NEET',
+          markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
           description: body.description || '',
-          numberOfQuestions: Number(body.numberOfQuestions) || 90,
-          durationMinutes: Number(body.durationMinutes) || 90,
+          numberOfQuestions: Number(body.numberOfQuestions) || (isCuet ? 50 : 90),
+          durationMinutes: Number(body.durationMinutes) || (isCuet ? 60 : 90),
           questions: Array.isArray(body.questions) ? body.questions : [],
         };
         data.fullLengthTests.push(newFLT);
         MockStore.save(data);
-        MockStore.addAuditLog('CREATE_FLT', 'FullLengthTest', newFLT._id, `Created test "${newFLT.title}"`);
+        MockStore.addAuditLog('CREATE_FLT', 'FullLengthTest', newFLT._id, `Created [${newFLT.examType}] test "${newFLT.title}"`);
         return { fullLengthTest: newFLT };
       }
     }

@@ -2255,15 +2255,18 @@ DB.syncFromAdminStore = function() {
       });
       mockData.fullLengthTests.forEach(t => {
         const id = t._id || t.id;
+        const isCuet = t.examType === 'CUET' || (t.title && t.title.toLowerCase().includes('cuet'));
         if (t.active === false || t.isDeleted === true) {
           fltMap.delete(id);
         } else {
           fltMap.set(id, {
             id,
             title: t.title,
-            description: t.description || 'Complete Biology Mock Test',
-            numberOfQuestions: t.numberOfQuestions || 90,
-            durationMinutes: t.durationMinutes || 90,
+            examType: isCuet ? 'CUET' : 'NEET',
+            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
+            description: t.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Complete Biology Mock Test'),
+            numberOfQuestions: t.numberOfQuestions || (isCuet ? 50 : 90),
+            durationMinutes: t.durationMinutes || (isCuet ? 60 : 90),
             questions: Array.isArray(t.questions) ? t.questions : [],
           });
         }
@@ -2377,6 +2380,9 @@ DB.syncFromAdminStore = function() {
 
 window.State = State;
 window.DB = DB;
+window.getFLTProgress = getFLTProgress;
+window.recordFLTAttempt = recordFLTAttempt;
+window.getFullLengthTestQuestions = getFullLengthTestQuestions;
 
 // Initial sync on load
 DB.syncFromAdminStore();
