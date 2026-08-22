@@ -602,9 +602,33 @@ const ApiClient = (() => {
       const parts = sub.split('/');
       const id = parts[0];
 
-      const idx = data.fullLengthTests.findIndex((t) => t._id === id || t.id === id);
+      let idx = data.fullLengthTests.findIndex((t) =>
+        t._id === id ||
+        t.id === id ||
+        (id && (t._id === id.replace('0', '') || t.id === id.replace('0', ''))) ||
+        (id && (String(t._id || t.id).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0))
+      );
       if (idx === -1) {
-        throw new ApiError('Test not found', 404);
+        const dbTest = (window.DB && (window.DB.fullLengthTests || window.DB.rawBaseFullLengthTests) || []).find((t) =>
+          t.id === id ||
+          t._id === id ||
+          (id && (t.id === id.replace('0', '') || t._id === id.replace('0', ''))) ||
+          (id && (String(t.id || t._id).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0))
+        );
+        const isCuet = (dbTest && (dbTest.examType === 'CUET' || (dbTest.title && dbTest.title.toLowerCase().includes('cuet')))) || (id && id.toLowerCase().includes('cuet'));
+        const newFLT = {
+          _id: id,
+          id: id,
+          title: (dbTest && dbTest.title) || (isCuet ? 'CUET (UG) Full Mock Test' : 'NEET Full Syllabus Mock Test'),
+          examType: isCuet ? 'CUET' : 'NEET',
+          markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
+          description: (dbTest && dbTest.description) || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
+          numberOfQuestions: Number(dbTest && dbTest.numberOfQuestions) || (isCuet ? 50 : 90),
+          durationMinutes: Number(dbTest && dbTest.durationMinutes) || (isCuet ? 60 : 90),
+          questions: Array.isArray(dbTest && dbTest.questions) ? [...dbTest.questions] : [],
+        };
+        data.fullLengthTests.push(newFLT);
+        idx = data.fullLengthTests.length - 1;
       }
       const test = data.fullLengthTests[idx];
       if (!Array.isArray(test.questions)) test.questions = [];

@@ -1014,19 +1014,29 @@ const Admin = {
     const testId = AdminState.activeFLTId;
     if (!testId) return;
 
-    const chapterId = document.getElementById('flt-newq-chapter').value;
-    const yearRaw = document.getElementById('flt-newq-year').value.trim();
-    const text = document.getElementById('flt-newq-text').value.trim();
-    const options = [1, 2, 3, 4].map((n) => document.getElementById(`flt-newq-option-${n}`).value.trim());
+    const chapterId = document.getElementById('flt-newq-chapter')?.value || (AdminState.cachedChapters[0] && (AdminState.cachedChapters[0]._id || AdminState.cachedChapters[0].id)) || 'ch01';
+    const yearRaw = document.getElementById('flt-newq-year')?.value?.trim() || '';
+    const text = document.getElementById('flt-newq-text')?.value?.trim() || '';
+    const options = [1, 2, 3, 4].map((n) => document.getElementById(`flt-newq-option-${n}`)?.value?.trim() || '');
     const correctRadio = document.querySelector('input[name="flt-newq-correct"]:checked');
-    const explanation = document.getElementById('flt-newq-explanation').value.trim();
-    const isFoundation = document.getElementById('flt-newq-foundation').checked;
+    const explanation = document.getElementById('flt-newq-explanation')?.value?.trim() || '';
+    const isFoundation = !!document.getElementById('flt-newq-foundation')?.checked;
     const errorEl = document.getElementById('flt-newq-error');
-    errorEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+
+    if (!text) {
+      if (errorEl) {
+        errorEl.textContent = 'Question statement is required.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
 
     if (!correctRadio) {
-      errorEl.textContent = 'Select which option is correct.';
-      errorEl.style.display = 'block';
+      if (errorEl) {
+        errorEl.textContent = 'Select which option is correct.';
+        errorEl.style.display = 'block';
+      }
       return;
     }
 
@@ -1044,12 +1054,16 @@ const Admin = {
 
     try {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, payload);
-      App.showToast('New question created and added to test!');
+      App.showToast('✅ New question created and added to test!');
       Admin.switchFLTTab('assigned');
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Failed to save question to test.';
+        errorEl.style.display = 'block';
+      } else {
+        alert(err.message);
+      }
     }
   },
 

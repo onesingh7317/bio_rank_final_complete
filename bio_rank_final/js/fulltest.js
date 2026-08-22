@@ -148,23 +148,31 @@ window.setFLTFilter = function (filter) {
 
 /* ---- Start / attempt a Full Length Test ---- */
 window.startFullLengthTest = function (testId) {
-  const test = (DB.fullLengthTests || []).find(t => t.id === testId);
+  let test = (DB.fullLengthTests || []).find(t => t.id === testId || t._id === testId);
+  if (!test && window.DB && window.DB.rawBaseFullLengthTests) {
+    test = window.DB.rawBaseFullLengthTests.find(t => t.id === testId || t._id === testId);
+  }
+  if (!test) {
+    if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
+    test = (DB.fullLengthTests || []).find(t => t.id === testId || t._id === testId);
+  }
   if (!test) { App.showToast('Test not found'); return; }
 
   const questions = getFullLengthTestQuestions(test);
   if (questions.length === 0) { App.showToast('No questions available yet'); return; }
 
+  const actualId = test.id || test._id || testId;
   App.navigate('test', {
     questions,
     mode: 'fulllength',
     meta: {
-      testId: test.id,
+      testId: actualId,
       title: test.title,
       examType: test.examType || 'NEET',
-      durationSeconds: test.durationMinutes * 60,
+      durationSeconds: (test.durationMinutes || 90) * 60,
     },
     onComplete: (results) => {
-      recordFLTAttempt(test.id, results);
+      recordFLTAttempt(actualId, results);
       App.navigate('flt-result', results);
     },
   });
@@ -175,7 +183,8 @@ function renderFLTResult(container, results) {
   if (!results) { App.navigate('full-length-test'); return; }
 
   const testId = results.meta && results.meta.testId;
-  const test = (DB.fullLengthTests || []).find(t => t.id === testId);
+  const test = (DB.fullLengthTests || []).find(t => t.id === testId || t._id === testId)
+    || (window.DB && window.DB.rawBaseFullLengthTests && window.DB.rawBaseFullLengthTests.find(t => t.id === testId || t._id === testId));
   const progress = getFLTProgress(testId);
   const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
   const totalQ = results.totalQuestions || (isCuet ? 50 : 90);
@@ -239,7 +248,8 @@ function renderFLTResult(container, results) {
 function renderFLTReview(container, results) {
   if (!results) { App.navigate('full-length-test'); return; }
   const testId = results.meta && results.meta.testId;
-  const test = (DB.fullLengthTests || []).find(t => t.id === testId);
+  const test = (DB.fullLengthTests || []).find(t => t.id === testId || t._id === testId)
+    || (window.DB && window.DB.rawBaseFullLengthTests && window.DB.rawBaseFullLengthTests.find(t => t.id === testId || t._id === testId));
   const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
 
   container.innerHTML = `
