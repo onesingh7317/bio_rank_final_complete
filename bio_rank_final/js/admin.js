@@ -716,6 +716,11 @@ const Admin = {
       badgeEl.className = `badge ${qCount >= target ? 'badge-success' : 'badge-primary'}`;
     }
 
+    const assignedTabBtn = document.querySelector('.flt-tab-btn[data-tab="assigned"]');
+    if (assignedTabBtn) {
+      assignedTabBtn.textContent = `📋 Assigned Questions (${qCount})`;
+    }
+
     Admin.renderFLTTabContent();
   },
 
@@ -1000,7 +1005,9 @@ const Admin = {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionId: validId });
       App.showToast('✅ Question added to test!');
       if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
+      AdminState.fltActiveTab = 'assigned';
       await Admin.loadFLTQuestionsView(testId);
+      Admin.switchFLTTab('assigned');
     } catch (err) {
       alert('Failed to add question: ' + err.message);
     }
@@ -1017,7 +1024,9 @@ const Admin = {
       App.showToast(`✅ ${qIds.length} question(s) added to test!`);
       AdminState.fltSelectedBankQuestionIds.clear();
       if (typeof DB.syncFromAdminStore === 'function') DB.syncFromAdminStore();
+      AdminState.fltActiveTab = 'assigned';
       await Admin.loadFLTQuestionsView(testId);
+      Admin.switchFLTTab('assigned');
     } catch (err) {
       alert('Failed to add questions: ' + err.message);
     }
