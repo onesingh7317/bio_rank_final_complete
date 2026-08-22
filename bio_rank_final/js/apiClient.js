@@ -668,7 +668,10 @@ const ApiClient = (() => {
         // DELETE /admin/full-length-tests/:id/questions/:questionId
         if (parts[2] && method === 'DELETE') {
           const qIdToRemove = parts[2];
-          test.questions = test.questions.filter((qId) => (typeof qId === 'object' ? qId._id : qId) !== qIdToRemove);
+          test.questions = test.questions.filter((qId) => {
+            const rawId = typeof qId === 'object' ? (qId._id || qId.id) : qId;
+            return rawId !== qIdToRemove;
+          });
           data.fullLengthTests[idx] = test;
           MockStore.save(data);
           MockStore.addAuditLog('REMOVE_FLT_QUESTION', 'FullLengthTest', id, `Removed question from test "${test.title}"`);
@@ -732,6 +735,8 @@ const ApiClient = (() => {
             return (
               data.questions.find((q) => q._id === targetId || q.id === targetId) ||
               (window.DB && window.DB.questions && window.DB.questions.find((q) => q.id === targetId || q._id === targetId)) ||
+              (window.DB && window.DB.cuetQuestions && window.DB.cuetQuestions.find((q) => q.id === targetId || q._id === targetId)) ||
+              (window.DB && window.DB.ncertQuestions && window.DB.ncertQuestions.find((q) => q.id === targetId || q._id === targetId)) ||
               null
             );
           })

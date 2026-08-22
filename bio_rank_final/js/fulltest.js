@@ -204,9 +204,9 @@ function renderFLTResult(container, results) {
   const test = (DB.fullLengthTests || []).find(t => t.id === testId || t._id === testId)
     || (window.DB && window.DB.rawBaseFullLengthTests && window.DB.rawBaseFullLengthTests.find(t => t.id === testId || t._id === testId));
   const progress = getFLTProgress(testId);
-  const isCuet = (test && test.examType === 'CUET') || (results && results.examType === 'CUET');
-  const totalQ = results.totalQuestions || (isCuet ? 50 : 90);
-  const maxMarks = isCuet ? 250 : (totalQ * 4);
+  const isCuet = (test && test.examType === 'CUET') || (results && results.meta && results.meta.examType === 'CUET') || (test && test.title && test.title.toLowerCase().includes('cuet'));
+  const totalQ = results.totalQuestions || (results.questions && results.questions.length) || (test && test.numberOfQuestions) || (isCuet ? 50 : 90);
+  const maxMarks = isCuet ? (totalQ * 5) : (totalQ * 4);
   const finalScore = results.score !== undefined ? results.score : (results.neetScore !== undefined ? results.neetScore : (isCuet ? (results.correct * 5 - results.incorrect * 1) : (results.correct * 4 - results.incorrect * 1)));
   const percent = results.accuracy !== undefined ? results.accuracy : (totalQ > 0 ? Math.round((results.correct / totalQ) * 100) : 0);
 
