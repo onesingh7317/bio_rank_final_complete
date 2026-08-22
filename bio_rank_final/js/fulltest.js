@@ -11,17 +11,22 @@ const FLT = {
 
 /* ---- Full Length Test list page ---- */
 function renderFullLengthTest(container) {
+  if (typeof DB.syncFromAdminStore === 'function') {
+    DB.syncFromAdminStore();
+  }
   const tests = DB.fullLengthTests || [];
-  const currentExam = (window.State && State.getExamMode()) || 'NEET';
-  if (FLT.examFilter === 'all') {
-    FLT.examFilter = currentExam;
+  const currentExam = (window.State && typeof State.getExamMode === 'function' && State.getExamMode()) || 'all';
+  if (!FLT.examFilterInitialized) {
+    FLT.examFilter = currentExam === 'CUET' ? 'CUET' : (currentExam === 'NEET' ? 'NEET' : 'all');
+    FLT.examFilterInitialized = true;
   }
 
-  const withProgress = tests.map(t => ({ test: t, progress: getFLTProgress(t.id) }));
+  const withProgress = tests.map(t => ({ test: t, progress: getFLTProgress(t.id || t._id) }));
   const filtered = withProgress.filter(({ test, progress }) => {
+    const isCuet = test.examType === 'CUET' || (test.title && test.title.toLowerCase().includes('cuet'));
     // Exam type filter
-    if (FLT.examFilter === 'NEET' && test.examType === 'CUET') return false;
-    if (FLT.examFilter === 'CUET' && test.examType !== 'CUET') return false;
+    if (FLT.examFilter === 'NEET' && isCuet) return false;
+    if (FLT.examFilter === 'CUET' && !isCuet) return false;
 
     // Attempted filter
     if (FLT.filter === 'attempted') return progress.attempts > 0;
@@ -80,15 +85,23 @@ function renderFullLengthTest(container) {
 
 function setFLTExamFilter(exam) {
   FLT.examFilter = exam;
+  FLT.examFilterInitialized = true;
   const container = document.getElementById('screen-container');
-  if (container) renderFullLengthTest(container);
+  if (container) {
+    renderFullLengthTest(container);
+  } else if (window.App && typeof App.navigate === 'function') {
+    App.navigate('full-length-test');
+  }
 }
+window.setFLTExamFilter = setFLTExamFilter;
+window.renderFullLengthTest = renderFullLengthTest;
 
 function fltCardHtml(test, progress) {
   const attempted = progress.attempts > 0;
-  const isCuet = test.examType === 'CUET';
+  const isCuet = test.examType === 'CUET' || (test.title && test.title.toLowerCase().includes('cuet'));
   const maxScore = isCuet ? 250 : 360;
   const recentHistory = progress.attemptHistory.slice(-5);
+  const testId = test.id || test._id;
 
   return `
     <div class="flt-card">
@@ -133,7 +146,7 @@ function fltCardHtml(test, progress) {
       `}
 
       <div class="flt-card-actions">
-        <button class="btn btn-primary btn-block" onclick="startFullLengthTest('${test.id}')">
+        <button class="btn btn-primary btn-block" onclick="startFullLengthTest('${testId}')">
           ${attempted ? 'Retake Test →' : 'Start Test →'}
         </button>
       </div>
@@ -143,7 +156,12 @@ function fltCardHtml(test, progress) {
 
 window.setFLTFilter = function (filter) {
   FLT.filter = filter;
-  App.navigate('full-length-test');
+  const container = document.getElementById('screen-container');
+  if (container) {
+    renderFullLengthTest(container);
+  } else if (window.App && typeof App.navigate === 'function') {
+    App.navigate('full-length-test');
+  }
 };
 
 /* ---- Start / attempt a Full Length Test ---- */

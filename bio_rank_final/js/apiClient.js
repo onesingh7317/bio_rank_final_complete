@@ -89,15 +89,19 @@ const ApiClient = (() => {
 
       const dbTests = (window.DB && (window.DB.rawBaseFullLengthTests || window.DB.fullLengthTests)) || [];
       dbTests.forEach((dt, idx) => {
-        const found = data.fullLengthTests.find((t) => t._id === dt.id || t.id === dt.id || t._id === `flt_${idx + 1}`);
+        const found = data.fullLengthTests.find((t) => t._id === dt.id || t.id === dt.id);
         if (!found) {
+          const isCuet = dt.examType === 'CUET' || (dt.title && dt.title.toLowerCase().includes('cuet'));
           data.fullLengthTests.push({
             _id: dt.id || `flt_${idx + 1}`,
+            id: dt.id || `flt_${idx + 1}`,
             title: dt.title,
-            description: dt.description || 'Full syllabus mock test',
-            numberOfQuestions: dt.numberOfQuestions || 90,
-            durationMinutes: dt.durationMinutes || 90,
-            questions: [],
+            examType: isCuet ? 'CUET' : 'NEET',
+            markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
+            description: dt.description || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
+            numberOfQuestions: Number(dt.numberOfQuestions) || (isCuet ? 50 : 90),
+            durationMinutes: Number(dt.durationMinutes) || (isCuet ? 45 : 90),
+            questions: Array.isArray(dt.questions) ? [...dt.questions] : [],
           });
         }
       });

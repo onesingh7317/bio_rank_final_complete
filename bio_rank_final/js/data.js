@@ -915,6 +915,16 @@ const DB = {
       questions: []
     },
     {
+      id: 'flt_05',
+      title: 'Full Length Test 5',
+      description: 'All-India Rank Predictor NEET Full Syllabus Mock Test (360 Marks).',
+      numberOfQuestions: 90,
+      durationMinutes: 45,
+      examType: 'NEET',
+      maxMarks: 360,
+      questions: []
+    },
+    {
       id: 'flt_cuet_01',
       title: 'CUET UG Biology Mock Test 1',
       description: 'NTA CUET (UG) official pattern: 50 Questions, +5/−1 marking (250 Marks). 100% Class 12th NCERT Syllabus.',
@@ -928,6 +938,36 @@ const DB = {
       id: 'flt_cuet_02',
       title: 'CUET UG Biology Mock Test 2',
       description: 'Comprehensive Class 12th NCERT CUET Mock with Case-Study & Assertion-Reason drills (250 Marks).',
+      numberOfQuestions: 50,
+      durationMinutes: 45,
+      examType: 'CUET',
+      maxMarks: 250,
+      questions: []
+    },
+    {
+      id: 'flt_cuet_03',
+      title: 'CUET UG Biology Mock Test 3',
+      description: 'High-Yield Genetics, Biotechnology, Reproduction & Ecology NCERT Mock Drill (50 Qs · 250 Marks).',
+      numberOfQuestions: 50,
+      durationMinutes: 45,
+      examType: 'CUET',
+      maxMarks: 250,
+      questions: []
+    },
+    {
+      id: 'flt_cuet_04',
+      title: 'CUET UG Biology Mock Test 4',
+      description: 'CUET UG Class 12th Complete Biology Speed Drill with Match-the-Following & Diagram Questions (250 Marks).',
+      numberOfQuestions: 50,
+      durationMinutes: 45,
+      examType: 'CUET',
+      maxMarks: 250,
+      questions: []
+    },
+    {
+      id: 'flt_cuet_05',
+      title: 'CUET UG Biology Mock Test 5',
+      description: 'NTA CUET UG Biology All-India Rank Predictor Mock Examination (50 Questions · 250 Marks).',
       numberOfQuestions: 50,
       durationMinutes: 45,
       examType: 'CUET',
