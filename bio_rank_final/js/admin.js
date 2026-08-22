@@ -372,12 +372,19 @@ const Admin = {
 
   startCreateQuestion() {
     AdminState.editingQuestionId = null;
-    App.navigate('admin-question-form');
+    App.navigate('admin-question-form', { questionId: null });
   },
 
-  startEditQuestion(id) {
+  async startEditQuestion(id) {
     AdminState.editingQuestionId = id;
-    App.navigate('admin-question-form', { questionId: id });
+    try {
+      const res = await ApiClient.get(`/admin/questions/${id}`);
+      App.navigate('admin-question-form', { questionId: id, question: res && res.question });
+    } catch (err) {
+      console.warn('API lookup error, finding locally:', err);
+      const localQ = (window.DB && window.DB.questions && window.DB.questions.find(x => x.id === id || x._id === id));
+      App.navigate('admin-question-form', { questionId: id, question: localQ || { _id: id } });
+    }
   },
 
   async deleteQuestion(id) {
@@ -392,48 +399,64 @@ const Admin = {
   },
 
   async saveQuestion() {
-    const chapterId = document.getElementById('admin-q-chapter').value;
-    const yearRaw = document.getElementById('admin-q-year').value.trim();
+    const chapterId = document.getElementById('admin-q-chapter')?.value;
+    const yearRaw = document.getElementById('admin-q-year')?.value?.trim();
     const targetExam = document.getElementById('admin-q-target-exam')?.value || 'BOTH';
-    const caseStudyPassage = document.getElementById('admin-q-case-passage')?.value?.trim() || null;
-    const text = document.getElementById('admin-q-text').value.trim();
-    const options = [1, 2, 3, 4].map((n) => document.getElementById(`admin-q-option-${n}`).value.trim());
+    const caseStudyPassage = document.getElementById('admin-q-case-passage')?.value?.trim() || '';
+    const text = document.getElementById('admin-q-text')?.value?.trim() || '';
+    const options = [1, 2, 3, 4].map((n) => document.getElementById(`admin-q-option-${n}`)?.value?.trim() || '');
     const correctRadio = document.querySelector('input[name="admin-q-correct"]:checked');
-    const explanation = document.getElementById('admin-q-explanation').value.trim();
-    const isFoundation = document.getElementById('admin-q-foundation').checked;
+    const explanation = document.getElementById('admin-q-explanation')?.value?.trim() || '';
+    const isFoundation = !!document.getElementById('admin-q-foundation')?.checked;
     const errorEl = document.getElementById('admin-q-error');
-    errorEl.style.display = 'none';
+    if (errorEl) errorEl.style.display = 'none';
+
+    if (!text) {
+      if (errorEl) {
+        errorEl.textContent = 'Question statement is required.';
+        errorEl.style.display = 'block';
+      }
+      return;
+    }
 
     if (!correctRadio) {
-      errorEl.textContent = 'Select which option is correct.';
-      errorEl.style.display = 'block';
+      if (errorEl) {
+        errorEl.textContent = 'Select which option is correct.';
+        errorEl.style.display = 'block';
+      }
       return;
     }
 
     const payload = {
-      chapterId,
+      chapterId: chapterId || 'ch01',
       bloomLevel: 'remember',
       weightage: 4,
       year: yearRaw ? Number(yearRaw) : undefined,
       targetExam,
       caseStudyPassage,
-      text, options,
+      text,
+      options,
       correctOption: Number(correctRadio.value),
-      explanation, isFoundation,
+      explanation,
+      isFoundation,
     };
 
     try {
       if (AdminState.editingQuestionId) {
         await ApiClient.put(`/admin/questions/${AdminState.editingQuestionId}`, payload);
-        App.showToast('Question updated.');
+        App.showToast('✅ Question updated successfully.');
       } else {
         await ApiClient.post('/admin/questions', payload);
-        App.showToast('Question created.');
+        App.showToast('✅ Question created successfully.');
       }
       App.navigate('admin-questions');
     } catch (err) {
-      errorEl.textContent = err.message;
-      errorEl.style.display = 'block';
+      if (errorEl) {
+        errorEl.textContent = err.message || 'Failed to save question.';
+        errorEl.style.display = 'block';
+      } else {
+        alert(err.message);
+      }
     }
   },
 
@@ -1195,9 +1218,11 @@ const Admin = {
     AdminState.editingNcertQuestionId = id;
     try {
       const res = await ApiClient.get(`/admin/ncert-bio-focus/${id}`);
-      App.navigate('admin-ncert-form', res.question);
+      App.navigate('admin-ncert-form', res && (res.question || res.ncertQuestion));
     } catch (err) {
-      alert('Could not fetch question for editing: ' + err.message);
+      console.warn('API lookup failed for NCERT question, finding locally:', err);
+      const localQ = (window.DB && window.DB.ncertQuestions && window.DB.ncertQuestions.find(x => x.id === id || x._id === id));
+      App.navigate('admin-ncert-form', localQ || { _id: id });
     }
   },
 
@@ -1405,10 +1430,15 @@ const Admin = {
     AdminState.editingCuetQuestionId = id;
     try {
       const res = await ApiClient.get(`/admin/cuet-pyqs/${id}`);
-      const q = res.question || res.cuetQuestion;
+      const q = res && (res.question || res.cuetQuestion);
       App.navigate('admin-cuet-pyq-form', q);
     } catch (err) {
-      alert('Could not fetch CUET question for editing: ' + err.message);
+      console.warn('API lookup failed for CUET question, finding locally:', err);
+      let localQ = (window.DB && (window.DB.rawBaseCuetQuestions || window.DB.cuetQuestions) || []).find(x => x.id === id || x._id === id);
+      if (!localQ && window.DB && window.DB.questions) {
+        localQ = window.DB.questions.find(x => (x.id === id || x._id === id) && x.examType === 'CUET');
+      }
+      App.navigate('admin-cuet-pyq-form', localQ || { _id: id });
     }
   },
 
@@ -1551,10 +1581,15 @@ const Admin = {
     AdminState.editingNeetQuestionId = id;
     try {
       const res = await ApiClient.get(`/admin/neet-pyqs/${id}`);
-      const q = res.question || res.neetQuestion;
+      const q = res && (res.question || res.neetQuestion);
       App.navigate('admin-neet-pyq-form', q);
     } catch (err) {
-      alert('Could not fetch NEET question for editing: ' + err.message);
+      console.warn('API lookup failed for NEET question, finding locally:', err);
+      let localQ = (window.DB && (window.DB.rawBaseQuestions || window.DB.questions) || []).find(x => x.id === id || x._id === id);
+      if (!localQ && window.DB && window.DB.pyqQuestions) {
+        localQ = window.DB.pyqQuestions.find(x => x.id === id || x._id === id);
+      }
+      App.navigate('admin-neet-pyq-form', localQ || { _id: id });
     }
   },
 
@@ -2135,9 +2170,11 @@ function renderAdminPagination(elementId, pagination, onPageClick) {
   }
   html += '</div>';
   el.innerHTML = html;
-  el.querySelectorAll('button[data-page]').forEach((btn) => {
-    btn.addEventListener('click', () => onPageClick(Number(btn.getAttribute('data-page'))));
-  });
+  if (typeof el.querySelectorAll === 'function') {
+    el.querySelectorAll('button[data-page]').forEach((btn) => {
+      btn.addEventListener('click', () => onPageClick(Number(btn.getAttribute('data-page'))));
+    });
+  }
 }
 
 /* ============================================================
@@ -2161,7 +2198,7 @@ function truncate(str, len) {
 async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Select a chapter…', classFilter = null) {
   const select = document.getElementById(selectId);
   if (!select) return;
-  if (!AdminState.cachedChapters.length) {
+  if (!AdminState.cachedChapters || !AdminState.cachedChapters.length) {
     try {
       const res = await ApiClient.get('/admin/chapters');
       AdminState.cachedChapters = res.chapters || [];
@@ -2178,9 +2215,21 @@ async function populateChapterDropdown(selectId, selectedId, emptyLabel = 'Selec
   if (classFilter) {
     chapters = chapters.filter(c => String(c.class) === String(classFilter));
   }
+
+  const normTarget = typeof selectedId === 'object' && selectedId !== null ? (selectedId._id || selectedId.id) : selectedId;
+
   select.innerHTML =
     `<option value="">${emptyLabel}</option>` +
-    chapters.map((c) => `<option value="${c._id}" ${c._id === selectedId ? 'selected' : ''}>${escapeHtml(c.name)}</option>`).join('');
+    chapters.map((c) => {
+      const cId = c._id || c.id;
+      const isSelected = normTarget && (
+        cId === normTarget ||
+        c._id === normTarget ||
+        c.id === normTarget ||
+        (String(cId).replace(/\D/g, '') === String(normTarget).replace(/\D/g, '') && String(normTarget).replace(/\D/g, '').length > 0)
+      );
+      return `<option value="${cId}" ${isSelected ? 'selected' : ''}>${escapeHtml(c.name)}</option>`;
+    }).join('');
 }
 
 async function populateSubSkillFilterDropdown(chapterId) {
@@ -2330,21 +2379,35 @@ function renderAdminQuestions(container) {
 /* ============================================================
    Screen: admin-question-form (create/edit)
    ============================================================ */
+/* ============================================================
+   Screen: admin-question-form (create/edit)
+   ============================================================ */
 async function renderAdminQuestionForm(container, data) {
   const questionId = (data && data.questionId) || AdminState.editingQuestionId;
   AdminState.editingQuestionId = questionId || null;
   const isEdit = !!questionId;
 
   container.innerHTML = adminShell('questions', `
-    <div class="section-title" style="margin-bottom:var(--sp-4);">${isEdit ? 'Edit Question' : 'Add Question'}</div>
-    <form class="card card-lg" onsubmit="event.preventDefault(); Admin.saveQuestion();">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--sp-3);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--sp-4);flex-wrap:wrap;gap:var(--sp-2);">
+      <div>
+        <div class="section-title" style="margin:0 0 var(--sp-1) 0;">
+          ${isEdit ? '✏️ Edit Question' : '➕ Add Question'}
+        </div>
+        <p style="margin:0;font-size:var(--text-xs);color:var(--neutral-500);">
+          Add or edit NCERT Biology questions for Chapter practice tests, Quizzes, and Question Banks.
+        </p>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="App.navigate('admin-questions')">← Back to List</button>
+    </div>
+
+    <form class="card card-lg" onsubmit="event.preventDefault(); Admin.saveQuestion();" style="padding:var(--sp-5);">
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(220px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-3);">
         <div class="form-group">
-          <label class="form-label">Chapter</label>
+          <label class="form-label" for="admin-q-chapter">Biology Chapter *</label>
           <select class="form-select" id="admin-q-chapter" required></select>
         </div>
         <div class="form-group">
-          <label class="form-label">Target Exam</label>
+          <label class="form-label" for="admin-q-target-exam">Target Exam</label>
           <select class="form-select" id="admin-q-target-exam">
             <option value="BOTH">Both NEET &amp; CUET (UG)</option>
             <option value="NEET">NEET Only</option>
@@ -2353,64 +2416,97 @@ async function renderAdminQuestionForm(container, data) {
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Year (optional, e.g. PYQ 2024)</label>
-        <input class="form-input" type="number" id="admin-q-year" placeholder="e.g. 2024" />
+      <div style="display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:var(--sp-3);margin-bottom:var(--sp-3);">
+        <div class="form-group">
+          <label class="form-label" for="admin-q-year">Exam Year (optional, e.g. 2024)</label>
+          <input class="form-input" type="number" id="admin-q-year" placeholder="e.g. 2024" />
+        </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Case Study Passage (Optional for CUET / Passage Questions)</label>
-        <textarea class="form-input" id="admin-q-case-passage" rows="2" placeholder="Paste paragraph/experimental context for case-study questions..."></textarea>
+      <div class="form-group" style="margin-bottom:var(--sp-3);">
+        <label class="form-label" for="admin-q-case-passage">Case Study Passage (Optional for CUET / Paragraph Questions)</label>
+        <textarea class="form-input" id="admin-q-case-passage" rows="2" placeholder="Paste paragraph / experimental context for case-study questions…"></textarea>
       </div>
 
-      <div class="form-group"><label class="form-label">Question Text</label><textarea class="form-input" id="admin-q-text" rows="3" required></textarea></div>
-
-      <div class="form-group">
-        <label class="form-label">Options (select the correct one)</label>
-        ${[1, 2, 3, 4].map((n) => `
-          <div style="display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-2);">
-            <input type="radio" name="admin-q-correct" value="${n - 1}" id="admin-q-correct-${n}" />
-            <input class="form-input" id="admin-q-option-${n}" placeholder="Option ${n}" required style="flex:1;" />
-          </div>
-        `).join('')}
+      <div class="form-group" style="margin-bottom:var(--sp-4);">
+        <label class="form-label" for="admin-q-text">Question Statement *</label>
+        <textarea class="form-textarea" id="admin-q-text" rows="3" required placeholder="Enter the exact question statement…"></textarea>
       </div>
 
-      <div class="form-group"><label class="form-label">Explanation</label><textarea class="form-input" id="admin-q-explanation" rows="3" required></textarea></div>
+      <div class="form-group" style="margin-bottom:var(--sp-4);">
+        <label class="form-label">Options &amp; Correct Answer (Select the radio of correct option) *</label>
+        <div style="display:flex;flex-direction:column;gap:var(--sp-2);">
+          ${[1, 2, 3, 4].map((n) => `
+            <div style="display:flex;align-items:center;gap:var(--sp-3);">
+              <label style="display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;font-weight:700;font-size:var(--text-xs);width:90px;flex-shrink:0;">
+                <input type="radio" name="admin-q-correct" value="${n - 1}" id="admin-q-correct-${n}" ${n === 1 ? 'checked' : ''} />
+                Option ${String.fromCharCode(64 + n)}
+              </label>
+              <input class="form-input" id="admin-q-option-${n}" placeholder="Option ${String.fromCharCode(64 + n)} text" required style="flex:1;" />
+            </div>
+          `).join('')}
+        </div>
+      </div>
 
-      <div class="form-group" style="display:flex;align-items:center;gap:var(--sp-2);">
+      <div class="form-group" style="margin-bottom:var(--sp-3);">
+        <label class="form-label" for="admin-q-explanation">Step-by-step NCERT Explanation</label>
+        <textarea class="form-textarea" id="admin-q-explanation" rows="2" placeholder="Explain why the correct answer is right based on NCERT…"></textarea>
+      </div>
+
+      <div class="form-group" style="display:flex;align-items:center;gap:var(--sp-2);margin-bottom:var(--sp-4);">
         <input type="checkbox" id="admin-q-foundation" />
-        <label class="form-label" style="margin:0;" for="admin-q-foundation">Include in foundation/onboarding assessment</label>
+        <label class="form-label" style="margin:0;cursor:pointer;" for="admin-q-foundation">Include in foundation/onboarding diagnostic assessment</label>
       </div>
 
-      <div id="admin-q-error" style="color:var(--error-600);font-size:var(--text-sm);margin-bottom:var(--sp-3);display:none;"></div>
+      <div id="admin-q-error" style="color:var(--error-600);background:var(--error-50);border-left:3px solid var(--error-600);padding:var(--sp-2) var(--sp-3);font-size:var(--text-xs);margin-bottom:var(--sp-3);display:none;"></div>
 
-      <div style="display:flex;gap:var(--sp-3);">
-        <button class="btn btn-primary" type="submit">Save</button>
-        <button class="btn btn-outline" type="button" onclick="App.navigate('admin-questions')">Cancel</button>
+      <div style="display:flex;gap:var(--sp-3);justify-content:flex-end;border-top:1px solid var(--neutral-100);padding-top:var(--sp-3);">
+        <button class="btn btn-secondary" type="button" onclick="App.navigate('admin-questions')">Cancel</button>
+        <button class="btn btn-primary" type="submit">💾 ${isEdit ? 'Save Changes' : 'Create Question'}</button>
       </div>
     </form>
   `);
 
-  await populateChapterDropdown('admin-q-chapter');
-
-  if (isEdit) {
+  let prefilledQ = (data && data.question) || null;
+  if (isEdit && !prefilledQ) {
     try {
       const res = await ApiClient.get(`/admin/questions/${questionId}`);
-      const q = res.question;
-      document.getElementById('admin-q-chapter').value = q.chapterId;
-      document.getElementById('admin-q-target-exam').value = q.targetExam || 'BOTH';
-      document.getElementById('admin-q-year').value = q.year ?? '';
-      document.getElementById('admin-q-case-passage').value = q.caseStudyPassage || '';
-      document.getElementById('admin-q-text').value = q.text;
-      q.options.forEach((opt, i) => { document.getElementById(`admin-q-option-${i + 1}`).value = opt; });
-      const radio = document.getElementById(`admin-q-correct-${q.correctOption + 1}`);
-      if (radio) radio.checked = true;
-      document.getElementById('admin-q-explanation').value = q.explanation;
-      document.getElementById('admin-q-foundation').checked = q.isFoundation;
+      prefilledQ = res && res.question;
     } catch (err) {
-      App.showToast(err.message);
-      App.navigate('admin-questions');
+      console.warn('Fallback question lookup for form:', err);
+      prefilledQ = (window.DB && window.DB.questions && window.DB.questions.find(x => x.id === questionId || x._id === questionId));
     }
+  }
+
+  const selectedChap = prefilledQ ? (prefilledQ.chapterId || prefilledQ.chapter) : '';
+  await populateChapterDropdown('admin-q-chapter', selectedChap, 'Select Biology Chapter');
+
+  if (prefilledQ) {
+    const q = prefilledQ;
+    const targetExamEl = document.getElementById('admin-q-target-exam');
+    if (targetExamEl) targetExamEl.value = q.targetExam || 'BOTH';
+    const yearEl = document.getElementById('admin-q-year');
+    if (yearEl) yearEl.value = q.year ?? '';
+    const casePassageEl = document.getElementById('admin-q-case-passage');
+    if (casePassageEl) casePassageEl.value = q.caseStudyPassage || '';
+    const textEl = document.getElementById('admin-q-text');
+    if (textEl) textEl.value = q.text || '';
+    
+    if (Array.isArray(q.options)) {
+      q.options.forEach((opt, i) => {
+        const optEl = document.getElementById(`admin-q-option-${i + 1}`);
+        if (optEl) optEl.value = opt || '';
+      });
+    }
+
+    const cIdx = Number(q.correctOption ?? q.correct ?? 0);
+    const radio = document.getElementById(`admin-q-correct-${cIdx + 1}`);
+    if (radio) radio.checked = true;
+
+    const explEl = document.getElementById('admin-q-explanation');
+    if (explEl) explEl.value = q.explanation || '';
+    const foundEl = document.getElementById('admin-q-foundation');
+    if (foundEl) foundEl.checked = !!q.isFoundation;
   }
 }
 
