@@ -878,35 +878,56 @@ const Admin = {
 
     try {
       const res = await ApiClient.get(`/admin/questions?${params.toString()}`);
-      let questions = res.questions || [];
+      let questions = (res && res.questions) || [];
 
       if (f.search) {
         const s = f.search.toLowerCase().trim();
         questions = questions.filter((q) => (q.text || '').toLowerCase().includes(s));
       }
 
-      const assignedQIds = new Set(
-        (AdminState.activeFLT?.populatedQuestions || AdminState.activeFLT?.questions || []).map((q) => (typeof q === 'object' ? q._id : q))
-      );
+      if (!questions.length && window.DB && window.DB.questions) {
+        let localQs = [...window.DB.questions];
+        if (f.chapterId) {
+          localQs = localQs.filter(q => (
+            q.chapterId === f.chapterId ||
+            q.chapter === f.chapterId ||
+            (q.chapterId && (q.chapterId._id === f.chapterId || q.chapterId.id === f.chapterId)) ||
+            (String(q.chapterId || q.chapter).replace(/\D/g, '') === String(f.chapterId).replace(/\D/g, '') && String(f.chapterId).replace(/\D/g, '').length > 0)
+          ));
+        }
+        if (f.search) {
+          const s = f.search.toLowerCase().trim();
+          localQs = localQs.filter((q) => (q.text || '').toLowerCase().includes(s));
+        }
+        if (localQs.length) questions = localQs;
+      }
+
+      const assignedQIds = new Set();
+      (AdminState.activeFLT?.populatedQuestions || AdminState.activeFLT?.questions || []).forEach((q) => {
+        if (typeof q === 'object' && q !== null) {
+          if (q._id) assignedQIds.add(q._id);
+          if (q.id) assignedQIds.add(q.id);
+        } else if (q) {
+          assignedQIds.add(q);
+        }
+      });
 
       const testId = AdminState.activeFLTId;
 
       listEl.innerHTML = questions.length
         ? questions
-            .map((q) =>
-              adminFLTBankQuestionCard(
-                q,
-                testId,
-                assignedQIds.has(q._id),
-                AdminState.fltSelectedBankQuestionIds.has(q._id)
-              )
-            )
+            .map((q) => {
+              const qId = q._id || q.id;
+              const isAdded = assignedQIds.has(qId) || assignedQIds.has(q._id) || assignedQIds.has(q.id);
+              const isSelected = AdminState.fltSelectedBankQuestionIds.has(qId) || (q._id && AdminState.fltSelectedBankQuestionIds.has(q._id));
+              return adminFLTBankQuestionCard(q, testId, isAdded, isSelected);
+            })
             .join('')
         : '<p style="color:var(--neutral-500);text-align:center;padding:var(--sp-4);">No questions match the current filters.</p>';
 
       Admin.updateFLTBankSelectionBar();
 
-      renderAdminPagination('flt-bank-questions-pagination', res.pagination, (page) => {
+      renderAdminPagination('flt-bank-questions-pagination', res && res.pagination, (page) => {
         AdminState.fltBankFilters.page = page;
         Admin.loadFLTBankQuestions();
       });
@@ -970,9 +991,14 @@ const Admin = {
   async addSingleQuestionToFLT(qId) {
     const testId = AdminState.activeFLTId;
     if (!testId) return;
+    const validId = qId && qId !== 'undefined' ? qId : null;
+    if (!validId) {
+      App.showToast('Please select a valid question.');
+      return;
+    }
     try {
-      await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionId: qId });
-      App.showToast('Question added to test!');
+      await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionId: validId });
+      App.showToast('✅ Question added to test!');
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
       alert('Failed to add question: ' + err.message);
@@ -982,12 +1008,12 @@ const Admin = {
   async addSelectedQuestionsToFLT() {
     const testId = AdminState.activeFLTId;
     if (!testId) return;
-    const qIds = Array.from(AdminState.fltSelectedBankQuestionIds);
+    const qIds = Array.from(AdminState.fltSelectedBankQuestionIds).filter(id => id && id !== 'undefined');
     if (qIds.length === 0) return;
 
     try {
       await ApiClient.post(`/admin/full-length-tests/${testId}/questions`, { questionIds: qIds });
-      App.showToast(`${qIds.length} question(s) added to test!`);
+      App.showToast(`✅ ${qIds.length} question(s) added to test!`);
       AdminState.fltSelectedBankQuestionIds.clear();
       await Admin.loadFLTQuestionsView(testId);
     } catch (err) {
@@ -1781,7 +1807,8 @@ function adminFLTRow(t) {
 }
 
 function adminFLTAssignedQuestionCard(q, idx, testId) {
-  const chapterName = q.chapterId?.name || q.chapterName || (AdminState.cachedChapters.find((c) => c._id === (q.chapterId?._id || q.chapterId))?.name) || 'General';
+  const qId = q._id || q.id;
+  const chapterName = q.chapterId?.name || q.chapterName || (AdminState.cachedChapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
 
   return `
     <div class="card" style="margin-bottom:var(--sp-3);padding:var(--sp-4);border-left:4px solid var(--primary-500);">
@@ -1791,7 +1818,7 @@ function adminFLTAssignedQuestionCard(q, idx, testId) {
           <span class="badge badge-neutral" style="font-size:10px;">${escapeHtml(chapterName)}</span>
           ${q.year ? `<span class="badge badge-neutral" style="font-size:10px;">PYQ ${q.year}</span>` : ''}
         </div>
-        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);padding:var(--sp-1) var(--sp-2);font-size:var(--text-xs);" onclick="Admin.removeQuestionFromFLT('${q._id}', '${escapeHtml(q.text || '').replace(/'/g, "\\'")}')">
+        <button class="btn btn-ghost btn-sm" style="color:var(--error-600);padding:var(--sp-1) var(--sp-2);font-size:var(--text-xs);" onclick="Admin.removeQuestionFromFLT('${qId}', '${escapeHtml(q.text || '').replace(/'/g, "\\'")}')">
           ✕ Remove
         </button>
       </div>
@@ -1821,7 +1848,8 @@ function adminFLTAssignedQuestionCard(q, idx, testId) {
 }
 
 function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
-  const chapterName = q.chapterId?.name || (AdminState.cachedChapters.find((c) => c._id === (q.chapterId?._id || q.chapterId))?.name) || 'General';
+  const qId = q._id || q.id;
+  const chapterName = q.chapterId?.name || (AdminState.cachedChapters.find((c) => (c._id || c.id) === (q.chapterId?._id || q.chapterId || q.chapter))?.name) || 'General';
 
   return `
     <div class="card" style="margin-bottom:var(--sp-2);padding:var(--sp-3);display:flex;align-items:flex-start;gap:var(--sp-3);${isAlreadyAdded ? 'opacity:0.75;background:var(--neutral-50);' : ''}">
@@ -1829,10 +1857,10 @@ function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
         <input
           type="checkbox"
           class="flt-bank-checkbox"
-          data-qid="${q._id}"
+          data-qid="${qId}"
           ${isAlreadyAdded ? 'disabled' : ''}
           ${isSelected ? 'checked' : ''}
-          onchange="Admin.toggleFLTBankSelect('${q._id}')"
+          onchange="Admin.toggleFLTBankSelect('${qId}')"
         />
       </div>
 
@@ -1857,7 +1885,7 @@ function adminFLTBankQuestionCard(q, testId, isAlreadyAdded, isSelected) {
         ${isAlreadyAdded ? `
           <span class="badge badge-success" style="font-size:11px;padding:var(--sp-1) var(--sp-2);">✓ Added</span>
         ` : `
-          <button class="btn btn-primary btn-sm" onclick="Admin.addSingleQuestionToFLT('${q._id}')">
+          <button class="btn btn-primary btn-sm" onclick="Admin.addSingleQuestionToFLT('${qId}')">
             + Add
           </button>
         `}

@@ -110,6 +110,36 @@ const ApiClient = (() => {
         data.reports = [];
       }
 
+      if (!Array.isArray(data.questions) || data.questions.length < 10) {
+        if (window.DB && Array.isArray(window.DB.questions) && window.DB.questions.length > 0) {
+          data.questions = window.DB.questions.map((q, idx) => ({
+            _id: q._id || q.id || `q_${idx + 1}`,
+            id: q.id || q._id || `q_${idx + 1}`,
+            chapterId: q.chapterId || q.chapter,
+            subSkillId: q.subSkillId || q.subSkill,
+            bloomLevel: q.bloomLevel || 'remember',
+            weightage: q.weightage || 4,
+            year: q.year,
+            targetExam: q.targetExam || 'BOTH',
+            examType: q.examType || (q.targetExam === 'CUET' ? 'CUET' : 'NEET'),
+            text: q.text,
+            options: q.options || ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctOption: Number(q.correctOption ?? q.correct ?? 0),
+            explanation: q.explanation || '',
+            isFoundation: !!q.isFoundation,
+          }));
+        } else {
+          data.questions = initDefaults().questions || [];
+        }
+      } else {
+        // Ensure every question has _id populated
+        data.questions.forEach((q, idx) => {
+          if (!q._id && q.id) q._id = q.id;
+          if (!q.id && q._id) q.id = q._id;
+          if (!q._id && !q.id) { q._id = `q_${idx + 1}`; q.id = q._id; }
+        });
+      }
+
       if (!Array.isArray(data.cuetQuestions) || data.cuetQuestions.length === 0) {
         data.cuetQuestions = initDefaults().cuetQuestions || [];
       }
