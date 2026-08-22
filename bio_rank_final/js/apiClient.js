@@ -632,19 +632,23 @@ const ApiClient = (() => {
       const parts = sub.split('/');
       const id = parts[0];
 
-      let idx = data.fullLengthTests.findIndex((t) =>
-        t._id === id ||
-        t.id === id ||
-        (id && (t._id === id.replace('0', '') || t.id === id.replace('0', ''))) ||
-        (id && (String(t._id || t.id).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0))
-      );
+      let idx = data.fullLengthTests.findIndex((t) => {
+        const tId = t._id || t.id;
+        if (!tId || !id) return false;
+        if (tId === id) return true;
+        const normT = String(tId).toLowerCase().replace(/[-_]/g, '');
+        const normId = String(id).toLowerCase().replace(/[-_]/g, '');
+        return normT === normId;
+      });
       if (idx === -1) {
-        const dbTest = (window.DB && (window.DB.fullLengthTests || window.DB.rawBaseFullLengthTests) || []).find((t) =>
-          t.id === id ||
-          t._id === id ||
-          (id && (t.id === id.replace('0', '') || t._id === id.replace('0', ''))) ||
-          (id && (String(t.id || t._id).replace(/\D/g, '') === String(id).replace(/\D/g, '') && String(id).replace(/\D/g, '').length > 0))
-        );
+        const dbTest = (window.DB && (window.DB.fullLengthTests || window.DB.rawBaseFullLengthTests) || []).find((t) => {
+          const tId = t.id || t._id;
+          if (!tId || !id) return false;
+          if (tId === id) return true;
+          const normT = String(tId).toLowerCase().replace(/[-_]/g, '');
+          const normId = String(id).toLowerCase().replace(/[-_]/g, '');
+          return normT === normId;
+        });
         const isCuet = (dbTest && (dbTest.examType === 'CUET' || (dbTest.title && dbTest.title.toLowerCase().includes('cuet')))) || (id && id.toLowerCase().includes('cuet'));
         const newFLT = {
           _id: id,
@@ -654,7 +658,7 @@ const ApiClient = (() => {
           markingScheme: isCuet ? { correct: 5, incorrect: -1, maxMarks: 250 } : { correct: 4, incorrect: -1, maxMarks: 360 },
           description: (dbTest && dbTest.description) || (isCuet ? 'Class 12 CUET Pattern Mock Test' : 'Full syllabus NEET mock test'),
           numberOfQuestions: Number(dbTest && dbTest.numberOfQuestions) || (isCuet ? 50 : 90),
-          durationMinutes: Number(dbTest && dbTest.durationMinutes) || (isCuet ? 60 : 90),
+          durationMinutes: Number(dbTest && dbTest.durationMinutes) || (isCuet ? 45 : 90),
           questions: Array.isArray(dbTest && dbTest.questions) ? [...dbTest.questions] : [],
         };
         data.fullLengthTests.push(newFLT);
